@@ -41,7 +41,6 @@ import {
   getFirestore,
   collection,
   addDoc,
-  getDocs,
   doc,
   getDoc,
   updateDoc,
@@ -95,16 +94,15 @@ document.getElementById("crear").onclick = async ()=>{
       historial: []
     });
     document.getElementById("crearMsg").textContent = "Subasta creada correctamente";
-    // No llamamos a cargarSubastas(); onSnapshot actualizará automáticamente
+    // onSnapshot actualizará la tabla automáticamente
   }catch(e){
     document.getElementById("crearMsg").textContent = "Error al crear la subasta: " + e.message;
   }
 };
 
-/* === Cargar subastas en tiempo real (solo añadido onSnapshot) === */
+/* === Cargar subastas en tiempo real === */
 function cargarSubastas(){
   const tabla = document.getElementById("tabla");
-
   const user = auth.currentUser;
   if(!user) return;
 
@@ -189,15 +187,14 @@ window.pujar = async (id)=>{
     ganador: me.name,
     historial: [...(sub.historial || []), `${me.name} → ${nueva}`]
   });
-
-  // No llamamos a cargarSubastas(); onSnapshot actualizará la tabla automáticamente
+  // onSnapshot actualizará la tabla automáticamente
 };
 
 /* === Eliminar subasta === */
 window.eliminarSubasta = async (id)=>{
   if(!confirm("¿Eliminar esta subasta?")) return;
   await deleteDoc(doc(db,"subastas",id));
-  // No llamamos a cargarSubastas(); onSnapshot actualizará la tabla automáticamente
+  // onSnapshot actualizará la tabla automáticamente
 };
 
 /* === Contador en vivo === */
