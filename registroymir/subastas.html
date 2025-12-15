@@ -28,9 +28,15 @@
     <p id="crearMsg" style="text-align:center; color:#c77dff; margin-top:10px;"></p>
   </div>
 
-  <!-- Tabla de subastas -->
-  <div class="card">
-    <table id="tabla"></table>
+  <!-- Contenedor tabla + saldo (no se modifican estilos de la tabla) -->
+  <div class="card" style="display:flex; align-items:flex-start; gap:20px;">
+    <!-- Tabla de subastas -->
+    <table id="tabla" style="flex:1"></table>
+
+    <!-- Cuadro de saldo a la derecha -->
+    <div style="border:1px solid #ccc; padding:10px; border-radius:6px; min-width:180px; text-align:center;">
+      <button id="saldoBtn" disabled style="font-weight:bold; width:100%;">Mis puntos: 0</button>
+    </div>
   </div>
 </div>
 
@@ -57,7 +63,7 @@ initializeApp({
 const auth = getAuth();
 const db = getFirestore();
 
-/* === Estado de auth y visibilidad del creador === */
+/* === Auth y visibilidad del creador === */
 onAuthStateChanged(auth, async user=>{
   if(!user){
     location.href = "index.html";
@@ -68,8 +74,19 @@ onAuthStateChanged(auth, async user=>{
   if(role==="Líder" || role==="Oficial"){
     document.getElementById("crearSubasta").style.display = "block";
   }
+  escucharSaldo();
   cargarSubastas();
 });
+
+/* === Saldo en tiempo real (actualiza el botón a la derecha) === */
+function escucharSaldo(){
+  const user = auth.currentUser;
+  if(!user) return;
+  onSnapshot(doc(db,"members",user.uid), (snap)=>{
+    const data = snap.data();
+    document.getElementById("saldoBtn").textContent = `Mis puntos: ${data?.totalContribution ?? 0}`;
+  });
+}
 
 /* === Crear subasta === */
 document.getElementById("crear").onclick = async ()=>{
@@ -90,17 +107,19 @@ document.getElementById("crear").onclick = async ()=>{
       precioBase: precio,
       pujaActual: precio,
       ganador: "",
+      ganadorUid: "",
       fin: Date.now() + tiempo * 60000,
-      historial: []
+      finalizada: false,
+      historial: [] // [{ uid, jugador, cantidad }]
     });
     document.getElementById("crearMsg").textContent = "Subasta creada correctamente";
-    // onSnapshot actualizará la tabla automáticamente
+    // onSnapshot repintará la tabla
   }catch(e){
     document.getElementById("crearMsg").textContent = "Error al crear la subasta: " + e.message;
   }
 };
 
-/* === Cargar subastas en tiempo real === */
+/* === Tabla de subastas en tiempo real (no se tocan estilos de la tabla) === */
 function cargarSubastas(){
   const tabla = document.getElementById("tabla");
   const user = auth.currentUser;
@@ -132,7 +151,9 @@ function cargarSubastas(){
     snap.forEach(d=>{
       const s = d.data();
       const restante = Math.max(0, Math.floor((s.fin - Date.now()) / 1000));
-      const historial = s.historial && s.historial.length ? s.historial.join("<br>") : "-";
+      const historialTxt = s.historial && s.historial.length 
+        ? s.historial.map(h=>`${h.jugador} → ${h.cantidad}`).join("<br>")
+        : "-";
 
       tabla.innerHTML += `
         <tr>
@@ -143,10 +164,10 @@ function cargarSubastas(){
           <td>${s.precioBase}</td>
           <td>${s.pujaActual}</td>
           <td>${s.ganador || "-"}</td>
-          <td data-fin="${s.fin}">${formato(restante)}</td>
-          <td>${historial}</td>
+          <td data-fin="${s.fin}" data-id="${d.id}">${formato(restante)}</td>
+          <td>${historialTxt}</td>
           <td>
-            ${restante > 0
+            ${restante > 0 && !s.finalizada
               ? `<input type="number" id="puja_${d.id}" placeholder="Cantidad">
                  <button onclick="pujar('${d.id}')">Pujar</button>`
               : "Finalizada"}
@@ -154,59 +175,121 @@ function cargarSubastas(){
           ${puedeBorrar ? `<td><button onclick="eliminarSubasta('${d.id}')">🗑</button></td>` : ""}
         </tr>
       `;
+
+      if(restante <= 0 && !s.finalizada){
+        finalizarSubastaSiAplica(s, d.id);
+      }
     });
 
     iniciarContadoresVivos();
   });
 }
 
-/* === Pujar con cantidad personalizada === */
+/* === Pujar: descuenta saldo inmediato y registra para posible reembolso === */
 window.pujar = async (id)=>{
   const user = auth.currentUser;
   const meRef = doc(db,"members",user.uid);
-  const me = (await getDoc(meRef)).data();
+  const meSnap = await getDoc(meRef);
+  const me = meSnap.data();
+
   const subRef = doc(db,"subastas",id);
-  const sub = (await getDoc(subRef)).data();
+  const subSnap = await getDoc(subRef);
+  const sub = subSnap.data();
 
   const cantidad = Number(document.getElementById("puja_"+id).value);
   if(!cantidad || cantidad <= 0){
     alert("Introduce una cantidad válida");
     return;
   }
-
-  const nueva = sub.pujaActual + cantidad;
-
   if(me.totalContribution < cantidad){
     alert("No tienes puntos suficientes");
     return;
   }
 
+  const restanteSeg = Math.max(0, Math.floor((sub.fin - Date.now()) / 1000));
+  if(restanteSeg <= 0 || sub.finalizada){
+    alert("La subasta ya ha finalizado");
+    return;
+  }
+
+  // Descontar inmediatamente para reflejar saldo
   await updateDoc(meRef,{ totalContribution: me.totalContribution - cantidad });
+
+  // Registrar puja y actualizar ganador/pujaActual
+  const nueva = sub.pujaActual + cantidad;
+  const nuevoHistorial = [...(sub.historial || []), { uid:user.uid, jugador: me.name, cantidad }];
+
   await updateDoc(subRef,{
     pujaActual: nueva,
     ganador: me.name,
-    historial: [...(sub.historial || []), `${me.name} → ${nueva}`]
+    ganadorUid: user.uid,
+    historial: nuevoHistorial
   });
-  // onSnapshot actualizará la tabla automáticamente
 };
 
-/* === Eliminar subasta === */
+/* === Eliminar subasta: reembolso a todos los pujadores === */
 window.eliminarSubasta = async (id)=>{
   if(!confirm("¿Eliminar esta subasta?")) return;
-  await deleteDoc(doc(db,"subastas",id));
-  // onSnapshot actualizará la tabla automáticamente
+
+  const subRef = doc(db,"subastas",id);
+  const subSnap = await getDoc(subRef);
+  const sub = subSnap.data();
+
+  for(const h of sub.historial || []){
+    const jugadorRef = doc(db,"members",h.uid);
+    const jugadorSnap = await getDoc(jugadorRef);
+    const jugadorData = jugadorSnap.data();
+    await updateDoc(jugadorRef,{ totalContribution: (jugadorData?.totalContribution ?? 0) + h.cantidad });
+  }
+
+  await deleteDoc(subRef);
 };
 
-/* === Contador en vivo === */
+/* === Finalizar subasta: reembolsar no-ganadores, marcar finalizada === */
+async function finalizarSubastaSiAplica(sub, id){
+  if(sub.finalizada) return;
+  const subRef = doc(db,"subastas",id);
+
+  // Si nadie ganó (no hubo pujas), solo marcar finalizada
+  if(!sub.ganadorUid){
+    await updateDoc(subRef,{ finalizada: true });
+    return;
+  }
+
+  // Reembolsar a todos los que no son el ganador
+  for(const h of sub.historial || []){
+    if(h.uid !== sub.ganadorUid){
+      const jugadorRef = doc(db,"members",h.uid);
+      const jugadorSnap = await getDoc(jugadorRef);
+      const jugadorData = jugadorSnap.data();
+      await updateDoc(jugadorRef,{ totalContribution: (jugadorData?.totalContribution ?? 0) + h.cantidad });
+    }
+  }
+
+  // Marcar finalizada para evitar duplicados
+  await updateDoc(subRef,{ finalizada: true });
+}
+
+/* === Contador en vivo (no modifica estilos de la tabla) === */
 let intervaloContadores;
 function iniciarContadoresVivos(){
   if(intervaloContadores) clearInterval(intervaloContadores);
-  intervaloContadores = setInterval(()=>{
-    document.querySelectorAll("[data-fin]").forEach(td=>{
+  intervaloContadores = setInterval(async ()=>{
+    const tds = document.querySelectorAll("[data-fin]");
+    for(const td of tds){
       const fin = Number(td.getAttribute("data-fin"));
       const restante = Math.max(0, Math.floor((fin - Date.now())/1000));
       td.textContent = formato(restante);
-    });
+
+      if(restante <= 0){
+        const id = td.getAttribute("data-id");
+        if(id){
+          const subSnap = await getDoc(doc(db,"subastas",id));
+          const sub = subSnap.data();
+          if(sub) await finalizarSubastaSiAplica(sub, id);
+        }
+      }
+    }
   }, 1000);
 }
 
