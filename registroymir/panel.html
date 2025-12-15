@@ -14,7 +14,7 @@
   #reinicioBtn {
     padding: 4px 8px;
     font-size: 12px;
-    background-color: #dc3545;
+    background-color: #0d6efd;
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -30,7 +30,7 @@
     gap: 5px;
     z-index: 10;
   }
-  #reinicioBtn:hover { background-color: #a71d2a; }
+  #reinicioBtn:hover { background-color: #0b5ed7; }
   .btn {
     font-size: 12px;
     border: none;
@@ -44,11 +44,56 @@
     display: inline-block;
   }
   .btn:hover { background-color: #0b5ed7; }
+
+  /* Reloj centrado con recuadro morado neón (aislado, no afecta a la tabla) */
+  .clock-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 12px 0;
+  }
+  .clock-card {
+    display: flex;
+    gap: 40px;
+    padding: 16px 32px;
+    border-radius: 12px;
+    background: #4b0082; /* morado */
+    box-shadow: 0 0 12px #a020f0, 0 0 24px #a020f0; /* efecto neón */
+    color: #fff;
+  }
+  .clock-box { text-align: center; }
+  .clock-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+  .clock-time {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .clock-date { font-size: 12px; opacity: 0.9; }
 </style>
 </head>
 <body>
 
 <div class="container">
+  <!-- Reloj dual arriba del todo -->
+  <div class="clock-wrapper">
+    <div class="clock-card">
+      <div class="clock-box">
+        <div class="clock-title">España (Europe/Madrid)</div>
+        <div id="timeES" class="clock-time">--:--:--</div>
+        <div id="dateES" class="clock-date">Cargando…</div>
+      </div>
+      <div class="clock-box">
+        <div class="clock-title">Servidor (UTC-4 +1h)</div>
+        <div id="timeUTC4" class="clock-time">--:--:--</div>
+        <div id="dateUTC4" class="clock-date">Cargando…</div>
+      </div>
+    </div>
+  </div>
+
   <h1>Panel de Miembros</h1>
 
   <div class="nav">
@@ -91,6 +136,53 @@ const db = getFirestore();
 let MI_ROL = "Miembro";
 let MI_UID = null;
 
+/* === Reloj dual === */
+function pad2(n){ return String(n).padStart(2, "0"); }
+function updateClocks(){
+  const now = new Date();
+
+  // España (Europe/Madrid)
+  const esFormatter = new Intl.DateTimeFormat("es-ES", {
+    timeZone: "Europe/Madrid",
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+  const esDateFormatter = new Intl.DateTimeFormat("es-ES", {
+    timeZone: "Europe/Madrid",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "2-digit"
+  });
+  const elTimeES = document.getElementById("timeES");
+  const elDateES = document.getElementById("dateES");
+  if(elTimeES) elTimeES.textContent = esFormatter.format(now);
+  if(elDateES) elDateES.textContent = esDateFormatter.format(now);
+
+  // Servidor UTC-4 +1h (equivale a UTC-3 fijo)
+  const nowUTCms = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const utcMinus3 = new Date(nowUTCms - 3 * 3600 * 1000);
+  const y = utcMinus3.getUTCFullYear();
+  const m = utcMinus3.getUTCMonth() + 1;
+  const d = utcMinus3.getUTCDate();
+  const hh = utcMinus3.getUTCHours();
+  const mm = utcMinus3.getUTCMinutes();
+  const ss = utcMinus3.getUTCSeconds();
+
+  const elTimeU = document.getElementById("timeUTC4");
+  const elDateU = document.getElementById("dateUTC4");
+  if(elTimeU) elTimeU.textContent = `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}`;
+  const dayNames = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  const monthNames = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const weekday = dayNames[utcMinus3.getUTCDay()];
+  const monthName = monthNames[m - 1];
+  if(elDateU) elDateU.textContent = `${weekday}, ${pad2(d)} de ${monthName} de ${y}`;
+}
+setInterval(updateClocks, 1000);
+updateClocks();
+
 /* === Auth y carga inicial === */
 onAuthStateChanged(auth, async user=>{
   if(!user){ location.href = "index.html"; return; }
@@ -107,7 +199,6 @@ onAuthStateChanged(auth, async user=>{
 /* === Pintar tabla en tiempo real (manteniendo formato) === */
 function cargarMiembros(){
   const tabla = document.getElementById("tablaMiembros");
-
   onSnapshot(collection(db,"members"), (snap) => {
     tabla.innerHTML = `
       <tr>
@@ -123,9 +214,8 @@ function cargarMiembros(){
         <th>Acciones</th>
       </tr>
     `;
-
     snap.forEach(d=>{
-      const m = d.data();
+      const m = d.data() || {};
       const esPropio = (d.id === MI_UID);
       const boss45 = m.boss45 ? "Sí" : "No";
       const boss55 = m.boss55 ? "Sí" : "No";
@@ -196,7 +286,7 @@ window.editar = (id,nombre)=>{
     `<button class="btn" onclick="guardar('${id}','${nombre}')">Guardar</button>`;
 };
 
-/* === Guardar cambios (incluye Clase para Líder/Oficial) === */
+/* === Guardar cambios === */
 window.guardar = async (id,nombre)=>{
   const poder = Number(document.getElementById("editPoder_"+id).value);
   const nivel = Number(document.getElementById("editNivel_"+id).value);
@@ -257,7 +347,7 @@ window.reinicioSemanal = async ()=>{
   let count = 0;
 
   for(const d of snap.docs){
-    const m = d.data();
+    const m = d.data() || {};
     const semanalActual = Number(m.semanal ?? 0);
     const totalActual = Number(m.totalContribution ?? 0);
     const nuevoTotal = totalActual + semanalActual;
