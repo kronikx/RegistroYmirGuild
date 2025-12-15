@@ -45,7 +45,8 @@ import {
   doc,
   getDoc,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* === Firebase === */
@@ -94,68 +95,71 @@ document.getElementById("crear").onclick = async ()=>{
       historial: []
     });
     document.getElementById("crearMsg").textContent = "Subasta creada correctamente";
-    cargarSubastas();
+    // No llamamos a cargarSubastas(); onSnapshot actualizará automáticamente
   }catch(e){
     document.getElementById("crearMsg").textContent = "Error al crear la subasta: " + e.message;
   }
 };
 
-/* === Cargar subastas con input de puja === */
-async function cargarSubastas(){
+/* === Cargar subastas en tiempo real (solo añadido onSnapshot) === */
+function cargarSubastas(){
   const tabla = document.getElementById("tabla");
-  const snap = await getDocs(collection(db,"subastas"));
 
   const user = auth.currentUser;
-  const me = await getDoc(doc(db,"members",user.uid));
-  const role = me.data()?.role || "Miembro";
-  const puedeBorrar = (role==="Líder" || role==="Oficial");
+  if(!user) return;
 
-  if(snap.empty){
-    tabla.innerHTML = `<tr><td colspan="${puedeBorrar ? 8 : 7}">No hay subastas activas</td></tr>`;
-    return;
-  }
+  onSnapshot(collection(db,"subastas"), async (snap) => {
+    const me = await getDoc(doc(db,"members",user.uid));
+    const role = me.data()?.role || "Miembro";
+    const puedeBorrar = (role==="Líder" || role==="Oficial");
 
-  tabla.innerHTML = `
-    <tr>
-      <th>Item</th>
-      <th>Precio base</th>
-      <th>Puja actual</th>
-      <th>Ganador</th>
-      <th>Tiempo</th>
-      <th>Historial</th>
-      <th>Pujar</th>
-      ${puedeBorrar ? "<th>Eliminar</th>" : ""}
-    </tr>
-  `;
+    if(snap.empty){
+      tabla.innerHTML = `<tr><td colspan="${puedeBorrar ? 8 : 7}">No hay subastas activas</td></tr>`;
+      return;
+    }
 
-  snap.forEach(d=>{
-    const s = d.data();
-    const restante = Math.max(0, Math.floor((s.fin - Date.now()) / 1000));
-    const historial = s.historial && s.historial.length ? s.historial.join("<br>") : "-";
-
-    tabla.innerHTML += `
+    tabla.innerHTML = `
       <tr>
-        <td>
-          ${s.item}
-          ${s.imagen ? `<img src="${s.imagen}" class="item">` : ""}
-        </td>
-        <td>${s.precioBase}</td>
-        <td>${s.pujaActual}</td>
-        <td>${s.ganador || "-"}</td>
-        <td data-fin="${s.fin}">${formato(restante)}</td>
-        <td>${historial}</td>
-        <td>
-          ${restante > 0
-            ? `<input type="number" id="puja_${d.id}" placeholder="Cantidad">
-               <button onclick="pujar('${d.id}')">Pujar</button>`
-            : "Finalizada"}
-        </td>
-        ${puedeBorrar ? `<td><button onclick="eliminarSubasta('${d.id}')">🗑</button></td>` : ""}
+        <th>Item</th>
+        <th>Precio base</th>
+        <th>Puja actual</th>
+        <th>Ganador</th>
+        <th>Tiempo</th>
+        <th>Historial</th>
+        <th>Pujar</th>
+        ${puedeBorrar ? "<th>Eliminar</th>" : ""}
       </tr>
     `;
-  });
 
-  iniciarContadoresVivos();
+    snap.forEach(d=>{
+      const s = d.data();
+      const restante = Math.max(0, Math.floor((s.fin - Date.now()) / 1000));
+      const historial = s.historial && s.historial.length ? s.historial.join("<br>") : "-";
+
+      tabla.innerHTML += `
+        <tr>
+          <td>
+            ${s.item}
+            ${s.imagen ? `<img src="${s.imagen}" class="item">` : ""}
+          </td>
+          <td>${s.precioBase}</td>
+          <td>${s.pujaActual}</td>
+          <td>${s.ganador || "-"}</td>
+          <td data-fin="${s.fin}">${formato(restante)}</td>
+          <td>${historial}</td>
+          <td>
+            ${restante > 0
+              ? `<input type="number" id="puja_${d.id}" placeholder="Cantidad">
+                 <button onclick="pujar('${d.id}')">Pujar</button>`
+              : "Finalizada"}
+          </td>
+          ${puedeBorrar ? `<td><button onclick="eliminarSubasta('${d.id}')">🗑</button></td>` : ""}
+        </tr>
+      `;
+    });
+
+    iniciarContadoresVivos();
+  });
 }
 
 /* === Pujar con cantidad personalizada === */
@@ -186,14 +190,14 @@ window.pujar = async (id)=>{
     historial: [...(sub.historial || []), `${me.name} → ${nueva}`]
   });
 
-  cargarSubastas();
+  // No llamamos a cargarSubastas(); onSnapshot actualizará la tabla automáticamente
 };
 
 /* === Eliminar subasta === */
 window.eliminarSubasta = async (id)=>{
   if(!confirm("¿Eliminar esta subasta?")) return;
   await deleteDoc(doc(db,"subastas",id));
-  cargarSubastas();
+  // No llamamos a cargarSubastas(); onSnapshot actualizará la tabla automáticamente
 };
 
 /* === Contador en vivo === */
