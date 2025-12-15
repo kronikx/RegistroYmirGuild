@@ -31,18 +31,17 @@
     z-index: 10;
   }
   #reinicioBtn:hover { background-color: #a71d2a; }
-  /* Botón Editar con mismo tamaño de letra pero rectángulo reducido */
   .btn {
-    font-size: 12px;       /* igual que antes */
+    font-size: 12px;
     border: none;
     border-radius: 3px;
     cursor: pointer;
     font-weight: bold;
-    background-color: #0d6efd; /* azul/morado */
+    background-color: #0d6efd;
     color: #fff;
-    padding: 2px 6px;      /* rectángulo más estrecho */
-    width: auto;           /* se ajusta al texto */
-    display: inline-block; /* no ocupa más espacio */
+    padding: 2px 6px;
+    width: auto;
+    display: inline-block;
   }
   .btn:hover { background-color: #0b5ed7; }
 </style>
@@ -64,10 +63,12 @@
     <table id="tablaMiembros"></table>
   </div>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, doc, updateDoc, addDoc, getDoc, onSnapshot, getDocs } 
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* === Firebase === */
 initializeApp({
@@ -88,52 +89,53 @@ onAuthStateChanged(auth, async user=>{
   MI_UID = user.uid;
   const meSnap = await getDoc(doc(db,"members",user.uid));
   MI_ROL = meSnap.data()?.role || "Miembro";
-  await cargarMiembros();
+  cargarMiembros();
   if(!(MI_ROL==="Líder" || MI_ROL==="Oficial")){
     const btn = document.getElementById("reinicioBtn");
     if(btn) btn.style.display = "none";
   }
 });
 
-/* === Pintar tabla === */
-async function cargarMiembros(){
+/* === Pintar tabla en tiempo real (sin tocar tamaños ni estructura) === */
+function cargarMiembros(){
   const tabla = document.getElementById("tablaMiembros");
-  const snap = await getDocs(collection(db,"members"));
 
-  tabla.innerHTML = `
-    <tr>
-      <th>Nombre</th>
-      <th>Rol</th>
-      <th>Nivel</th>
-      <th>Poder</th>
-      <th>Contribución semanal</th>
-      <th>Boss 45</th>
-      <th>Boss 55</th>
-      <th>Contribución total</th>
-      <th>Acciones</th>
-    </tr>
-  `;
-
-  snap.forEach(d=>{
-    const m = d.data();
-    const esPropio = (d.id === MI_UID);
-    const boss45 = m.boss45 ? "Sí" : "No";
-    const boss55 = m.boss55 ? "Sí" : "No";
-    const puedeEditar = (MI_ROL==="Líder" || MI_ROL==="Oficial" || esPropio);
-
-    tabla.innerHTML += `
-      <tr id="fila_${d.id}">
-        <td>${m.name ?? "-"}</td>
-        <td id="rol_${d.id}">${m.role ?? "-"}</td>
-        <td id="nivel_${d.id}">${m.nivel ?? 1}</td>
-        <td id="poder_${d.id}">${m.poder ?? 0}</td>
-        <td id="sem_${d.id}">${m.semanal ?? 0}</td>
-        <td id="boss45_${d.id}">${boss45}</td>
-        <td id="boss55_${d.id}">${boss55}</td>
-        <td id="total_${d.id}">${m.totalContribution ?? 0}</td>
-        <td>${puedeEditar ? `<button class="btn" onclick="editar('${d.id}','${m.name ?? ''}')">Editar</button>` : ""}</td>
+  onSnapshot(collection(db,"members"), (snap) => {
+    tabla.innerHTML = `
+      <tr>
+        <th>Nombre</th>
+        <th>Rol</th>
+        <th>Nivel</th>
+        <th>Poder</th>
+        <th>Contribución semanal</th>
+        <th>Boss 45</th>
+        <th>Boss 55</th>
+        <th>Contribución total</th>
+        <th>Acciones</th>
       </tr>
     `;
+
+    snap.forEach(d=>{
+      const m = d.data();
+      const esPropio = (d.id === MI_UID);
+      const boss45 = m.boss45 ? "Sí" : "No";
+      const boss55 = m.boss55 ? "Sí" : "No";
+      const puedeEditar = (MI_ROL==="Líder" || MI_ROL==="Oficial" || esPropio);
+
+      tabla.innerHTML += `
+        <tr id="fila_${d.id}">
+          <td>${m.name ?? "-"}</td>
+          <td id="rol_${d.id}">${m.role ?? "-"}</td>
+          <td id="nivel_${d.id}">${m.nivel ?? 1}</td>
+          <td id="poder_${d.id}">${m.poder ?? 0}</td>
+          <td id="sem_${d.id}">${m.semanal ?? 0}</td>
+          <td id="boss45_${d.id}">${boss45}</td>
+          <td id="boss55_${d.id}">${boss55}</td>
+          <td id="total_${d.id}">${m.totalContribution ?? 0}</td>
+          <td>${puedeEditar ? `<button class="btn" onclick="editar('${d.id}','${m.name ?? ''}')">Editar</button>` : ""}</td>
+        </tr>
+      `;
+    });
   });
 }
 
@@ -217,42 +219,7 @@ window.guardar = async (id,nombre)=>{
     fecha: Date.now()
   });
 
-  /* Refrescar la fila sin recargar página */
-  document.getElementById("poder_"+id).textContent = poder;
-  document.getElementById("nivel_"+id).textContent = nivel;
-
-  if(updateData.role !== undefined){
-    document.getElementById("rol_"+id).textContent = updateData.role;
-  }else{
-    const rolEl = document.getElementById("rol_"+id);
-    const sel = rolEl.querySelector("select");
-    if(sel) rolEl.textContent = sel.value;
-  }
-
-  if(updateData.semanal !== undefined){
-    document.getElementById("sem_"+id).textContent = updateData.semanal;
-  }else{
-    const semEl = document.getElementById("sem_"+id);
-    if(semEl.querySelector("input")) semEl.textContent = Number(semEl.querySelector("input").value) || 0;
-  }
-
-  if(updateData.boss45 !== undefined){
-    document.getElementById("boss45_"+id).textContent = updateData.boss45 ? "Sí" : "No";
-  }else{
-    const b45El = document.getElementById("boss45_"+id);
-    const sel = b45El.querySelector("select");
-    if(sel) b45El.textContent = sel.value;
-  }
-
-  if(updateData.boss55 !== undefined){
-    document.getElementById("boss55_"+id).textContent = updateData.boss55 ? "Sí" : "No";
-  }else{
-    const b55El = document.getElementById("boss55_"+id);
-    const sel = b55El.querySelector("select");
-    if(sel) b55El.textContent = sel.value;
-  }
-
-  /* Restaurar el botón Editar */
+  /* Restaurar el botón Editar (el onSnapshot repintará la fila) */
   document.getElementById("fila_"+id).querySelector("td:last-child").innerHTML =
     `<button class="btn" onclick="editar('${id}','${nombre ?? ''}')">Editar</button>`;
 
@@ -294,7 +261,7 @@ window.reinicioSemanal = async ()=>{
   });
 
   alert("Reinicio semanal completado");
-  cargarMiembros();
+  /* No llamamos a cargarMiembros(); onSnapshot actualizará la tabla automáticamente */
 };
 </script>
 
