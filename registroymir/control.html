@@ -298,6 +298,7 @@ window.editar = (id)=>{
   const esPropio = (id === MI_UID);
   if(MI_ROL==="Miembro" && !esPropio){ alert("No tienes permisos para editar a otros miembros"); return; }
 
+  // Campos editables en Control
   const numeric = ["nivel","poder","physAtk","magAtk","physDef","magDef","acc","eva"];
   const percent = ["physDmg","magDmg","physDmgDef","magDmgDef","monsterDmg","monsterDmgDef","bossDmg","bossDmgDef"];
 
@@ -338,6 +339,7 @@ window.guardar = async (id)=>{
   const updateData = {};
   let cambioTxt = "";
 
+  // Numéricos: solo actualizar si el input no está vacío
   const numeric = ["nivel","poder","physAtk","magAtk","physDef","magDef","acc","eva"];
   for(const k of numeric){
     const v = getVal(`edit_${k}_${id}`);
@@ -350,6 +352,7 @@ window.guardar = async (id)=>{
     }
   }
 
+  // Porcentajes: solo actualizar si el input no está vacío; guardamos como cadena con %
   const percent = ["physDmg","magDmg","physDmgDef","magDmgDef","monsterDmg","monsterDmgDef","bossDmg","bossDmgDef"];
   for(const k of percent){
     const v = getVal(`edit_${k}_${id}`);
@@ -363,6 +366,7 @@ window.guardar = async (id)=>{
     }
   }
 
+  // Si no hay cambios, no enviar updateDoc
   if(Object.keys(updateData).length === 0){
     alert("No hay cambios para guardar.");
   }else{
@@ -384,19 +388,20 @@ window.guardar = async (id)=>{
   cargarControl();
 };
 
-/* === Reinicio semanal: SOLO control + exportar a Excel === */
+/* === Reinicio semanal: exportar todo y limpiar TODO salvo nivel y poder === */
 window.reinicioSemanal = async ()=>{
   if(!(MI_ROL==="Líder" || MI_ROL==="Oficial")){
     alert("No tienes permisos para realizar el reinicio semanal.");
     return;
   }
-  if(!confirm("¿Seguro que quieres reiniciar el control? Se exportará a Excel y se resetearán los campos de control.")) return;
+  if(!confirm("¿Seguro que quieres reiniciar el control? Se exportará a Excel y se resetearán los campos de control (salvo nivel y poder).")) return;
 
   const snap = await getDocs(collection(db,"members"));
   const datosExport = [];
 
   for(const d of snap.docs){
     const m = d.data() || {};
+    // Exportar todo: nombre, clase, nivel, poder y stats
     datosExport.push({
       Nombre: m.name || "",
       Clase: m.clase || "",
@@ -418,10 +423,8 @@ window.reinicioSemanal = async ()=>{
       "Boss DMG DEF": m.bossDmgDef ?? ""
     });
 
-    // Reinicio de control: limpiar SOLO los campos de control (no tocar panel)
+    // Reinicio de control: limpiar SOLO los campos de stats y porcentajes. Mantener nivel y poder.
     await updateDoc(doc(db,"members",d.id),{
-      nivel: null,
-      poder: null,
       physAtk: null,
       physDmg: null,
       magAtk: null,
@@ -449,11 +452,11 @@ window.reinicioSemanal = async ()=>{
     usuario: "Sistema",
     rol: MI_ROL,
     accion: "Reinicio semanal de control",
-    cambio: `Se exportó a Excel y se reinició control de ${snap.size} miembros`,
+    cambio: `Se exportó a Excel y se reinició control de ${snap.size} miembros (nivel y poder se mantienen)`,
     fecha: Date.now()
   });
 
-  alert("Reinicio de control completado y exportado a Excel.");
+  alert("Reinicio de control completado y exportado a Excel (nivel y poder se mantienen).");
 };
 </script>
 
