@@ -1,3 +1,5 @@
+// /api/discordAuth/callback.js
+
 const CLIENT_ID = "1450641085385674853";
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = "https://registroymir.vercel.app/api/discordAuth/callback";
@@ -8,11 +10,10 @@ export default async function handler(req, res) {
   const code = urlParams.get("code");
 
   if (!code) {
-    return res.status(400).json({ error: "Falta el parámetro 'code'" });
+    return res.redirect("/index.html");
   }
 
   try {
-    // Intercambiar el code por un token
     const tokenResponse = await fetch("https://discord.com/api/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -28,16 +29,14 @@ export default async function handler(req, res) {
 
     const tokenData = await tokenResponse.json();
     if (!tokenData.access_token) {
-      return res.status(400).json({ error: "No se pudo obtener el token", detalle: tokenData });
+      return res.redirect("/index.html");
     }
 
-    // Obtener datos del usuario
     const userResponse = await fetch("https://discord.com/api/users/@me", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
     const userData = await userResponse.json();
 
-    // Verificar si está en tu servidor
     const guildResponse = await fetch("https://discord.com/api/users/@me/guilds", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
@@ -46,18 +45,17 @@ export default async function handler(req, res) {
     const isMember = guilds.some((g) => g.id === GUILD_ID);
 
     if (isMember) {
-      // Guardar cookie con opciones seguras + refresh_token
+      // ✅ Cookies persistentes (7 días)
       res.setHeader("Set-Cookie", [
-        `discordUser=${userData.id}; Path=/; HttpOnly; Secure; SameSite=Lax`,
-        `discordRefresh=${tokenData.refresh_token}; Path=/; HttpOnly; Secure; SameSite=Lax`
+        `discordUser=${userData.id}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`,
+        `discordRefresh=${tokenData.refresh_token}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`
       ]);
-
-      // Redirigir directamente al panel
       return res.redirect("/panel.html");
     } else {
       return res.status(403).send("Acceso denegado: no eres miembro del servidor.");
     }
   } catch (err) {
-    return res.status(500).json({ error: "Error en el login", detalle: err.message });
+    console.error("Error en callback:", err);
+    return res.redirect("/index.html");
   }
 }
