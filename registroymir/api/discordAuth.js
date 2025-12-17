@@ -1,9 +1,7 @@
 // api/discordAuth.js
 
-import fetch from "node-fetch";
-
 const CLIENT_ID = "1450641085385674853";       // Tu Client ID
-const CLIENT_SECRET = process.env.CLIENT_SECRET; // Ponlo en Vercel → Settings → Environment Variables
+const CLIENT_SECRET = process.env.CLIENT_SECRET; // Guardado en Vercel → Environment Variables
 const REDIRECT_URI = "https://registroymir.vercel.app/api/discordAuth/callback";
 const GUILD_ID = "1223035000967139449";       // Tu Guild ID
 
@@ -20,7 +18,10 @@ export default async function handler(req, res) {
 
   // Ruta callback: /api/discordAuth/callback → recibe el code de Discord
   if (url.endsWith("/api/discordAuth/callback")) {
-    const code = req.query.code;
+    // Extraer el parámetro "code"
+    const urlParams = new URLSearchParams(req.url.split("?")[1]);
+    const code = urlParams.get("code");
+
     if (!code) {
       return res.status(400).json({ error: "Falta el parámetro 'code'" });
     }
@@ -52,7 +53,7 @@ export default async function handler(req, res) {
       const userData = await userResponse.json();
 
       // Verificar si está en tu servidor
-      const guildResponse = await fetch(`https://discord.com/api/users/@me/guilds`, {
+      const guildResponse = await fetch("https://discord.com/api/users/@me/guilds", {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
       });
       const guilds = await guildResponse.json();
