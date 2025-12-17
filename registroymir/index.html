@@ -24,9 +24,8 @@
     background: #4b0082;
     box-shadow: 0 0 12px #a020f0, 0 0 24px #a020f0;
   }
-  /* Estilo para el botón de Discord */
   .login-discord {
-    background-color: #5865F2; /* color oficial Discord */
+    background-color: #5865F2;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -39,6 +38,21 @@
   .login-discord:hover {
     background-color: #4752C4;
   }
+  .register-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-weight: bold;
+    display: none; /* oculto por defecto */
+  }
+  .register-btn:hover {
+    background-color: #218838;
+  }
 </style>
 </head>
 <body>
@@ -47,6 +61,7 @@
     <a href="https://registroymir.vercel.app/api/discordAuth">
       <button class="login-discord">Entrar con Discord</button>
     </a>
+    <button id="registerBtn" class="register-btn">Registrarse</button>
     <div id="welcome" style="margin-top:15px; font-weight:bold;"></div>
   </div>
 
@@ -59,6 +74,17 @@
           document.getElementById("welcome").textContent = "Ya has iniciado sesión en Discord.";
         }
       });
+
+    // Detectar si viene con ?auth=ok
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("auth") === "ok") {
+      document.getElementById("registerBtn").style.display = "inline-block";
+    }
+
+    // Acción del botón de registro
+    document.getElementById("registerBtn").addEventListener("click", () => {
+      window.location.href = "/registro.html"; // o la ruta que quieras
+    });
   </script>
 </body>
 </html>
