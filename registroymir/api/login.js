@@ -1,5 +1,6 @@
 import { getDoc, doc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../firebase";
+
 
 export default async function handler(req,res){
   try{
