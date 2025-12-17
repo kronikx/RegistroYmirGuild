@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>YMIR Guild - Solicitudes</title>
+  <title>YMIR Guild - Signup (Admin)</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .badge {
@@ -13,22 +13,6 @@
       font-weight: bold;
     }
     .badge-pendiente { background-color: #ffc107; color:#000; }
-    .badge-aprobada { background-color: #198754; }
-    .badge-rechazada { background-color: #ff6b6b; }
-
-    .filters {
-      margin-bottom: 15px;
-      text-align: center;
-    }
-    .filters button {
-      margin: 0 5px;
-      padding: 6px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
     .access-denied {
       display: none;
       margin: 1rem;
@@ -44,14 +28,15 @@
 <body>
 
 <div class="container">
-  <h1>Solicitudes de Acceso</h1>
+  <h1>Signup (Admin)</h1>
 
   <div class="nav">
     <a href="panel.html">Miembros</a>
     <a href="subastas.html">Subastas</a>
     <a href="registro.html">Historial</a>
     <a href="control.html">Control Semanal</a>
-    <a href="solicitudes.html" class="active">Solicitudes</a>
+    <a href="solicitudes.html">Solicitudes</a>
+    <a href="signup.html" class="active">Signup</a>
   </div>
 
   <div id="accessDenied" class="access-denied">
@@ -59,11 +44,7 @@
   </div>
 
   <div id="content" class="card" style="display:none">
-    <div class="filters">
-      <button onclick="filtrar('todos')">Todos</button>
-      <button onclick="filtrar('pendiente')">Pendientes</button>
-    </div>
-    <table id="tablaSolicitudes"></table>
+    <table id="tablaSignup"></table>
   </div>
 </div>
 
@@ -83,15 +64,15 @@ const db = getFirestore();
 
 let solicitudes = [];
 
-/* === Protección de roles === */
+/* === Protección de roles (solo Líder/Oficial) === */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "index.html";
     return;
   }
 
-  const docRef = doc(db, "members", user.uid);
-  const snap = await getDoc(docRef);
+  const ref = doc(db, "members", user.uid);
+  const snap = await getDoc(ref);
   const rol = snap.exists() ? (snap.data().rol || snap.data().proofImages?.role || "").toLowerCase() : "";
 
   if (rol !== "lider" && rol !== "oficial") {
@@ -103,11 +84,11 @@ onAuthStateChanged(auth, async (user) => {
 
   document.getElementById("accessDenied").style.display = "none";
   document.getElementById("content").style.display = "block";
-  cargarSolicitudesRealtime();
+  cargarSignupRealtime();
 });
 
-/* === Cargar solicitudes en tiempo real === */
-function cargarSolicitudesRealtime(){
+/* === Live updates: carga solicitudes en tiempo real === */
+function cargarSignupRealtime(){
   const q = query(collection(db,"solicitudes"), orderBy("fecha","desc"));
   onSnapshot(q, snap => {
     solicitudes = [];
@@ -119,10 +100,10 @@ function cargarSolicitudesRealtime(){
 }
 
 function pintarTabla(lista){
-  const tabla = document.getElementById("tablaSolicitudes");
+  const tabla = document.getElementById("tablaSignup");
 
   if(lista.length===0){
-    tabla.innerHTML = `<tr><td colspan="5">No hay solicitudes</td></tr>`;
+    tabla.innerHTML = `<tr><td colspan="5">No hay solicitudes de signup</td></tr>`;
     return;
   }
 
@@ -137,13 +118,11 @@ function pintarTabla(lista){
   `;
 
   lista.forEach(s=>{
-    let badgeClass = "badge badge-pendiente";
-
     tabla.innerHTML += `
       <tr>
         <td>${s.email || "-"}</td>
         <td>${s.usuarioId || "-"}</td>
-        <td><span class="${badgeClass}">${s.estado}</span></td>
+        <td><span class="badge badge-pendiente">${s.estado || "pendiente"}</span></td>
         <td>${s.fecha ? new Date(s.fecha.toDate()).toLocaleString() : "-"}</td>
         <td>
           <button onclick="aprobar('${s.id}','${s.usuarioId}','${s.email}')">Aprobar</button>
@@ -154,19 +133,9 @@ function pintarTabla(lista){
   });
 }
 
-/* === Filtro === */
-window.filtrar = (tipo)=>{
-  if(tipo==="todos"){
-    pintarTabla(solicitudes);
-    return;
-  }
-  const filtrados = solicitudes.filter(s=> s.estado===tipo);
-  pintarTabla(filtrados);
-};
-
 /* === Acciones === */
 window.aprobar = async (solicitudId, usuarioId, email)=>{
-  // Crear en members con rol miembro
+  // Al aprobar: crear en members como 'miembro' y borrar de solicitudes
   await setDoc(doc(db,"members",usuarioId), {
     email: email,
     rol: "miembro",
@@ -175,8 +144,6 @@ window.aprobar = async (solicitudId, usuarioId, email)=>{
     nivel: 0,
     poder: 0
   });
-
-  // Eliminar de solicitudes
   await deleteDoc(doc(db,"solicitudes",solicitudId));
 };
 
