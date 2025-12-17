@@ -43,10 +43,17 @@ export default async function handler(req, res) {
     const isMember = guilds.some((g) => g.id === GUILD_ID);
 
     if (isMember) {
+      // 🔑 Detectar entorno: producción (HTTPS) vs local (HTTP)
+      const isProd = req.headers.host && req.headers.host.includes("vercel.app");
+      const cookieFlags = isProd
+        ? "Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800"
+        : "Path=/; HttpOnly; SameSite=Lax; Max-Age=604800";
+
       res.setHeader("Set-Cookie", [
-        `discordUser=${userData.id}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`,
-        `discordRefresh=${tokenData.refresh_token}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`
+        `discordUser=${userData.id}; ${cookieFlags}`,
+        `discordRefresh=${tokenData.refresh_token}; ${cookieFlags}`
       ]);
+
       return res.redirect("/panel.html");
     } else {
       return res.status(403).send("Acceso denegado: no eres miembro del servidor.");
