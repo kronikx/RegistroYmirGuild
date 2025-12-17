@@ -43,16 +43,12 @@ export default async function handler(req, res) {
     const isMember = guilds.some((g) => g.id === GUILD_ID);
 
     if (isMember) {
-      // 🔑 Detectar entorno: producción (HTTPS) vs local (HTTP)
-      const isProd = req.headers.host && req.headers.host.includes("vercel.app");
-      const cookieFlags = isProd
-        ? "Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800"
-        : "Path=/; HttpOnly; SameSite=Lax; Max-Age=604800";
+      // 🔑 En producción (Vercel con HTTPS) usamos Secure + SameSite=None
+      const cookieFlags = "Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800";
 
-      res.setHeader("Set-Cookie", [
-        `discordUser=${userData.id}; ${cookieFlags}`,
-        `discordRefresh=${tokenData.refresh_token}; ${cookieFlags}`
-      ]);
+      // Cada cookie en su propia cabecera
+      res.setHeader("Set-Cookie", `discordUser=${userData.id}; ${cookieFlags}`);
+      res.appendHeader("Set-Cookie", `discordRefresh=${tokenData.refresh_token}; ${cookieFlags}`);
 
       return res.redirect("/panel.html");
     } else {
