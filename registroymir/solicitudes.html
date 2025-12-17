@@ -2,78 +2,35 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>YMIR Guild - Solicitudes</title>
+  <title>YMIR Guild - Panel</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    .badge {
-      padding: 4px 8px;
-      border-radius: 6px;
-      color: #fff;
-      font-size: 12px;
-      font-weight: bold;
-    }
-    .badge-pendiente { background-color: #ffc107; color:#000; }
-    .badge-aprobada { background-color: #198754; }
-    .badge-rechazada { background-color: #ff6b6b; }
-
-    .filters {
-      margin-bottom: 15px;
-      text-align: center;
-    }
-    .filters button {
-      margin: 0 5px;
-      padding: 6px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    /* Mensaje de acceso denegado */
-    .access-denied {
-      display: none;
-      margin: 1rem;
-      padding: 1rem;
-      border-radius: 8px;
-      background: #331a1a;
-      color: #ffb3b3;
-      font-weight: bold;
-      text-align: center;
-    }
-  </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Solicitudes de Acceso</h1>
+  <h1>Panel de Miembros</h1>
 
   <div class="nav">
-    <a href="panel.html">Miembros</a>
+    <a href="panel.html" class="active">Miembros</a>
     <a href="subastas.html">Subastas</a>
     <a href="registro.html">Historial</a>
     <a href="control.html">Control Semanal</a>
-    <a href="solicitudes.html" class="active">Solicitudes</a>
+    <span id="solicitudesBtn" style="display:none">
+      <a href="solicitudes.html">Solicitudes</a>
+    </span>
   </div>
 
-  <div id="accessDenied" class="access-denied">Acceso denegado: esta sección es solo para Líderes y Oficiales.</div>
-
-  <div id="content" class="card" style="display:none">
-    <div class="filters">
-      <button onclick="filtrar('todos')">Todos</button>
-      <button onclick="filtrar('pendiente')">Pendientes</button>
-      <button onclick="filtrar('aprobada')">Aprobadas</button>
-      <button onclick="filtrar('rechazada')">Rechazadas</button>
-    </div>
-    <table id="tablaSolicitudes"></table>
+  <div class="card">
+    <table id="tablaMiembros"></table>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, doc, getDoc, updateDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* === Firebase (misma config que historial) === */
+/* === Firebase === */
 initializeApp({
   apiKey: "AIzaSyBt9Kqhw6V1l5ZkQLK5FKxmeW1kQ68LIbE",
   authDomain: "registro-de-guild-en-ymir.firebaseapp.com",
@@ -82,155 +39,51 @@ initializeApp({
 const auth = getAuth();
 const db = getFirestore();
 
-let solicitudes = [];
-
-/* === Protección de roles (solo Líder/Oficial) === */
+/* === Mostrar botón de Solicitudes solo si el rol es Lider u Oficial === */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    console.warn("[Solicitudes] Usuario no autenticado → redirigiendo a index");
     window.location.href = "index.html";
     return;
   }
 
-  try {
-    // 1) Intento en colección 'usuarios' (si existe en tu app)
-    const usuariosDocRef = doc(db, "usuarios", user.uid);
-    const usuariosDoc = await getDoc(usuariosDocRef);
+  const docRef = doc(db, "members", user.uid);
+  const snap = await getDoc(docRef);
+  const rol = snap.exists() ? (snap.data().rol || snap.data().proofImages?.role || "").toLowerCase() : "";
 
-    // 2) Intento en colección 'members' (tu estructura actual)
-    const membersDocRef = doc(db, "members", user.uid);
-    const membersDoc = await getDoc(membersDocRef);
-
-    const dataUsuarios = usuariosDoc.exists() ? usuariosDoc.data() : null;
-    const dataMembers  = membersDoc.exists()  ? membersDoc.data()  : null;
-
-    console.log("[Solicitudes] datos usuarios:", dataUsuarios);
-    console.log("[Solicitudes] datos members:", dataMembers);
-
-    // Rol puede estar en 'rol' o en 'proofImages.role'
-    const rolRaw =
-      (dataUsuarios && (dataUsuarios.rol || dataUsuarios.proofImages?.role)) ||
-      (dataMembers  && (dataMembers.rol  || dataMembers.proofImages?.role));
-
-    const rol = typeof rolRaw === "string" ? rolRaw.toLowerCase() : null;
-    console.log("[Solicitudes] rol detectado:", rol);
-
-    if (!rol || (rol !== "lider" && rol !== "oficial")) {
-      // Oculta contenido y muestra mensaje
-      document.getElementById("content").style.display = "none";
-      document.getElementById("accessDenied").style.display = "block";
-      // Redirige fuera después de un breve tiempo (opcional)
-      setTimeout(()=>{ window.location.href = "panel.html"; }, 1500);
-      return;
-    }
-
-    // Autorizado → cargar solicitudes
-    document.getElementById("accessDenied").style.display = "none";
-    document.getElementById("content").style.display = "block";
-    cargarSolicitudesRealtime();
-
-  } catch (err) {
-    console.error("[Solicitudes] Error verificando rol:", err);
-    document.getElementById("content").style.display = "none";
-    document.getElementById("accessDenied").style.display = "block";
-    setTimeout(()=>{ window.location.href = "panel.html"; }, 1500);
+  if (rol === "lider" || rol === "oficial") {
+    document.getElementById("solicitudesBtn").style.display = "inline";
   }
+
+  cargarMiembros();
 });
 
-/* === Cargar solicitudes en tiempo real === */
-function cargarSolicitudesRealtime(){
-  const q = query(collection(db,"solicitudes"), orderBy("fecha","desc"));
-  onSnapshot(q, snap => {
-    solicitudes = [];
-    snap.forEach(d=>{
-      solicitudes.push({id:d.id, ...d.data()});
-    });
-    pintarTabla(solicitudes);
-  });
-}
-
-function pintarTabla(lista){
-  const tabla = document.getElementById("tablaSolicitudes");
-
-  if(lista.length===0){
-    tabla.innerHTML = `<tr><td colspan="5">No hay solicitudes</td></tr>`;
-    return;
-  }
-
-  tabla.innerHTML = `
-    <tr>
-      <th>Email</th>
-      <th>Usuario ID</th>
-      <th>Estado</th>
-      <th>Fecha</th>
-      <th>Acciones</th>
-    </tr>
-  `;
-
-  lista.forEach(s=>{
-    let badgeClass = "";
-    if(s.estado==="pendiente") badgeClass = "badge badge-pendiente";
-    if(s.estado==="aprobada") badgeClass = "badge badge-aprobada";
-    if(s.estado==="rechazada") badgeClass = "badge badge-rechazada";
-
-    tabla.innerHTML += `
+/* === Cargar miembros en tiempo real === */
+function cargarMiembros(){
+  const tabla = document.getElementById("tablaMiembros");
+  onSnapshot(collection(db,"members"), snap => {
+    tabla.innerHTML = `
       <tr>
-        <td>${s.email || "-"}</td>
-        <td>${s.usuarioId || "-"}</td>
-        <td><span class="${badgeClass}">${s.estado}</span></td>
-        <td>${s.fecha ? new Date(s.fecha.toDate()).toLocaleString() : "-"}</td>
-        <td>
-          ${s.estado==="pendiente" ? `
-            <button onclick="aprobar('${s.id}','${s.usuarioId || ""}')">Aprobar</button>
-            <button onclick="rechazar('${s.id}')">Rechazar</button>
-          ` : "-"}
-        </td>
+        <th>Nombre</th>
+        <th>Clase</th>
+        <th>Nivel</th>
+        <th>Poder</th>
+        <th>Rol</th>
       </tr>
     `;
+    snap.forEach(d=>{
+      const u = d.data();
+      tabla.innerHTML += `
+        <tr>
+          <td>${u.name || "-"}</td>
+          <td>${u.clase || "-"}</td>
+          <td>${u.nivel || "-"}</td>
+          <td>${u.poder || "-"}</td>
+          <td>${u.rol || u.proofImages?.role || "-"}</td>
+        </tr>
+      `;
+    });
   });
 }
-
-/* === Filtro === */
-window.filtrar = (tipo)=>{
-  if(tipo==="todos"){
-    pintarTabla(solicitudes);
-    return;
-  }
-  const filtrados = solicitudes.filter(s=> s.estado===tipo);
-  pintarTabla(filtrados);
-};
-
-/* === Acciones === */
-window.aprobar = async (solicitudId, usuarioId)=>{
-  try {
-    await updateDoc(doc(db,"solicitudes",solicitudId), { estado:"aprobada" });
-    if (usuarioId) {
-      // Actualiza rol del usuario en 'usuarios' si existe; si no, en 'members'
-      const usuariosRef = doc(db,"usuarios",usuarioId);
-      const membersRef  = doc(db,"members",usuarioId);
-      const usuariosDoc = await getDoc(usuariosRef);
-      const membersDoc  = await getDoc(membersRef);
-
-      if (usuariosDoc.exists()) {
-        await updateDoc(usuariosRef, { rol:"miembro" });
-      } else if (membersDoc.exists()) {
-        await updateDoc(membersRef,  { rol:"miembro" });
-      }
-    }
-  } catch (err) {
-    console.error("[Solicitudes] Error al aprobar:", err);
-    alert("Error al aprobar la solicitud. Revisa consola.");
-  }
-};
-
-window.rechazar = async (solicitudId)=>{
-  try {
-    await updateDoc(doc(db,"solicitudes",solicitudId), { estado:"rechazada" });
-  } catch (err) {
-    console.error("[Solicitudes] Error al rechazar:", err);
-    alert("Error al rechazar la solicitud. Revisa consola.");
-  }
-};
 </script>
 
 </body>
