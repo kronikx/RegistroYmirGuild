@@ -46,9 +46,10 @@ export default async function handler(req, res) {
     const isMember = guilds.some((g) => g.id === GUILD_ID);
 
     if (isMember) {
-      // Guardar cookie con opciones seguras para móviles
+      // Guardar cookie con opciones seguras + refresh_token
       res.setHeader("Set-Cookie", [
-        `discordUser=${userData.id}; Path=/; HttpOnly; Secure; SameSite=Lax`
+        `discordUser=${userData.id}; Path=/; HttpOnly; Secure; SameSite=Lax`,
+        `discordRefresh=${tokenData.refresh_token}; Path=/; HttpOnly; Secure; SameSite=Lax`
       ]);
 
       // Redirigir directamente al panel
