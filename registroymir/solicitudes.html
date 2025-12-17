@@ -28,6 +28,18 @@
       cursor: pointer;
       font-weight: bold;
     }
+
+    /* Mensaje de acceso denegado */
+    .access-denied {
+      display: none;
+      margin: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      background: #331a1a;
+      color: #ffb3b3;
+      font-weight: bold;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -43,7 +55,9 @@
     <a href="solicitudes.html" class="active">Solicitudes</a>
   </div>
 
-  <div class="card">
+  <div id="accessDenied" class="access-denied">Acceso denegado: esta sección es solo para Líderes y Oficiales.</div>
+
+  <div id="content" class="card" style="display:none">
     <div class="filters">
       <button onclick="filtrar('todos')">Todos</button>
       <button onclick="filtrar('pendiente')">Pendientes</button>
@@ -59,38 +73,67 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, onSnapshot, doc, getDoc, updateDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* === Firebase === */
+/* === Firebase (misma config que historial) === */
 initializeApp({
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_DOMINIO.firebaseapp.com",
-  projectId: "TU_PROJECT_ID"
+  apiKey: "AIzaSyBt9Kqhw6V1l5ZkQLK5FKxmeW1kQ68LIbE",
+  authDomain: "registro-de-guild-en-ymir.firebaseapp.com",
+  projectId: "registro-de-guild-en-ymir"
 });
 const auth = getAuth();
 const db = getFirestore();
 
 let solicitudes = [];
 
-/* === Protección de roles === */
+/* === Protección de roles (solo Líder/Oficial) === */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
+    console.warn("[Solicitudes] Usuario no autenticado → redirigiendo a index");
     window.location.href = "index.html";
-  } else {
-    const userDoc = await getDoc(doc(db, "members", user.uid));
-    if (!userDoc.exists()) {
-      alert("No tienes permiso para ver esta página");
-      window.location.href = "panel.html";
+    return;
+  }
+
+  try {
+    // 1) Intento en colección 'usuarios' (si existe en tu app)
+    const usuariosDocRef = doc(db, "usuarios", user.uid);
+    const usuariosDoc = await getDoc(usuariosDocRef);
+
+    // 2) Intento en colección 'members' (tu estructura actual)
+    const membersDocRef = doc(db, "members", user.uid);
+    const membersDoc = await getDoc(membersDocRef);
+
+    const dataUsuarios = usuariosDoc.exists() ? usuariosDoc.data() : null;
+    const dataMembers  = membersDoc.exists()  ? membersDoc.data()  : null;
+
+    console.log("[Solicitudes] datos usuarios:", dataUsuarios);
+    console.log("[Solicitudes] datos members:", dataMembers);
+
+    // Rol puede estar en 'rol' o en 'proofImages.role'
+    const rolRaw =
+      (dataUsuarios && (dataUsuarios.rol || dataUsuarios.proofImages?.role)) ||
+      (dataMembers  && (dataMembers.rol  || dataMembers.proofImages?.role));
+
+    const rol = typeof rolRaw === "string" ? rolRaw.toLowerCase() : null;
+    console.log("[Solicitudes] rol detectado:", rol);
+
+    if (!rol || (rol !== "lider" && rol !== "oficial")) {
+      // Oculta contenido y muestra mensaje
+      document.getElementById("content").style.display = "none";
+      document.getElementById("accessDenied").style.display = "block";
+      // Redirige fuera después de un breve tiempo (opcional)
+      setTimeout(()=>{ window.location.href = "panel.html"; }, 1500);
       return;
     }
 
-    const data = userDoc.data();
-    const rol = data.rol || data.proofImages?.role;
+    // Autorizado → cargar solicitudes
+    document.getElementById("accessDenied").style.display = "none";
+    document.getElementById("content").style.display = "block";
+    cargarSolicitudesRealtime();
 
-    if (!rol || (rol.toLowerCase() !== "lider" && rol.toLowerCase() !== "oficial")) {
-      alert("Acceso denegado: esta sección es solo para Líderes y Oficiales");
-      window.location.href = "panel.html";
-    } else {
-      cargarSolicitudesRealtime();
-    }
+  } catch (err) {
+    console.error("[Solicitudes] Error verificando rol:", err);
+    document.getElementById("content").style.display = "none";
+    document.getElementById("accessDenied").style.display = "block";
+    setTimeout(()=>{ window.location.href = "panel.html"; }, 1500);
   }
 });
 
@@ -132,13 +175,13 @@ function pintarTabla(lista){
 
     tabla.innerHTML += `
       <tr>
-        <td>${s.email}</td>
-        <td>${s.usuarioId}</td>
+        <td>${s.email || "-"}</td>
+        <td>${s.usuarioId || "-"}</td>
         <td><span class="${badgeClass}">${s.estado}</span></td>
         <td>${s.fecha ? new Date(s.fecha.toDate()).toLocaleString() : "-"}</td>
         <td>
           ${s.estado==="pendiente" ? `
-            <button onclick="aprobar('${s.id}','${s.usuarioId}')">Aprobar</button>
+            <button onclick="aprobar('${s.id}','${s.usuarioId || ""}')">Aprobar</button>
             <button onclick="rechazar('${s.id}')">Rechazar</button>
           ` : "-"}
         </td>
@@ -159,12 +202,34 @@ window.filtrar = (tipo)=>{
 
 /* === Acciones === */
 window.aprobar = async (solicitudId, usuarioId)=>{
-  await updateDoc(doc(db,"solicitudes",solicitudId), { estado:"aprobada" });
-  await updateDoc(doc(db,"members",usuarioId), { rol:"miembro" });
+  try {
+    await updateDoc(doc(db,"solicitudes",solicitudId), { estado:"aprobada" });
+    if (usuarioId) {
+      // Actualiza rol del usuario en 'usuarios' si existe; si no, en 'members'
+      const usuariosRef = doc(db,"usuarios",usuarioId);
+      const membersRef  = doc(db,"members",usuarioId);
+      const usuariosDoc = await getDoc(usuariosRef);
+      const membersDoc  = await getDoc(membersRef);
+
+      if (usuariosDoc.exists()) {
+        await updateDoc(usuariosRef, { rol:"miembro" });
+      } else if (membersDoc.exists()) {
+        await updateDoc(membersRef,  { rol:"miembro" });
+      }
+    }
+  } catch (err) {
+    console.error("[Solicitudes] Error al aprobar:", err);
+    alert("Error al aprobar la solicitud. Revisa consola.");
+  }
 };
 
 window.rechazar = async (solicitudId)=>{
-  await updateDoc(doc(db,"solicitudes",solicitudId), { estado:"rechazada" });
+  try {
+    await updateDoc(doc(db,"solicitudes",solicitudId), { estado:"rechazada" });
+  } catch (err) {
+    console.error("[Solicitudes] Error al rechazar:", err);
+    alert("Error al rechazar la solicitud. Revisa consola.");
+  }
 };
 </script>
 
