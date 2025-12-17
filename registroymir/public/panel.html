@@ -84,20 +84,23 @@
     try {
       const res = await fetch("/api/discordAuth/refresh");
       const data = await res.json();
+      console.log("Respuesta refresh:", data);
+
       if(data.access_token){
         // ✅ Sesión válida → mostrar el panel
         document.getElementById("panel").style.display = "block";
       } else {
-        // ❌ No hay sesión → volver al login
-        window.location.href = "/index.html";
+        // ❌ No hay sesión → mostrar mensaje en pantalla
+        document.body.innerHTML = "<h2 style='color:red;text-align:center;'>No hay sesión válida. Vuelve a iniciar desde el login.</h2>";
       }
     } catch(e){
       console.error("Error al validar sesión:", e);
-      window.location.href = "/index.html";
+      document.body.innerHTML = "<h2 style='color:red;text-align:center;'>Error al validar sesión. Revisa consola.</h2>";
     }
   }
   checkSession();
 </script>
+
 
 <!-- 🔽 Aquí empieza tu contenido actual, envuelto en #panel -->
 <div id="panel" style="display:none;">
