@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     const isMember = guilds.some(g => g.id === GUILD_ID);
     if (!isMember) return res.redirect("/index.html?auth=ok");
 
-    // ✅ Cookies simplificadas para compatibilidad
+    // ✅ Cookies compatibles
     const flags = "Path=/; HttpOnly; SameSite=Lax; Max-Age=604800";
     res.setHeader("Set-Cookie", `discordUser=${userData.id}; ${flags}`);
     res.setHeader("Set-Cookie", `discordRefresh=${tokenData.refresh_token}; ${flags}`);
