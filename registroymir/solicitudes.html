@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>YMIR Guild - Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h1>Panel de Miembros</h1>
+
+  <div class="nav">
+    <a href="panel.html" class="active">Miembros</a>
+    <a href="subastas.html">Subastas</a>
+    <a href="registro.html">Historial</a>
+    <a href="control.html">Control Semanal</a>
+    <a href="solicitudes.html">Solicitudes</a>
+  </div>
+
+  <div class="card">
+    <table id="tablaMiembros"></table>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, onSnapshot, doc, getDoc, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* === Firebase === */
+initializeApp({
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_DOMINIO.firebaseapp.com",
+  projectId: "TU_PROJECT_ID"
+});
+const auth = getAuth();
+const db = getFirestore();
+
+/* === Protección y creación de solicitudes === */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "index.html";
+  } else {
+    const userDocRef = doc(db, "usuarios", user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      // 🚨 Usuario sin documento → crear solicitud
+      await addDoc(collection(db, "solicitudes"), {
+        usuarioId: user.uid,
+        email: user.email,
+        estado: "pendiente",
+        fecha: serverTimestamp()
+      });
+      alert("Tu solicitud ha sido enviada. Espera aprobación.");
+      window.location.href = "index.html";
+    } else {
+      const rol = userDoc.data().rol;
+      if (!rol || (rol !== "miembro" && rol !== "lider" && rol !== "oficial")) {
+        // 🚨 Usuario con rol inválido → crear solicitud
+        await addDoc(collection(db, "solicitudes"), {
+          usuarioId: user.uid,
+          email: user.email,
+          estado: "pendiente",
+          fecha: serverTimestamp()
+        });
+        alert("Tu solicitud ha sido enviada. Espera aprobación.");
+        window.location.href = "index.html";
+      } else {
+        // ✅ Usuario autorizado → cargar miembros
+        cargarMiembros();
+      }
+    }
+  }
+});
+
+/* === Cargar miembros en tiempo real === */
+function cargarMiembros(){
+  const tabla = document.getElementById("tablaMiembros");
+  onSnapshot(collection(db,"usuarios"), snap => {
+    tabla.innerHTML = `
+      <tr>
+        <th>Email</th>
+        <th>Rol</th>
+      </tr>
+    `;
+    snap.forEach(d=>{
+      const u = d.data();
+      tabla.innerHTML += `
+        <tr>
+          <td>${u.email}</td>
+          <td>${u.rol ? u.rol : "-"}</td>
+        </tr>
+      `;
+    });
+  });
+}
+</script>
+
+</body>
+</html>
