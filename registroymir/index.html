@@ -24,9 +24,8 @@
     background: #4b0082;
     box-shadow: 0 0 12px #a020f0, 0 0 24px #a020f0;
   }
-  /* Estilo para el botón de Discord */
   .login-discord {
-    background-color: #5865F2; /* color oficial Discord */
+    background-color: #5865F2;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -44,21 +43,27 @@
 <body>
   <div class="card">
     <h2>REGISTRO DEPREDADORES</h2>
-    <a href="https://registroymir.vercel.app/api/discordAuth">
-      <button class="login-discord">Entrar con Discord</button>
+    <a id="discordLink" href="https://registroymir.vercel.app/api/discordAuth">
+      <button id="discordBtn" class="login-discord">Entrar con Discord</button>
     </a>
     <div id="welcome" style="margin-top:15px; font-weight:bold;"></div>
   </div>
 
   <script>
-    // Comprobar si ya está logueado en Discord
-    fetch("/api/discordAuth/check")
-      .then(res => res.json())
-      .then(data => {
-        if(data.ok){
-          document.getElementById("welcome").textContent = "Ya has iniciado sesión en Discord.";
-        }
-      });
+    // Función para leer cookies
+    function getCookie(name) {
+      return document.cookie.split('; ').find(row => row.startsWith(name+'='))?.split('=')[1];
+    }
+
+    const discordUser = getCookie("discordUser");
+
+    if(discordUser){
+      // Ya logueado → ocultar botón y mostrar mensaje
+      document.getElementById("discordLink").style.display = "none";
+      document.getElementById("welcome").textContent = "Ya has iniciado sesión en Discord.";
+      // Opcional: redirigir directamente al panel
+      window.location.href = "/panel.html";
+    }
   </script>
 </body>
 </html>

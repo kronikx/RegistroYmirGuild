@@ -46,7 +46,12 @@ export default async function handler(req, res) {
     const isMember = guilds.some((g) => g.id === GUILD_ID);
 
     if (isMember) {
-      res.setHeader("Set-Cookie", `discordUser=${userData.id}; Path=/; HttpOnly`);
+      // Guardar cookie con opciones seguras para móviles
+      res.setHeader("Set-Cookie", [
+        `discordUser=${userData.id}; Path=/; HttpOnly; Secure; SameSite=Lax`
+      ]);
+
+      // Redirigir directamente al panel
       return res.redirect("/panel.html");
     } else {
       return res.status(403).send("Acceso denegado: no eres miembro del servidor.");
