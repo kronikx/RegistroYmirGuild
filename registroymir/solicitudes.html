@@ -23,6 +23,17 @@
       font-weight: bold;
       text-align: center;
     }
+    /* 🔴 Punto rojo en Solicitudes */
+    #solicitudesBadge {
+      display: none;
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 8px;
+      height: 8px;
+      background: red;
+      border-radius: 50%;
+    }
   </style>
 </head>
 <body>
@@ -35,7 +46,10 @@
     <a href="subastas.html">Subastas</a>
     <a href="registro.html">Historial</a>
     <a href="control.html">Control Semanal</a>
-    <a href="solicitudes.html" class="active">Solicitudes</a>
+    <a href="solicitudes.html" class="active" style="position:relative;">
+      Solicitudes
+      <span id="solicitudesBadge"></span>
+    </a>
   </div>
 
   <div id="accessDenied" class="access-denied">
@@ -70,7 +84,6 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  // Buscar documento en members por UID (igual que en panel)
   const meSnap = await getDoc(doc(db,"members",user.uid));
   if (!meSnap.exists()) {
     document.getElementById("accessDenied").style.display = "block";
@@ -147,7 +160,6 @@ function pintarTabla(lista){
 
 /* === Acciones === */
 window.aprobar = async (solicitudId, usuarioId, email, name, clase)=>{
-  // Crear en members con rol miembro y datos completos
   await setDoc(doc(db,"members",usuarioId), {
     email: email,
     rol: "Miembro",
@@ -157,13 +169,23 @@ window.aprobar = async (solicitudId, usuarioId, email, name, clase)=>{
     poder: 0,
     totalContribution: 0
   });
-  // Eliminar de solicitudes
   await deleteDoc(doc(db,"solicitudes",solicitudId));
 };
 
 window.rechazar = async (solicitudId)=>{
   await deleteDoc(doc(db,"solicitudes",solicitudId));
 };
+
+/* === Punto rojo en nav === */
+function escucharSolicitudesBadge(){
+  const q = collection(db,"solicitudes");
+  onSnapshot(q, snap=>{
+    const badge = document.getElementById("solicitudesBadge");
+    if(!badge) return;
+    badge.style.display = snap.size > 0 ? "block" : "none";
+  });
+}
+escucharSolicitudesBadge();
 </script>
 
 </body>

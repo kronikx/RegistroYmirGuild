@@ -37,13 +37,17 @@
 <div class="container">
   <h1>Historial del Clan</h1>
 
-  <div class="nav">
-    <a href="panel.html">Miembros</a>
-    <a href="subastas.html">Subastas</a>
-    <a href="registro.html">Historial</a>
-    <a href="control.html">Control Semanal</a>
-    <a href="solicitudes.html">Solicitudes</a>
-  </div>
+ <div class="nav">
+  <a href="panel.html">Miembros</a>
+  <a href="subastas.html">Subastas</a>
+  <a href="registro.html">Historial</a>
+  <a href="control.html">Control Semanal</a>
+  <a href="solicitudes.html" style="position:relative;">
+    Solicitudes
+    <span id="solicitudesBadge"></span>
+  </a>
+</div>
+
 
   <div class="card">
     <div class="filters">
@@ -147,6 +151,33 @@ window.filtrar = (tipo)=>{
 };
 
 cargarHistorial();
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // Inicializar Firebase (igual que en solicitudes.html)
+  const app = initializeApp({
+    apiKey: "AIzaSyBt9Kqhw6V1l5ZkQLK5FKxmeW1kQ68LIbE",
+    authDomain: "registro-de-guild-en-ymir.firebaseapp.com",
+    projectId: "registro-de-guild-en-ymir"
+  });
+
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  /* === Punto rojo en nav === */
+  function escucharSolicitudesBadge(){
+    const q = collection(db,"solicitudes");
+    onSnapshot(q, snap=>{
+      const badge = document.getElementById("solicitudesBadge");
+      if(!badge) return;
+      badge.style.display = snap.size > 0 ? "block" : "none";
+    });
+  }
+  escucharSolicitudesBadge();
 </script>
 
 </body>

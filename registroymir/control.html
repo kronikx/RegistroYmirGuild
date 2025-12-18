@@ -88,6 +88,15 @@
   th:last-child, td:last-child { min-width: 260px; }     /* Acciones */
 
   .muted { font-size:12px; color:#c7c7c7; margin-top:8px; }
+
+th[onclick] {
+  cursor: pointer;
+  user-select: none;
+}
+th[onclick]:hover {
+  color: #0d6efd;
+}
+
 </style>
 </head>
 <body>
@@ -111,13 +120,17 @@
 
   <h1>Control Semanal</h1>
 
-  <div class="nav">
-    <a href="panel.html">Miembros</a>
-    <a href="subastas.html">Subastas</a>
-    <a href="registro.html">Historial</a>
-    <a href="control.html">Control Semanal</a>
-    <a href="solicitudes.html">Solicitudes</a>
-  </div>
+ <div class="nav">
+  <a href="panel.html">Miembros</a>
+  <a href="subastas.html">Subastas</a>
+  <a href="registro.html">Historial</a>
+  <a href="control.html">Control Semanal</a>
+  <a href="solicitudes.html" style="position:relative;">
+    Solicitudes
+    <span id="solicitudesBadge"></span>
+  </a>
+</div>
+
 
   <button id="reinicioBtn" onclick="reinicioSemanal()">🔄 Reinicio Semanal</button>
 
@@ -238,28 +251,51 @@ function cargarControl(){
   const tabla = document.getElementById("tablaControl");
   onSnapshot(collection(db,"members"), (snap) => {
     tabla.innerHTML = `
-      <tr>
-        <th>Nombre</th>
-        <th>Clase</th>
-        <th>Nivel</th>
-        <th>Poder</th>
-        <th>PHYS ATK</th>
-        <th>PHYS DMG</th>
-        <th>MAG ATK</th>
-        <th>MAG DMG</th>
-        <th>PHYS DEF</th>
-        <th>PHYS DMG DEF</th>
-        <th>MAG DEF</th>
-        <th>MAG DMG DEF</th>
-        <th>ACC</th>
-        <th>EVA</th>
-        <th>Monster DMG</th>
-        <th>Monster DMG DEF</th>
-        <th>Boss DMG</th>
-        <th>Boss DMG DEF</th>
-        <th>Acciones</th>
-      </tr>
-    `;
+<tr>
+  <th onclick="ordenarTabla(0)">Nombre ⬍</th>
+  <th onclick="ordenarTabla(1)">Clase ⬍</th>
+  <th onclick="ordenarTabla(2)">Nivel ⬍</th>
+  <th onclick="ordenarTabla(3)">Poder ⬍</th>
+  <th onclick="ordenarTabla(4)">PHYS ATK ⬍</th>
+  <th onclick="ordenarTabla(5)">PHYS DMG ⬍</th>
+  <th onclick="ordenarTabla(6)">MAG ATK ⬍</th>
+  <th onclick="ordenarTabla(7)">MAG DMG ⬍</th>
+  <th onclick="ordenarTabla(8)">PHYS DEF ⬍</th>
+  <th onclick="ordenarTabla(9)">PHYS DMG DEF ⬍</th>
+  <th onclick="ordenarTabla(10)">MAG DEF ⬍</th>
+  <th onclick="ordenarTabla(11)">MAG DMG DEF ⬍</th>
+  <th onclick="ordenarTabla(12)">ACC ⬍</th>
+  <th onclick="ordenarTabla(13)">EVA ⬍</th>
+  <th onclick="ordenarTabla(14)">Monster DMG ⬍</th>
+  <th onclick="ordenarTabla(15)">Monster DMG DEF ⬍</th>
+  <th onclick="ordenarTabla(16)">Boss DMG ⬍</th>
+  <th onclick="ordenarTabla(17)">Boss DMG DEF ⬍</th>
+  <th>Acciones</th>
+</tr>
+
+<tr class="filtros">
+  <th><input></th>
+  <th><input></th>
+  <th><input type="number"></th>
+  <th><input type="number"></th>
+  <th><input type="number"></th>
+  <th><input></th>
+  <th><input type="number"></th>
+  <th><input></th>
+  <th><input type="number"></th>
+  <th><input></th>
+  <th><input type="number"></th>
+  <th><input></th>
+  <th><input type="number"></th>
+  <th><input type="number"></th>
+  <th><input></th>
+  <th><input></th>
+  <th><input></th>
+  <th><input></th>
+  <th></th>
+</tr>
+`;
+
     snap.forEach(d=>{
       const m = d.data() || {};
       const esPropio = (d.id === MI_UID);
@@ -291,6 +327,13 @@ function cargarControl(){
         </tr>
       `;
     });
+
+setTimeout(() => {
+  document
+    .querySelectorAll(".filtros input")
+    .forEach(el => el.addEventListener("input", filtrarTabla));
+}, 0);
+
   });
 }
 
@@ -425,6 +468,97 @@ window.reinicioSemanal = async ()=>{
 
   alert("Reinicio semanal completado.");
 };
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // Inicializar Firebase (igual que en solicitudes.html)
+  const app = initializeApp({
+    apiKey: "AIzaSyBt9Kqhw6V1l5ZkQLK5FKxmeW1kQ68LIbE",
+    authDomain: "registro-de-guild-en-ymir.firebaseapp.com",
+    projectId: "registro-de-guild-en-ymir"
+  });
+
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  /* === Punto rojo en nav === */
+  function escucharSolicitudesBadge(){
+    const q = collection(db,"solicitudes");
+    onSnapshot(q, snap=>{
+      const badge = document.getElementById("solicitudesBadge");
+      if(!badge) return;
+      badge.style.display = snap.size > 0 ? "block" : "none";
+    });
+  }
+  escucharSolicitudesBadge();
+/* ===== FILTRADO CONTROL ===== */
+function filtrarTabla(){
+  const tabla = document.getElementById("tablaControl");
+  const filtros = tabla.querySelectorAll(".filtros th");
+  const filas = tabla.querySelectorAll("tr[id^='fila_']");
+
+  filas.forEach(fila => {
+    let visible = true;
+    const celdas = fila.children;
+
+    filtros.forEach((filtro, i) => {
+      const input = filtro.querySelector("input");
+      if (!input || !input.value) return;
+
+      let celda = celdas[i].textContent.trim();
+      let filtroVal = input.value.trim();
+
+      // limpiar %
+      celda = celda.replace("%", "");
+
+      if (!isNaN(filtroVal)) {
+        if (Number(celda) < Number(filtroVal)) visible = false;
+      } else {
+        if (!celda.toLowerCase().startsWith(filtroVal.toLowerCase())) {
+          visible = false;
+        }
+      }
+    });
+
+    fila.style.display = visible ? "" : "none";
+  });
+}
+
+/* ===== ORDEN CONTROL ===== */
+let ordenCol = null;
+let ordenAsc = true;
+
+window.ordenarTabla = (col) => {
+  const tabla = document.getElementById("tablaControl");
+  const filas = Array.from(tabla.querySelectorAll("tr[id^='fila_']"));
+
+  ordenAsc = ordenCol === col ? !ordenAsc : true;
+  ordenCol = col;
+
+  filas.sort((a, b) => {
+    let A = a.children[col].textContent.trim().replace("%","");
+    let B = b.children[col].textContent.trim().replace("%","");
+
+    if (A === "-" || A === "") A = "-999999";
+    if (B === "-" || B === "") B = "-999999";
+
+    if (!isNaN(A) && !isNaN(B)) {
+      return ordenAsc ? A - B : B - A;
+    }
+
+    return ordenAsc
+      ? A.localeCompare(B, "es", { sensitivity: "base" })
+      : B.localeCompare(A, "es", { sensitivity: "base" });
+  });
+
+  filas.forEach(f => tabla.appendChild(f));
+  filtrarTabla();
+};
+
 </script>
 
 </body>

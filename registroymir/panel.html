@@ -75,6 +75,15 @@
     letter-spacing: 0.5px;
   }
   .clock-date { font-size: 12px; opacity: 0.9; }
+
+th[onclick] {
+  cursor: pointer;
+  user-select: none;
+}
+
+th[onclick]:hover {
+  color: #0d6efd;
+}
 </style>
 </head>
 <body>
@@ -98,13 +107,17 @@
 
   <h1>Panel de Miembros</h1>
 
-  <div class="nav">
-    <a href="panel.html">Miembros</a>
-    <a href="subastas.html">Subastas</a>
-    <a href="registro.html">Historial</a>
-    <a href="control.html">Control Semanal</a>
-    <a href="solicitudes.html">Solicitudes</a>
-  </div>
+ <div class="nav">
+  <a href="panel.html">Miembros</a>
+  <a href="subastas.html">Subastas</a>
+  <a href="registro.html">Historial</a>
+  <a href="control.html">Control Semanal</a>
+  <a href="solicitudes.html" style="position:relative;">
+    Solicitudes
+    <span id="solicitudesBadge"></span>
+  </a>
+</div>
+
 
   <button id="reinicioBtn" onclick="reinicioSemanal()">🔄 Reinicio Semanal</button>
 
@@ -199,19 +212,59 @@ function cargarMiembros(){
   const tabla = document.getElementById("tablaMiembros");
   onSnapshot(collection(db,"members"), (snap) => {
     tabla.innerHTML = `
-      <tr>
-        <th>Nombre</th>
-        <th>Rol</th>
-        <th>Clase</th>
-        <th>Nivel</th>
-        <th>Poder</th>
-        <th>Contribución semanal</th>
-        <th>Boss 45</th>
-        <th>Boss 55</th>
-        <th>Contribución total</th>
-        <th>Acciones</th>
-      </tr>
-    `;
+<tr>
+  <th onclick="ordenarTabla(0)">Nombre ⬍</th>
+  <th onclick="ordenarTabla(1)">Rol ⬍</th>
+  <th onclick="ordenarTabla(2)">Clase ⬍</th>
+  <th onclick="ordenarTabla(3)">Nivel ⬍</th>
+  <th onclick="ordenarTabla(4)">Poder ⬍</th>
+  <th onclick="ordenarTabla(5)">Contribución semanal ⬍</th>
+  <th onclick="ordenarTabla(6)">Boss 45 ⬍</th>
+  <th onclick="ordenarTabla(7)">Boss 55 ⬍</th>
+  <th onclick="ordenarTabla(8)">Contribución total ⬍</th>
+  <th>Acciones</th>
+</tr>
+
+<tr class="filtros">
+  <th><input></th>
+  <th>
+    <select>
+      <option value="">Todos</option>
+      <option>Miembro</option>
+      <option>Oficial</option>
+      <option>Líder</option>
+    </select>
+  </th>
+  <th>
+    <select>
+      <option value="">Todas</option>
+      <option>Arquero</option>
+      <option>Mago</option>
+      <option>Tanque</option>
+      <option>Healer</option>
+    </select>
+  </th>
+  <th><input type="number"></th>
+  <th><input type="number"></th>
+  <th><input type="number"></th>
+  <th>
+    <select>
+      <option value="">Todos</option>
+      <option>Sí</option>
+      <option>No</option>
+    </select>
+  </th>
+  <th>
+    <select>
+      <option value="">Todos</option>
+      <option>Sí</option>
+      <option>No</option>
+    </select>
+  </th>
+  <th><input type="number"></th>
+  <th></th>
+</tr>
+`;
     snap.forEach(d=>{
       const m = d.data() || {};
       const esPropio = (d.id === MI_UID);
@@ -239,6 +292,13 @@ function cargarMiembros(){
         </tr>
       `;
     });
+
+setTimeout(() => {
+  document
+    .querySelectorAll(".filtros input, .filtros select")
+    .forEach(el => el.addEventListener("input", filtrarTabla));
+}, 0);
+
   });
 }
 
@@ -407,6 +467,96 @@ window.reinicioSemanal = async ()=>{
 
   alert("Reinicio semanal completado");
 };
+
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // Inicializar Firebase (igual que en solicitudes.html)
+  const app = initializeApp({
+    apiKey: "AIzaSyBt9Kqhw6V1l5ZkQLK5FKxmeW1kQ68LIbE",
+    authDomain: "registro-de-guild-en-ymir.firebaseapp.com",
+    projectId: "registro-de-guild-en-ymir"
+  });
+
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  /* === Punto rojo en nav === */
+  function escucharSolicitudesBadge(){
+    const q = collection(db,"solicitudes");
+    onSnapshot(q, snap=>{
+      const badge = document.getElementById("solicitudesBadge");
+      if(!badge) return;
+      badge.style.display = snap.size > 0 ? "block" : "none";
+    });
+  }
+  escucharSolicitudesBadge();
+/* ===== FILTRADO ===== */
+function filtrarTabla(){
+  const tabla = document.getElementById("tablaMiembros");
+  const filtros = tabla.querySelectorAll(".filtros th");
+  const filas = tabla.querySelectorAll("tr[id^='fila_']");
+
+  filas.forEach(fila => {
+    let visible = true;
+    const celdas = fila.children;
+
+    filtros.forEach((filtro, i) => {
+      const input = filtro.querySelector("input, select");
+      if (!input || !input.value) return;
+
+      let celda = celdas[i].textContent.trim();
+
+      if (!isNaN(input.value) && input.value !== "") {
+        if (Number(celda) < Number(input.value)) visible = false;
+      } else {
+        if (!celda.toLowerCase().includes(input.value.toLowerCase())) {
+          visible = false;
+        }
+      }
+    });
+
+    fila.style.display = visible ? "" : "none";
+  });
+}
+
+/* ===== ORDEN ===== */
+let ordenCol = null;
+let ordenAsc = true;
+
+window.ordenarTabla = (col) => {
+  const tabla = document.getElementById("tablaMiembros");
+  const filas = Array.from(tabla.querySelectorAll("tr[id^='fila_']"));
+
+  ordenAsc = ordenCol === col ? !ordenAsc : true;
+  ordenCol = col;
+
+  filas.sort((a, b) => {
+    let A = a.children[col].textContent.trim();
+    let B = b.children[col].textContent.trim();
+
+    if (A === "Sí" || A === "No") {
+      A = A === "Sí" ? 1 : 0;
+      B = B === "Sí" ? 1 : 0;
+    }
+
+    if (!isNaN(A) && !isNaN(B)) {
+      return ordenAsc ? A - B : B - A;
+    }
+
+    return ordenAsc
+      ? A.localeCompare(B, "es", { sensitivity: "base" })
+      : B.localeCompare(A, "es", { sensitivity: "base" });
+  });
+
+  filas.forEach(f => tabla.appendChild(f));
+  filtrarTabla();
+};
+
 </script>
 
 </body>
