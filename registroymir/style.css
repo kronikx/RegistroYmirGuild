@@ -512,3 +512,60 @@ select {
   scrollbar-width: thin;
   scrollbar-color: #5a189a rgba(36, 0, 70, 0.9);
 }
+
+/* === Botón Exportar a Excel === */
+.export-excel-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.export-excel-btn {
+  background: linear-gradient(135deg, #0f9d58, #34a853);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.export-excel-btn:hover {
+  background: linear-gradient(135deg, #0b8043, #2e8b57);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.export-excel-btn:active {
+  transform: translateY(0);
+}
+
+.export-excel-btn .icon {
+  font-size: 16px;
+}
+
+/* Para el botón de reinicio, ajustamos los colores */
+#reinicioBtn {
+  padding: 8px 16px;
+  font-size: 14px;
+  background-color: #ff6b6b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#reinicioBtn:hover { 
+  background-color: #ff5252; 
+}

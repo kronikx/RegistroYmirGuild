@@ -4,6 +4,100 @@
 <meta charset="UTF-8">
 <title>YMIR Guild - Historial</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  /* === Botón Exportar a Excel === */
+  .export-excel-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: none; /* Oculto por defecto, se mostrará solo para líderes/oficiales */
+  }
+
+  .export-excel-btn {
+    background: linear-gradient(135deg, #0f9d58, #34a853);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .export-excel-btn:hover {
+    background: linear-gradient(135deg, #0b8043, #2e8b57);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .export-excel-btn:active {
+    transform: translateY(0);
+  }
+
+  .export-excel-btn .icon {
+    font-size: 16px;
+  }
+  
+  /* Botón Limpiar Historial */
+  #limpiarHistorialBtn {
+    padding: 8px 16px;
+    font-size: 14px;
+    background: linear-gradient(135deg, #ff9800, #ff5722);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    display: none; /* Oculto por defecto */
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px;
+    box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  #limpiarHistorialBtn:hover { 
+    background: linear-gradient(135deg, #f57c00, #e64a19);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
+  }
+  
+  #limpiarHistorialBtn:active {
+    transform: translateY(0);
+  }
+  
+  /* Estilos para el botón de filtros */
+  .filters {
+    margin-bottom: 15px;
+    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .filters .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    margin: 2px;
+  }
+  
+  /* Contenedor de botones de administración */
+  .admin-buttons {
+    text-align: right;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+</style>
 </head>
 <body>
 
@@ -61,8 +155,13 @@
 <div class="container">
   <h1>Historial del Clan</h1>
 
+  <!-- Botones de administración (solo para Líderes/Oficiales) -->
+  <div class="admin-buttons">
+    <button id="limpiarHistorialBtn" onclick="limpiarHistorial()">🗑️ Limpiar Historial</button>
+  </div>
+
   <div class="card">
-    <div class="filters" style="margin-bottom: 15px; text-align: center;">
+    <div class="filters" style="margin-bottom: 15px;">
       <button class="btn" onclick="filtrar('todos')">Todos</button>
       <button class="btn secondary" onclick="filtrar('poder')">Poder/Nivel</button>
       <button class="btn secondary" onclick="filtrar('semanal')">Semanal</button>
@@ -73,12 +172,37 @@
     <div class="table-scroll">
       <table id="tablaHistorial"></table>
     </div>
+    <p class="muted" style="margin-top: 15px;">
+      📊 <strong>Total registros:</strong> <span id="totalRegistros">0</span> | 
+      📅 <strong>Registros hoy:</strong> <span id="registrosHoy">0</span> |
+      👑 <strong>Solo Líderes/Oficiales</strong> pueden exportar y limpiar el historial
+    </p>
   </div>
+</div>
+
+<!-- Botón flotante para exportar a Excel -->
+<div class="export-excel-container">
+  <button class="export-excel-btn" onclick="exportarHistorialAExcel()">
+    <span class="icon">📊</span>
+    Exportar Historial
+  </button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  orderBy, 
+  query,
+  doc,
+  getDoc,
+  deleteDoc,
+  where,
+  writeBatch
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 /* === Firebase === */
 initializeApp({
@@ -87,6 +211,13 @@ initializeApp({
   projectId: "registro-de-guild-en-ymir"
 });
 const db = getFirestore();
+const auth = getAuth();
+
+/* === Variables globales === */
+let registros = [];
+let esLiderOficial = false;
+let MI_ROL = "Miembro";
+let MI_UID = null;
 
 /* === Actualizar relojes superiores === */
 function updateTopClocks() {
@@ -103,7 +234,38 @@ function updateTopClocks() {
 setInterval(updateTopClocks, 1000);
 updateTopClocks();
 
-let registros = [];
+/* === Auth y verificación de rol === */
+onAuthStateChanged(auth, async user=>{
+  if(!user){ 
+    location.href = "index.html"; 
+    return; 
+  }
+  
+  MI_UID = user.uid;
+  const meRef = doc(db,"members",user.uid);
+  const meSnap = await getDoc(meRef);
+  
+  if(meSnap.exists()){
+    MI_ROL = meSnap.data()?.role || "Miembro";
+    const rolLower = MI_ROL.trim().toLowerCase();
+    esLiderOficial = (rolLower === "líder" || rolLower === "lider" || rolLower === "oficial");
+    
+    // Mostrar/ocultar botones según rol
+    const exportarFloatingBtn = document.querySelector(".export-excel-container");
+    const limpiarBtn = document.getElementById("limpiarHistorialBtn");
+    
+    if (esLiderOficial) {
+      if (exportarFloatingBtn) exportarFloatingBtn.style.display = "block";
+      if (limpiarBtn) limpiarBtn.style.display = "flex";
+    } else {
+      if (exportarFloatingBtn) exportarFloatingBtn.style.display = "none";
+      if (limpiarBtn) limpiarBtn.style.display = "none";
+    }
+  }
+  
+  // Cargar historial después de verificar autenticación
+  cargarHistorial();
+});
 
 /* === Cargar historial === */
 async function cargarHistorial(){
@@ -112,17 +274,18 @@ async function cargarHistorial(){
 
   registros = [];
   snap.forEach(d=>{
-    registros.push(d.data());
+    registros.push({id: d.id, ...d.data()});
   });
 
   pintarTabla(registros);
+  actualizarContadores();
 }
 
 function pintarTabla(lista){
   const tabla = document.getElementById("tablaHistorial");
 
   if(lista.length===0){
-    tabla.innerHTML = `<tr><td colspan="5">No hay registros</td></tr>`;
+    tabla.innerHTML = `<tr><td colspan="5">No hay registros en el historial</td></tr>`;
     return;
   }
 
@@ -162,6 +325,21 @@ function pintarTabla(lista){
   });
 }
 
+/* === Actualizar contadores === */
+function actualizarContadores() {
+  const totalRegistros = registros.length;
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  
+  const registrosHoy = registros.filter(r => {
+    const fechaRegistro = new Date(r.fecha);
+    return fechaRegistro >= hoy;
+  }).length;
+  
+  document.getElementById('totalRegistros').textContent = totalRegistros;
+  document.getElementById('registrosHoy').textContent = registrosHoy;
+}
+
 /* === Filtro === */
 window.filtrar = (tipo)=>{
   if(tipo==="todos"){
@@ -179,31 +357,285 @@ window.filtrar = (tipo)=>{
   pintarTabla(filtrados);
 };
 
-cargarHistorial();
-</script>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  const app = initializeApp({
-    apiKey: "AIzaSyBt9Kqhw6V1l5ZkQLK5FKxmeW1kQ68LIbE",
-    authDomain: "registro-de-guild-en-ymir.firebaseapp.com",
-    projectId: "registro-de-guild-en-ymir"
-  });
-
-  const db = getFirestore(app);
-
-  /* === Punto rojo en nav === */
-  function escucharSolicitudesBadge(){
-    const q = collection(db,"solicitudes");
-    onSnapshot(q, snap=>{
-      const badge = document.getElementById("solicitudesBadge");
-      if(!badge) return;
-      badge.style.display = snap.size > 0 ? "block" : "none";
-    });
+/* === Limpiar Historial === */
+window.limpiarHistorial = async () => {
+  if(!esLiderOficial){
+    alert("❌ Solo Líderes y Oficiales pueden limpiar el historial.");
+    return;
   }
-  escucharSolicitudesBadge();
+  
+  if(registros.length === 0){
+    alert("ℹ️ El historial ya está vacío.");
+    return;
+  }
+  
+  // Opciones de limpieza
+  const opcion = prompt(
+    "🗑️ ¿Cómo quieres limpiar el historial?\n\n" +
+    "1️⃣ - Escribe 'TODOS' para borrar TODO el historial\n" +
+    "2️⃣ - Escribe un número de días (ej: 30) para borrar registros más antiguos que ese número de días\n" +
+    "3️⃣ - Escribe 'CANCELAR' para no hacer nada"
+  );
+  
+  if(!opcion || opcion.toUpperCase() === "CANCELAR") {
+    return;
+  }
+  
+  if(opcion.toUpperCase() === "TODOS") {
+    // Confirmación final para borrar TODO
+    const confirmacion = confirm(
+      "⚠️ ¿ESTÁS SEGURO de borrar TODO el historial?\n\n" +
+      "📊 Se eliminarán TODOS los registros (" + registros.length + ")\n" +
+      "🚫 Esta acción NO se puede deshacer\n\n" +
+      "✅ Asegúrate de haber exportado un backup primero"
+    );
+    
+    if(!confirmacion) {
+      alert("❌ Limpieza cancelada.");
+      return;
+    }
+    
+    // Borrar todos los registros
+    await borrarTodosRegistros();
+    
+  } else {
+    // Borrar por antigüedad
+    const dias = parseInt(opcion);
+    if(isNaN(dias) || dias < 1) {
+      alert("❌ Número de días inválido. Debe ser un número mayor a 0.");
+      return;
+    }
+    
+    const fechaLimite = new Date();
+    fechaLimite.setDate(fechaLimite.getDate() - dias);
+    
+    const registrosABorrar = registros.filter(r => {
+      const fechaRegistro = new Date(r.fecha);
+      return fechaRegistro < fechaLimite;
+    });
+    
+    if(registrosABorrar.length === 0) {
+      alert(`ℹ️ No hay registros más antiguos que ${dias} días.`);
+      return;
+    }
+    
+    const confirmacion = confirm(
+      `⚠️ ¿Borrar registros más antiguos que ${dias} días?\n\n` +
+      `📊 Se eliminarán ${registrosABorrar.length} registros\n` +
+      `📅 Más antiguos que: ${fechaLimite.toLocaleDateString()}\n` +
+      `🚫 Esta acción NO se puede deshacer`
+    );
+    
+    if(!confirmacion) {
+      alert("❌ Limpieza cancelada.");
+      return;
+    }
+    
+    await borrarRegistrosAntiguos(fechaLimite);
+  }
+};
+
+/* === Función para borrar todos los registros === */
+async function borrarTodosRegistros() {
+  try {
+    const btn = document.getElementById("limpiarHistorialBtn");
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '🗑️ Borrando...';
+    btn.disabled = true;
+    
+    const batch = writeBatch(db);
+    const historialRef = collection(db, "historial");
+    const snap = await getDocs(historialRef);
+    
+    let contador = 0;
+    snap.forEach(doc => {
+      batch.delete(doc.ref);
+      contador++;
+    });
+    
+    await batch.commit();
+    
+    // Registrar en historial (esto se guardará después del borrado)
+    await addDoc(collection(db,"historial"),{
+      usuario: MI_UID,
+      rol: MI_ROL,
+      accion: "Limpieza de historial",
+      cambio: `Se borraron TODOS los registros del historial (${contador} registros eliminados)`,
+      fecha: Date.now()
+    });
+    
+    alert(`✅ Historial limpiado exitosamente.\n\n🗑️ ${contador} registros eliminados\n📁 Se ha guardado un registro de esta acción en el nuevo historial.`);
+    
+    // Recargar el historial
+    cargarHistorial();
+    
+  } catch (error) {
+    console.error('Error al borrar historial:', error);
+    alert(`❌ Error al limpiar el historial: ${error.message}`);
+  } finally {
+    const btn = document.getElementById("limpiarHistorialBtn");
+    if (btn) {
+      btn.innerHTML = '🗑️ Limpiar Historial';
+      btn.disabled = false;
+    }
+  }
+}
+
+/* === Función para borrar registros antiguos === */
+async function borrarRegistrosAntiguos(fechaLimite) {
+  try {
+    const btn = document.getElementById("limpiarHistorialBtn");
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '🗑️ Borrando...';
+    btn.disabled = true;
+    
+    // Primero obtener los registros antiguos
+    const q = query(
+      collection(db, "historial"),
+      where("fecha", "<", fechaLimite.getTime())
+    );
+    
+    const snap = await getDocs(q);
+    const batch = writeBatch(db);
+    
+    let contador = 0;
+    snap.forEach(doc => {
+      batch.delete(doc.ref);
+      contador++;
+    });
+    
+    await batch.commit();
+    
+    // Registrar en historial
+    await addDoc(collection(db,"historial"),{
+      usuario: MI_UID,
+      rol: MI_ROL,
+      accion: "Limpieza de historial parcial",
+      cambio: `Se borraron registros más antiguos que ${fechaLimite.toLocaleDateString()} (${contador} registros eliminados)`,
+      fecha: Date.now()
+    });
+    
+    alert(`✅ Historial limpiado exitosamente.\n\n🗑️ ${contador} registros antiguos eliminados\n📅 Límite: ${fechaLimite.toLocaleDateString()}\n📁 Se ha guardado un registro de esta acción.`);
+    
+    // Recargar el historial
+    cargarHistorial();
+    
+  } catch (error) {
+    console.error('Error al borrar registros antiguos:', error);
+    alert(`❌ Error al limpiar registros antiguos: ${error.message}`);
+  } finally {
+    const btn = document.getElementById("limpiarHistorialBtn");
+    if (btn) {
+      btn.innerHTML = '🗑️ Limpiar Historial';
+      btn.disabled = false;
+    }
+  }
+}
+
+/* === Exportar historial a Excel === */
+window.exportarHistorialAExcel = async () => {
+  if(!esLiderOficial){
+    alert("❌ Solo Líderes y Oficiales pueden exportar el historial.");
+    return;
+  }
+  
+  try {
+    // Mostrar indicador de carga
+    const btn = document.querySelector('.export-excel-btn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="icon">⏳</span> Generando...';
+    btn.disabled = true;
+    
+    // Obtener datos de historial
+    const q = query(collection(db,"historial"), orderBy("fecha","desc"));
+    const snap = await getDocs(q);
+    
+    // Crear encabezados del CSV
+    const headers = [
+      'Fecha Completa', 'Fecha', 'Hora', 'Usuario', 'Rol', 
+      'Acción', 'Cambio', 'Timestamp', 'ID Registro'
+    ];
+    
+    // Crear filas de datos
+    const rows = [headers];
+    
+    snap.forEach(doc => {
+      const h = doc.data();
+      const fechaCompleta = new Date(h.fecha);
+      const fecha = fechaCompleta.toLocaleDateString('es-ES');
+      const hora = fechaCompleta.toLocaleTimeString('es-ES');
+      
+      rows.push([
+        fechaCompleta.toLocaleString('es-ES'),
+        fecha,
+        hora,
+        h.usuario || '',
+        h.rol || '',
+        h.accion || '',
+        h.cambio || '',
+        h.fecha || '',
+        doc.id || ''
+      ]);
+    });
+    
+    // Convertir a CSV
+    const csvContent = rows.map(row => 
+      row.map(cell => {
+        const cellStr = String(cell);
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(',')
+    ).join('\n');
+    
+    // Crear y descargar archivo
+    const fecha = new Date().toISOString().split('T')[0];
+    const hora = new Date().toLocaleTimeString('es-ES', { hour12: false }).replace(/:/g, '-');
+    const nombreArchivo = `YMIR_Historial_${fecha}_${hora}.csv`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombreArchivo;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    alert(`✅ Exportación completada!\n\n📊 ${rows.length - 1} registros exportados\n📂 Archivo: ${nombreArchivo}\n\n1. Descarga el archivo CSV\n2. Ábrelo con Excel\n3. O pégalo en Google Sheets`);
+    
+  } catch (error) {
+    console.error('Error al exportar:', error);
+    alert(`❌ Error al exportar: ${error.message}`);
+  } finally {
+    // Restaurar botón
+    const btn = document.querySelector('.export-excel-btn');
+    if (btn) {
+      btn.innerHTML = '<span class="icon">📊</span> Exportar Historial';
+      btn.disabled = false;
+    }
+  }
+};
+
+/* === Punto rojo en nav === */
+function escucharSolicitudesBadge(){
+  const q = collection(db,"solicitudes");
+  const unsubscribe = onSnapshot(q, snap=>{
+    const badge = document.getElementById("solicitudesBadge");
+    if(!badge) return;
+    badge.style.display = snap.size > 0 ? "block" : "none";
+  });
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+  updateTopClocks();
+});
+
+// Necesitamos importar addDoc
+import { addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 </script>
 
 </body>
