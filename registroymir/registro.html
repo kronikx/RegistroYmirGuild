@@ -234,7 +234,7 @@ function updateTopClocks() {
   const localTime = now.toLocaleTimeString('es-ES', { hour12: false });
   document.getElementById('localTime').textContent = localTime;
   
-  const serverTime = new Date(now.getTime() - (3 * 3600 * 1000));
+  const serverTime = new Date(now.getTime() - (4 * 3600 * 1000));
   const serverTimeStr = serverTime.toISOString().substr(11, 8);
   document.getElementById('serverTime').textContent = serverTimeStr;
 }
