@@ -5,10 +5,229 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>YMIR Guild - Subastas</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  /* ESTILOS MEJORADOS MANTENIENDO LA ESTRUCTURA ORIGINAL */
+  .auctions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .auction-card {
+    background: rgba(36, 0, 70, 0.6);
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #ff9800;
+    transition: transform 0.3s;
+  }
+  
+  .auction-card:hover {
+    transform: translateY(-3px);
+  }
+  
+  .current-bid {
+    background: rgba(255, 152, 0, 0.1);
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  
+  .bid-amount {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff9800;
+  }
+  
+  .bidder {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+  }
+  
+  .bid-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .bid-input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #5a189a;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  .btn-bid {
+    padding: 8px 15px;
+    background: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .btn-bid:hover {
+    background: #f57c00;
+  }
+  
+  .time-remaining {
+    text-align: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    color: #ffc107;
+    font-weight: bold;
+  }
+  
+  /* Mejoras para la tabla existente */
+  .item-img {
+    max-width: 40px;
+    max-height: 40px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  
+  .tier-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .tier-libre { background: #240046; }
+  .tier-t2 { background: #5a189a; }
+  .tier-t3 { background: #9d4edd; }
+  
+  /* Estilos para filtros */
+  .filters-container {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .filter-btn {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #5a189a;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 13px;
+  }
+  
+  .filter-btn.active {
+    background: #5a189a;
+    border-color: #7b2cbf;
+  }
+  
+  .filter-btn:hover {
+    background: rgba(90, 24, 154, 0.5);
+  }
+  
+  /* Panel de puntos mejorado */
+  .points-panel {
+    border: 1px solid #5a189a;
+    padding: 15px;
+    border-radius: 8px;
+    background: rgba(93, 24, 154, 0.2);
+    min-width: 250px;
+  }
+  
+  .points-display {
+    font-size: 28px;
+    font-weight: bold;
+    color: #9d4edd;
+    margin: 10px 0;
+  }
+  
+  .points-breakdown {
+    font-size: 12px;
+    color: #c77dff;
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+  }
+  
+  .requirements-status {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .requirements-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    font-size: 11px;
+  }
+  
+  .requirement-item {
+    text-align: center;
+    padding: 5px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.2);
+  }
+  
+  .requirement-ok { color: #4CAF50; }
+  .requirement-fail { color: #ff6b6b; }
+  
+  /* Botón flotante para móviles */
+  .floating-create-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #9d4edd;
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
+    z-index: 1000;
+    transition: all 0.3s;
+    display: none;
+  }
+  
+  .floating-create-btn:hover {
+    background: #7b2cbf;
+    transform: scale(1.05);
+  }
+  
+  /* Vista responsive para tabla */
+  @media (max-width: 768px) {
+    .table-scroll {
+      overflow-x: auto;
+    }
+    
+    .floating-create-btn {
+      display: flex;
+    }
+    
+    .points-panel {
+      min-width: 100%;
+      margin-top: 20px;
+    }
+  }
+</style>
 </head>
 <body>
 
-<!-- Sección superior: Hora y URL -->
+<!-- Sección superior: Hora y URL (ESTRUCTURA ORIGINAL) -->
 <div class="header-info">
   <div class="time-section">
     <div>
@@ -22,7 +241,7 @@
   </div>
 </div>
 
-<!-- Menú de navegación -->
+<!-- Menú de navegación (ESTRUCTURA ORIGINAL) -->
 <nav class="menu">
   <ul class="menu-nav">
     <li class="menu-item">
@@ -69,9 +288,17 @@
 <div class="container">
   <h1>Subastas del Clan</h1>
 
-  <!-- Crear subasta (solo Líder/Oficial) -->
+  <!-- Filtros mejorados (NUEVO) -->
+  <div class="filters-container">
+    <button class="filter-btn active" data-filter="all">Todas las subastas</button>
+    <button class="filter-btn" data-filter="active">🟢 Activas</button>
+    <button class="filter-btn" data-filter="ended">🔴 Finalizadas</button>
+    <button class="filter-btn" data-filter="mybids">Mis pujas</button>
+  </div>
+
+  <!-- Crear subasta (solo Líder/Oficial) - MANTENIDO CON MEJORAS -->
   <div class="card" id="crearSubasta" style="display:none; margin-bottom: 20px;">
-    <h3 style="margin-top: 0; color: #9d4edd;">Nueva Subasta</h3>
+    <h3 style="margin-top: 0; color: #9d4edd;">🎯 Nueva Subasta</h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
       <div>
         <label style="display: block; margin-bottom: 5px; color: #c77dff;">Nombre del item</label>
@@ -109,26 +336,71 @@
       </div>
     </div>
     <div style="margin-top: 20px; text-align: center;">
-      <button id="crear" class="btn" style="padding: 10px 20px; font-size: 14px;">Crear subasta</button>
-      <p id="crearMsg" style="text-align:center; color:#c77dff; margin-top:10px;"></p>
+      <button id="crear" class="btn" style="padding: 10px 20px; font-size: 14px; background: #9d4edd;">➕ Crear subasta</button>
+      <p id="crearMsg" style="text-align:center; margin-top:10px; font-size: 12px;"></p>
     </div>
   </div>
 
-  <!-- Tabla + saldo -->
+  <!-- Tabla + Panel de puntos mejorado -->
   <div class="card">
-    <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 15px;">
-      <div style="flex: 1;">
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 15px;">
+      <div style="flex: 1; min-width: 300px;">
         <div class="table-scroll">
           <table id="tabla"></table>
         </div>
       </div>
-      <div style="border: 1px solid #5a189a; padding: 15px; border-radius: 8px; min-width: 200px; text-align: center; background: rgba(93, 24, 154, 0.2);">
-        <h4 style="margin-top: 0; color: #9d4edd;">Mis Puntos</h4>
-        <button id="saldoBtn" disabled style="font-weight:bold; width:100%; padding: 12px; background: #5a189a; color: #fff; border: none; border-radius: 6px; cursor: default; font-size: 16px;">Cargando...</button>
-        <p style="font-size: 12px; color: #c77dff; margin-top: 10px;">Total + Semanal</p>
+      
+      <!-- Panel de puntos mejorado -->
+      <div class="points-panel">
+        <h4 style="margin-top: 0; color: #9d4edd; text-align: center;">💎 Mis Puntos</h4>
+        <div class="points-display" id="totalPoints">0</div>
+        <div class="points-breakdown">
+          <div>
+            <div style="font-size: 11px; color: #999;">Total</div>
+            <div id="totalContribution" style="font-weight: bold; color: #c77dff;">0</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: #999;">Semanal</div>
+            <div id="weeklyPoints" style="font-weight: bold; color: #4CAF50;">0</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: #999;">Disponible</div>
+            <div id="availablePoints" style="font-weight: bold; color: #ff9800;">0</div>
+          </div>
+        </div>
+        
+        <div class="requirements-status">
+          <div style="font-size: 11px; color: #999; margin-bottom: 8px; text-align: center;">Requisitos para pujar</div>
+          <div class="requirements-grid">
+            <div class="requirement-item">
+              <div id="bossStatus">❌ Bosses</div>
+            </div>
+            <div class="requirement-item">
+              <div id="controlStatus">❌ Control</div>
+            </div>
+            <div class="requirement-item">
+              <div id="tierStatus">❌ Tier</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Información rápida -->
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+          <div style="font-size: 11px; color: #c77dff; margin-bottom: 5px;">📌 Información:</div>
+          <ul style="margin: 8px 0; padding-left: 15px; font-size: 10px; color: #aaa;">
+            <li>Pujas: Total + Semanal</li>
+            <li>Sin ganador = reembolso total</li>
+            <li>Control completo requerido</li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- Botón flotante para móviles -->
+<div class="floating-create-btn" onclick="scrollToCreateForm()" title="Crear nueva subasta">
+  ➕
 </div>
 
 <script type="module">
@@ -145,6 +417,9 @@ initializeApp({
 const auth = getAuth();
 const db = getFirestore();
 
+let intervaloContadores;
+let currentUser = null;
+
 /* === Actualizar relojes superiores === */
 function updateTopClocks() {
   const now = new Date();
@@ -160,9 +435,83 @@ function updateTopClocks() {
 setInterval(updateTopClocks, 1000);
 updateTopClocks();
 
+/* === Configurar filtros (NUEVO) === */
+function setupFilters() {
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      const filter = btn.dataset.filter;
+      filterAuctions(filter);
+    });
+  });
+}
+
+/* === Filtrar subastas (NUEVO) === */
+function filterAuctions(filterType) {
+  const rows = document.querySelectorAll('#tabla tr');
+  if (rows.length <= 1) return;
+  
+  let visibleCount = 0;
+  
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const statusCell = row.cells[6]; // Celda de tiempo
+    const timeText = statusCell.textContent || '';
+    const isActive = !timeText.includes('Finalizada') && !timeText.includes('0:00');
+    const isEnded = timeText.includes('Finalizada') || timeText.includes('0:00');
+    const hasMyBid = row.textContent.includes(currentUser?.email?.split('@')[0] || '');
+    
+    let showRow = false;
+    
+    switch(filterType) {
+      case 'all':
+        showRow = true;
+        break;
+      case 'active':
+        showRow = isActive;
+        break;
+      case 'ended':
+        showRow = isEnded;
+        break;
+      case 'mybids':
+        showRow = hasMyBid;
+        break;
+    }
+    
+    row.style.display = showRow ? '' : 'none';
+    if (showRow) visibleCount++;
+  }
+  
+  // Mostrar mensaje si no hay resultados
+  if (visibleCount === 0 && rows.length > 1) {
+    const table = document.getElementById('tabla');
+    // Verificar si ya existe el mensaje
+    let existingMsg = table.querySelector('.no-results-msg');
+    if (!existingMsg) {
+      existingMsg = document.createElement('tr');
+      existingMsg.className = 'no-results-msg';
+      existingMsg.innerHTML = `
+        <td colspan="10" style="text-align:center; padding: 40px; color: #999;">
+          No hay subastas que coincidan con el filtro
+        </td>
+      `;
+      table.appendChild(existingMsg);
+    }
+  } else {
+    // Eliminar mensaje si existe
+    const existingMsg = document.querySelector('.no-results-msg');
+    if (existingMsg) existingMsg.remove();
+  }
+}
+
 /* === Auth y visibilidad del creador === */
 onAuthStateChanged(auth, async user=>{
   if(!user){ location.href = "index.html"; return; }
+  
+  currentUser = user;
   
   // === BLOQUEO SI ESTÁ BANEADO ===
   const banSnap = await getDoc(doc(db, "baneados", user.uid));
@@ -187,24 +536,51 @@ onAuthStateChanged(auth, async user=>{
     }
   }
   
+  // Inicializar filtros
+  setupFilters();
+  
   escucharSaldo();
   cargarSubastas();
   escucharSolicitudesBadge();
 });
 
-/* === Saldo en tiempo real === */
+/* === Saldo en tiempo real - MEJORADO === */
 function escucharSaldo(){
   const user = auth.currentUser;
   if(!user) return;
-  onSnapshot(doc(db,"members",user.uid), (snap)=>{
+  
+  onSnapshot(doc(db,"members",user.uid), async (snap)=>{
     const data = snap.data() || {};
     const total = data.totalContribution ?? 0;
     const semanal = data.semanal ?? 0;
-    document.getElementById("saldoBtn").textContent = `Mis puntos: ${total + semanal}`;
+    const available = total + semanal;
+    
+    // Actualizar displays
+    document.getElementById("totalPoints").textContent = available;
+    document.getElementById("totalContribution").textContent = total;
+    document.getElementById("weeklyPoints").textContent = semanal;
+    document.getElementById("availablePoints").textContent = available;
+    
+    // Actualizar estados de requisitos
+    const boss45 = !!data.boss45;
+    const boss55 = !!data.boss55;
+    const bossesOk = (boss45 && boss55);
+    document.getElementById("bossStatus").textContent = bossesOk ? "✅ Bosses" : "❌ Bosses";
+    document.getElementById("bossStatus").className = bossesOk ? "requirement-ok" : "requirement-fail";
+    
+    // Verificar control completo
+    const completo = await controlCompleto(user.uid);
+    document.getElementById("controlStatus").textContent = completo ? "✅ Control" : "❌ Control";
+    document.getElementById("controlStatus").className = completo ? "requirement-ok" : "requirement-fail";
+    
+    // Verificar tier (basado en semanal)
+    const tierOk = (semanal >= 8000);
+    document.getElementById("tierStatus").textContent = tierOk ? "✅ Tier" : "❌ Tier";
+    document.getElementById("tierStatus").className = tierOk ? "requirement-ok" : "requirement-fail";
   });
 }
 
-/* === Crear subasta === */
+/* === Crear subasta - MEJORADO === */
 document.getElementById("crear").onclick = async ()=>{
   const item = document.getElementById("item").value.trim();
   const imagen = document.getElementById("imagen").value.trim();
@@ -215,6 +591,13 @@ document.getElementById("crear").onclick = async ()=>{
 
   if(!item || !precio || !tiempo){
     document.getElementById("crearMsg").textContent = "Completa todos los campos obligatorios";
+    document.getElementById("crearMsg").style.color = "#ff6b6b";
+    return;
+  }
+
+  if(precio <= 0 || tiempo <= 0){
+    document.getElementById("crearMsg").textContent = "Precio y tiempo deben ser mayores a 0";
+    document.getElementById("crearMsg").style.color = "#ff6b6b";
     return;
   }
 
@@ -230,16 +613,28 @@ document.getElementById("crear").onclick = async ()=>{
       ganadorUid: "",
       fin: Date.now() + tiempo * 60000,
       finalizada: false,
-      historial: []
+      historial: [],
+      creadoPor: auth.currentUser.uid,
+      creadoEn: new Date()
     });
-    document.getElementById("crearMsg").textContent = "Subasta creada correctamente";
+    
+    document.getElementById("crearMsg").textContent = "✅ Subasta creada correctamente";
+    document.getElementById("crearMsg").style.color = "#4CAF50";
+    
     // Limpiar campos
     document.getElementById("item").value = "";
     document.getElementById("imagen").value = "";
     document.getElementById("precio").value = "";
     document.getElementById("tiempo").value = "";
+    
+    // Ocultar mensaje después de 3 segundos
+    setTimeout(() => {
+      document.getElementById("crearMsg").textContent = "";
+    }, 3000);
+    
   }catch(e){
-    document.getElementById("crearMsg").textContent = "Error al crear la subasta: " + e.message;
+    document.getElementById("crearMsg").textContent = "❌ Error al crear la subasta: " + e.message;
+    document.getElementById("crearMsg").style.color = "#ff6b6b";
   }
 };
 
@@ -266,8 +661,7 @@ async function controlCompleto(uid){
   });
 }
 
-/* === Cargar subastas en tiempo real === */
-let intervaloContadores;
+/* === Cargar subastas en tiempo real - MEJORADO === */
 function cargarSubastas(){
   const tabla = document.getElementById("tabla");
   const user = auth.currentUser;
@@ -306,9 +700,26 @@ function cargarSubastas(){
       return;
     }
 
-    snap.forEach(d=>{
-      const s = d.data() || {};
-      const item = s.item ?? "(sin nombre)";
+    const subastasArray = [];
+    snap.forEach(d => {
+      subastasArray.push({ id: d.id, data: d.data() });
+    });
+
+    // Ordenar: activas primero, luego por tiempo restante
+    subastasArray.sort((a, b) => {
+      const aEnded = a.data.finalizada || (a.data.fin && a.data.fin < Date.now());
+      const bEnded = b.data.finalizada || (b.data.fin && b.data.fin < Date.now());
+      
+      if (aEnded && !bEnded) return 1;
+      if (!aEnded && bEnded) return -1;
+      
+      return (b.data.fin || 0) - (a.data.fin || 0);
+    });
+
+    subastasArray.forEach(item => {
+      const d = item;
+      const s = d.data;
+      const itemNombre = s.item ?? "(sin nombre)";
       const claseItem = s.claseItem ?? "Neutral";
       const tierItem = s.tierItem ?? "Libre";
       const precioBase = s.precioBase ?? 0;
@@ -333,30 +744,72 @@ function cargarSubastas(){
       let celdaPuja;
       if(restante > 0 && !finalizada){
         if(claseOk && tierOk && bossesOk && completo){
-          celdaPuja = `<input type="number" id="puja_${d.id}" placeholder="Cantidad" style="width: 80px; padding: 4px; margin-right: 5px; border-radius: 4px; border: 1px solid #5a189a; background: rgba(255,255,255,0.1); color: white;">
-                       <button class="btn" onclick="pujar('${d.id}')">Pujar</button>`;
+          const pujaMinima = Math.max(pujaActual + 1, precioBase + 1);
+          celdaPuja = `
+            <div style="display: flex; gap: 5px; align-items: center;">
+              <input type="number" id="puja_${d.id}" placeholder="Cantidad" 
+                     style="width: 80px; padding: 6px; border-radius: 4px; border: 1px solid #5a189a; background: rgba(255,255,255,0.1); color: white; font-size: 12px;"
+                     min="${pujaMinima}">
+              <button class="btn-bid" onclick="pujar('${d.id}')" style="padding: 6px 12px; font-size: 12px;">Pujar</button>
+            </div>
+          `;
         }else{
-          const motivo = !completo ? "Control incompleto" :
-                         (!bossesOk ? "Boss45/Boss55" :
+          const motivo = !completo ? "Control" :
+                         (!bossesOk ? "Bosses" :
                          (!tierOk ? "Tier" : "Clase"));
-          celdaPuja = `<span style="color: #ff6b6b;">No disponible (${motivo})</span>`;
+          celdaPuja = `<span style="color: #ff6b6b; font-size: 11px;">No disponible (${motivo})</span>`;
         }
       }else{
-        celdaPuja = `<span style="color: #c77dff; font-weight: bold;">Finalizada</span>`;
+        celdaPuja = `<span style="color: #c77dff; font-weight: bold; font-size: 12px;">Finalizada</span>`;
+      }
+
+      // Determinar color del tiempo
+      let timeColor = "#c77dff";
+      let timeText = formato(restante);
+      if (finalizada || restante <= 0) {
+        timeColor = "#999";
+        timeText = "Finalizada";
+      } else if (restante < 300) {
+        timeColor = "#ff6b6b";
+      } else if (restante < 1800) {
+        timeColor = "#ff9800";
       }
 
       tabla.innerHTML += `
         <tr>
-          <td>${item} ${s.imagen ? `<img src="${s.imagen}" class="item-img" alt="${item}">` : ""}</td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              ${s.imagen ? `<img src="${s.imagen}" class="item-img" alt="${itemNombre}" onerror="this.style.display='none'">` : ''}
+              <span>${itemNombre}</span>
+            </div>
+          </td>
           <td>${claseItem}</td>
-          <td><span style="background: ${tierItem==='T3'?'#9d4edd':tierItem==='T2'?'#5a189a':'#240046'}; padding: 3px 8px; border-radius: 4px; font-size: 12px;">${tierItem}</span></td>
+          <td>
+            <span class="tier-badge tier-${tierItem.toLowerCase()}">
+              ${tierItem}
+            </span>
+          </td>
           <td>${precioBase}</td>
           <td><strong style="color: #9d4edd;">${pujaActual}</strong></td>
           <td>${ganador}</td>
-          <td data-fin="${fin}" data-id="${d.id}"><span style="font-weight: bold; color: ${restante < 300 ? '#ff6b6b' : '#c77dff'};">${formato(restante)}</span></td>
-          <td><div style="max-height: 60px; overflow-y: auto; font-size: 12px;">${historialTxt}</div></td>
+          <td data-fin="${fin}" data-id="${d.id}">
+            <span style="font-weight: bold; color: ${timeColor}; font-size: 12px;">
+              ${timeText}
+            </span>
+          </td>
+          <td>
+            <div style="max-height: 60px; overflow-y: auto; font-size: 11px; color: #ccc;">
+              ${historialTxt}
+            </div>
+          </td>
           <td>${celdaPuja}</td>
-          ${puedeBorrar ? `<td><button class="btn secondary" onclick="eliminarSubasta('${d.id}')">🗑 Eliminar</button></td>` : ""}
+          ${puedeBorrar ? `
+            <td>
+              <button class="btn secondary" onclick="eliminarSubasta('${d.id}')" style="padding: 4px 8px; font-size: 11px;">
+                🗑 Eliminar
+              </button>
+            </td>
+          ` : ""}
         </tr>
       `;
 
@@ -366,18 +819,23 @@ function cargarSubastas(){
     });
 
     iniciarContadoresVivos();
+    // Aplicar filtro actual
+    const activeFilter = document.querySelector('.filter-btn.active');
+    if (activeFilter) {
+      filterAuctions(activeFilter.dataset.filter);
+    }
   });
 }
 
-/* === Pujar: con validación de Control === */
+/* === Pujar: con validación mejorada === */
 window.pujar = async (id)=>{
   const user = auth.currentUser;
   if(!user){ alert("No autenticado"); return; }
 
-  // Validación adicional por si alguien fuerza el botón desde el DOM
+  // Validación adicional
   const completo = await controlCompleto(user.uid);
   if(!completo){
-    alert("Debes completar tu Control (sin vacíos ni 0/0%) antes de pujar.");
+    alert("❌ Debes completar tu Control (sin vacíos ni 0/0%) antes de pujar.");
     return;
   }
 
@@ -391,6 +849,7 @@ window.pujar = async (id)=>{
 
   const inputEl = document.getElementById("puja_"+id);
   if(!inputEl){ alert("Entrada de puja no encontrada"); return; }
+  
   const cantidad = Number(inputEl.value);
   if(!cantidad || cantidad <= 0){
     alert("Introduce una cantidad válida");
@@ -430,6 +889,13 @@ window.pujar = async (id)=>{
     }
   }
 
+  // Validar puja mínima
+  const pujaMinima = Math.max(sub.pujaActual + 1, sub.precioBase + 1);
+  if(cantidad < pujaMinima){
+    alert(`La puja mínima es ${pujaMinima} puntos`);
+    return;
+  }
+
   const totalActual = me.totalContribution ?? 0;
   const semanalActual = me.semanal ?? 0;
   const disponible = totalActual + semanalActual;
@@ -457,31 +923,37 @@ window.pujar = async (id)=>{
   await updateDoc(meRef, { totalContribution: nuevoTotal, semanal: nuevoSemanal });
 
   const base = sub.pujaActual ?? sub.precioBase ?? 0;
-  const nueva = base + cantidad;
+  const nueva = cantidad;
   const nuevoHistorial = [...(sub.historial || []), {
     uid: user.uid,
     jugador: me.name,
     cantidad,
     deTotal,
-    deSemanal
+    deSemanal,
+    timestamp: new Date()
   }];
 
   await updateDoc(subRef, {
     pujaActual: nueva,
     ganador: me.name,
     ganadorUid: user.uid,
-    historial: nuevoHistorial
+    historial: nuevoHistorial,
+    lastBidTime: new Date()
   });
 
   inputEl.value = "";
-  alert(`¡Puja realizada por ${cantidad} puntos!`);
+  alert(`✅ ¡Puja realizada por ${cantidad} puntos!`);
+  
+  // Actualizar puntos en pantalla
+  escucharSaldo();
 };
 
 /* === Eliminar subasta: reembolso si no está finalizada === */
 window.eliminarSubasta = async (id)=>{
   const user = auth.currentUser;
   if(!user){ alert("No autenticado"); return; }
-  if(!confirm("¿Eliminar esta subasta?")) return;
+  
+  if(!confirm("¿Estás seguro de eliminar esta subasta?\nSe reembolsarán todas las pujas realizadas.")) return;
 
   const subRef = doc(db,"subastas",id);
   const subSnap = await getDoc(subRef);
@@ -499,10 +971,10 @@ window.eliminarSubasta = async (id)=>{
     }
   }
   await deleteDoc(subRef);
-  alert("Subasta eliminada");
+  alert("✅ Subasta eliminada correctamente");
 };
 
-/* === Finalizar subasta: reembolsos a no-ganadores; sin ganador reembolso a todos === */
+/* === Finalizar subasta === */
 async function finalizarSubastaSiAplica(sub, id){
   if(sub.finalizada) return;
   const subRef = doc(db,"subastas",id);
@@ -534,29 +1006,48 @@ async function finalizarSubastaSiAplica(sub, id){
   await updateDoc(subRef,{ finalizada: true });
 }
 
-/* === Contador en vivo === */
+/* === Contador en vivo mejorado === */
 function iniciarContadoresVivos(){
   if(intervaloContadores) clearInterval(intervaloContadores);
+  
   intervaloContadores = setInterval(async ()=>{
     const tds = document.querySelectorAll("[data-fin]");
+    const ahora = Date.now();
+    
     for(const td of tds){
       const fin = Number(td.getAttribute("data-fin"));
-      const restante = Math.max(0, Math.floor((fin - Date.now())/1000));
-      td.innerHTML = `<span style="font-weight: bold; color: ${restante < 300 ? '#ff6b6b' : '#c77dff'};">${formato(restante)}</span>`;
-
-      if(restante <= 0){
-        const id = td.getAttribute("data-id");
-        if(id){
+      const id = td.getAttribute("data-id");
+      const restante = Math.max(0, Math.floor((fin - ahora) / 1000));
+      
+      let timeColor = "#c77dff";
+      let timeText = formato(restante);
+      
+      if (restante <= 0) {
+        timeColor = "#999";
+        timeText = "Finalizada";
+        
+        if (id) {
           const subSnap = await getDoc(doc(db,"subastas",id));
-          const sub = subSnap.data();
-          if(sub) await finalizarSubastaSiAplica(sub, id);
+          if (subSnap.exists()) {
+            const sub = subSnap.data();
+            if (!sub.finalizada && sub.fin <= ahora) {
+              await finalizarSubastaSiAplica(sub, id);
+            }
+          }
         }
+      } else if (restante < 300) {
+        timeColor = "#ff6b6b";
+      } else if (restante < 1800) {
+        timeColor = "#ff9800";
       }
+      
+      td.innerHTML = `<span style="font-weight: bold; color: ${timeColor}; font-size: 12px;">${timeText}</span>`;
     }
   }, 1000);
 }
 
 function formato(s){
+  if (s <= 0) return "0:00";
   const m = Math.floor(s/60);
   const r = s % 60;
   return `${m}:${r.toString().padStart(2,"0")}`;
@@ -570,6 +1061,42 @@ function escucharSolicitudesBadge(){
     if(!badge) return;
     badge.style.display = snap.size > 0 ? "block" : "none";
   });
+}
+
+/* === Función para scroll al formulario === */
+window.scrollToCreateForm = function() {
+  const form = document.getElementById("crearSubasta");
+  if (form) {
+    form.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById("item").focus();
+  }
+};
+
+/* === Responsive: mostrar/ocultar botón flotante === */
+window.addEventListener('scroll', function() {
+  const floatingBtn = document.querySelector('.floating-create-btn');
+  if (floatingBtn) {
+    if (window.scrollY > 300) {
+      floatingBtn.style.display = 'flex';
+    } else {
+      floatingBtn.style.display = 'none';
+    }
+  }
+});
+
+// Inicializar botón flotante en móviles
+window.addEventListener('resize', function() {
+  const floatingBtn = document.querySelector('.floating-create-btn');
+  if (window.innerWidth < 768) {
+    floatingBtn.style.display = 'flex';
+  } else {
+    floatingBtn.style.display = 'none';
+  }
+});
+
+// Inicializar en carga
+if (window.innerWidth < 768) {
+  document.querySelector('.floating-create-btn').style.display = 'flex';
 }
 </script>
 

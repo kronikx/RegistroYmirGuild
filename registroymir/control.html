@@ -22,7 +22,7 @@
   
   #tablaControl {
     width: 100%;
-    min-width: 1800px;
+    min-width: 2000px;
     table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
@@ -30,78 +30,85 @@
     font-size: 14px;
   }
   
-  /* ANCHOS AMPLIADOS - ESPECIALMENTE PARA NOMBRE Y PODER */
-  #tablaControl th:nth-child(1),  /* Nombre */
+  /* ANCHOS AMPLIADOS - ESPECIALMENTE PARA NOMBRE Y RANKING */
+  #tablaControl th:nth-child(1),  /* Ranking - NUEVA POSICIÓN */
   #tablaControl td:nth-child(1) {
-    width: 180px;
-    min-width: 180px;
-    max-width: 200px;
+    width: 120px;
+    min-width: 120px;
+    max-width: 140px;
   }
   
-  #tablaControl th:nth-child(2),  /* Clase */
+  #tablaControl th:nth-child(2),  /* Nombre */
   #tablaControl td:nth-child(2) {
+    width: 200px;
+    min-width: 200px;
+    max-width: 250px;
+  }
+  
+  #tablaControl th:nth-child(3),  /* Clase */
+  #tablaControl td:nth-child(3) {
     width: 120px;
     min-width: 120px;
   }
   
-  #tablaControl th:nth-child(3),  /* Nivel */
-  #tablaControl td:nth-child(3) {
+  #tablaControl th:nth-child(4),  /* Nivel */
+  #tablaControl td:nth-child(4) {
     width: 80px;
     min-width: 80px;
   }
   
-  #tablaControl th:nth-child(4),  /* Poder - MUY AMPLIADO */
-  #tablaControl td:nth-child(4) {
+  #tablaControl th:nth-child(5),  /* Poder - MUY AMPLIADO */
+  #tablaControl td:nth-child(5) {
     width: 150px;
     min-width: 150px;
   }
   
   /* STATS numéricos (ATK, DEF, etc.) */
-  #tablaControl th:nth-child(5),
-  #tablaControl th:nth-child(7),
-  #tablaControl th:nth-child(9),
-  #tablaControl th:nth-child(11),
-  #tablaControl td:nth-child(5),
-  #tablaControl td:nth-child(7),
-  #tablaControl td:nth-child(9),
-  #tablaControl td:nth-child(11) {
+  #tablaControl th:nth-child(6),
+  #tablaControl th:nth-child(8),
+  #tablaControl th:nth-child(10),
+  #tablaControl th:nth-child(12),
+  #tablaControl td:nth-child(6),
+  #tablaControl td:nth-child(8),
+  #tablaControl td:nth-child(10),
+  #tablaControl td:nth-child(12) {
     width: 100px;
     min-width: 100px;
   }
   
   /* Porcentajes (DMG, DMG DEF, etc.) */
-  #tablaControl th:nth-child(6),
-  #tablaControl th:nth-child(8),
-  #tablaControl th:nth-child(10),
-  #tablaControl th:nth-child(12),
-  #tablaControl th:nth-child(14),
+  #tablaControl th:nth-child(7),
+  #tablaControl th:nth-child(9),
+  #tablaControl th:nth-child(11),
+  #tablaControl th:nth-child(13),
   #tablaControl th:nth-child(15),
   #tablaControl th:nth-child(16),
   #tablaControl th:nth-child(17),
-  #tablaControl td:nth-child(6),
-  #tablaControl td:nth-child(8),
-  #tablaControl td:nth-child(10),
-  #tablaControl td:nth-child(12),
-  #tablaControl td:nth-child(14),
+  #tablaControl th:nth-child(18),
+  #tablaControl td:nth-child(7),
+  #tablaControl td:nth-child(9),
+  #tablaControl td:nth-child(11),
+  #tablaControl td:nth-child(13),
   #tablaControl td:nth-child(15),
   #tablaControl td:nth-child(16),
-  #tablaControl td:nth-child(17) {
+  #tablaControl td:nth-child(17),
+  #tablaControl td:nth-child(18) {
     width: 110px;
     min-width: 110px;
   }
   
   /* ACC y EVA */
-  #tablaControl th:nth-child(13),
-  #tablaControl th:nth-child(18),
-  #tablaControl td:nth-child(13),
-  #tablaControl td:nth-child(18) {
+  #tablaControl th:nth-child(14),
+  #tablaControl th:nth-child(19),
+  #tablaControl td:nth-child(14),
+  #tablaControl td:nth-child(19) {
     width: 90px;
     min-width: 90px;
   }
   
-  /* Acciones */
-  #tablaControl th:nth-child(19),
-  #tablaControl td:nth-child(19) {
+  /* Mover Acciones a columna 21 */
+  #tablaControl th:nth-child(21),
+  #tablaControl td:nth-child(21) {
     width: 140px;
     min-width: 140px;
   }
@@ -131,6 +138,13 @@
     top: 0;
     z-index: 10;
     backdrop-filter: none !important;
+  }
+  
+  /* Header de ranking con estilo especial - AHORA EN PRIMERA COLUMNA */
+  #tablaControl th:nth-child(1) {
+    background: linear-gradient(135deg, #5a189a, #9d4edd) !important;
+    color: white !important;
+    font-weight: bold !important;
   }
   
   /* Sticky para filtros */
@@ -279,7 +293,7 @@
   /* Inputs para nombre y clase - ESTILO MORADO */
   .name-input, .class-input {
     width: 100%;
-    max-width: 140px;
+    max-width: 100%;
     text-align: center;
     padding: 6px 8px;
     border-radius: 4px;
@@ -390,10 +404,192 @@
     font-size: 16px;
   }
   
+  /* === ESTILOS PARA EL RANKING VISUAL === */
+  .ranking-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+  }
+  
+  .ranking-position {
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 2px;
+    font-family: 'Arial Black', sans-serif;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  .ranking-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  
+  .ranking-value {
+    font-size: 11px;
+    color: #aaa;
+    background: rgba(0,0,0,0.3);
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-top: 3px;
+    font-weight: bold;
+  }
+  
+  /* Colores según posición */
+  .ranking-1 .ranking-position { 
+    color: #FFD700; 
+    background: linear-gradient(45deg, #FFD700, #FFEC8B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .ranking-1 .ranking-icon { color: #FFD700; }
+  
+  .ranking-2 .ranking-position { 
+    color: #C0C0C0;
+    background: linear-gradient(45deg, #C0C0C0, #E0E0E0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .ranking-2 .ranking-icon { color: #C0C0C0; }
+  
+  .ranking-3 .ranking-position { 
+    color: #CD7F32;
+    background: linear-gradient(45deg, #CD7F32, #E3965E);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .ranking-3 .ranking-icon { color: #CD7F32; }
+  
+  .ranking-4-10 .ranking-position { 
+    color: #4CAF50;
+    font-weight: 800;
+  }
+  .ranking-4-10 .ranking-icon { 
+    color: #4CAF50; 
+    font-size: 20px;
+  }
+  
+  .ranking-other .ranking-position { 
+    color: #9C27B0;
+    font-weight: 700;
+  }
+  .ranking-other .ranking-icon { 
+    color: #9C27B0; 
+    font-size: 18px;
+  }
+  
+  /* Fila destacada del top 1 - CORREGIDA SIN POSITION: RELATIVE */
+  .top-1-row {
+    background: linear-gradient(90deg, rgba(255,215,0,0.08), rgba(255,215,0,0.03)) !important;
+    border-left: 4px solid #FFD700; /* En lugar del pseudo-elemento */
+  }
+  
+  /* Fila destacada del top 3 */
+  .top-3-row {
+    background: rgba(255,255,255,0.02) !important;
+    border-left: 2px solid #9d4edd;
+  }
+  
+  /* Efecto hover para filas de ranking */
+  tr:hover .ranking-container {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+  }
+  
+  /* Estilo para el indicador "(TÚ)" - CORREGIDO */
+  .tu-indicator {
+    color: #9d4edd;
+    font-size: 11px;
+    margin-left: 5px;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  
+  /* Contenedor para nombre con indicador - CORREGIDO */
+  .nombre-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 100%;
+  }
+  
+  /* Contenedor para input de nombre - CORREGIDO */
+  .nombre-input-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 100%;
+  }
+  
+  .nombre-input-container input {
+    flex: 1;
+    min-width: 120px;
+    max-width: 180px;
+  }
+  
+  /* Asegurar que el contenido de nombre quepa */
+  #tablaControl td:nth-child(2) { /* Ahora nombre es columna 2 */
+    overflow: visible;
+    white-space: normal;
+    word-break: break-word;
+  }
+  
+  /* Ajustar para que el contenido se vea bien */
+  .nombre-text {
+    max-width: 160px;
+    word-break: break-word;
+  }
+  
   /* Responsive */
   @media (max-width: 1920px) {
     .container {
       max-width: 98vw;
+    }
+  }
+  
+  /* Mejoras responsive */
+  @media (max-width: 768px) {
+    #tablaControl {
+      min-width: 2400px;
+    }
+    
+    .ranking-position {
+      font-size: 16px;
+    }
+    
+    .ranking-icon {
+      font-size: 18px;
+    }
+    
+    .ranking-value {
+      font-size: 9px;
+    }
+    
+    .nombre-container {
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .tu-indicator {
+      margin-left: 0;
+    }
+    
+    .nombre-input-container {
+      flex-direction: column;
+      gap: 3px;
+    }
+    
+    .nombre-input-container input {
+      max-width: 100%;
     }
   }
 </style>
@@ -479,7 +675,8 @@
     <p class="muted">
       💡 <strong>Miembros:</strong> Puedes editar tu propia fila (nivel, poder, stats).<br>
       💡 <strong>Líderes/Oficiales:</strong> Pueden editar todas las filas y TODOS los campos (nombre, clase, stats).<br>
-      📊 <strong>Reinicio Stats:</strong> Solo Líderes/Oficiales pueden reiniciar stats y exportar backups.
+      📊 <strong>Reinicio Stats:</strong> Solo Líderes/Oficiales pueden reiniciar stats y exportar backups.<br>
+      🏆 <strong>Ranking:</strong> Se calcula automáticamente basado en la media ponderada de todos los stats.
     </p>
   </div>
 </div>
@@ -537,6 +734,123 @@ function updateTopClocks() {
 
 setInterval(updateTopClocks, 1000);
 updateTopClocks();
+
+/* === Funciones para calcular el ranking === */
+
+// Función para obtener valor numérico de una celda
+function obtenerValorNumerico(valor) {
+  if (!valor || valor === "-") return 0;
+  
+  // Quitar porcentajes
+  const valorStr = String(valor).replace('%', '').trim();
+  const num = Number(valorStr);
+  
+  return isNaN(num) ? 0 : num;
+}
+
+// Función para calcular el score total de un miembro (ponderado)
+function calcularScoreTotal(miembro) {
+  const pesos = {
+    // Stats principales - alto peso
+    nivel: 2.0,
+    poder: 3.0,
+    
+    // ATK - peso alto
+    physAtk: 1.5,
+    magAtk: 1.5,
+    
+    // DEF - peso medio
+    physDef: 1.2,
+    magDef: 1.2,
+    
+    // Stats secundarios - peso medio
+    acc: 1.0,
+    eva: 1.0,
+    
+    // Porcentajes de daño - peso medio-alto
+    physDmg: 1.3,
+    magDmg: 1.3,
+    physDmgDef: 1.1,
+    magDmgDef: 1.1,
+    monsterDmg: 1.2,
+    monsterDmgDef: 1.0,
+    bossDmg: 1.4,
+    bossDmgDef: 1.1
+  };
+  
+  let scoreTotal = 0;
+  
+  Object.keys(pesos).forEach(stat => {
+    const valor = obtenerValorNumerico(miembro[stat]);
+    const peso = pesos[stat];
+    scoreTotal += valor * peso;
+  });
+  
+  return Math.round(scoreTotal * 100) / 100; // Redondear a 2 decimales
+}
+
+// Función para obtener icono según posición
+function obtenerIconoRanking(posicion) {
+  if (posicion === 1) return "👑";
+  if (posicion === 2) return "🥈";
+  if (posicion === 3) return "🥉";
+  if (posicion <= 10) return "⭐";
+  return "🔸";
+}
+
+// Función para obtener clase CSS según posición
+function obtenerClaseRanking(posicion) {
+  if (posicion === 1) return "ranking-1";
+  if (posicion === 2) return "ranking-2";
+  if (posicion === 3) return "ranking-3";
+  if (posicion <= 10) return "ranking-4-10";
+  return "ranking-other";
+}
+
+// Función para obtener clase de fila según posición
+function obtenerClaseFilaRanking(posicion) {
+  if (posicion === 1) return "top-1-row";
+  if (posicion <= 3) return "top-3-row";
+  return "";
+}
+
+// Generar ranking mejorado
+function generarRankingMejorado(miembrosArray) {
+  const miembrosConScore = miembrosArray.map(miembro => ({
+    id: miembro.id,
+    data: miembro.data,
+    score: calcularScoreTotal(miembro.data)
+  }));
+  
+  // Ordenar por score descendente
+  miembrosConScore.sort((a, b) => b.score - a.score);
+  
+  // Asignar posiciones
+  miembrosConScore.forEach((miembro, index) => {
+    miembro.position = index + 1;
+    miembro.positionDisplay = index + 1;
+    
+    // Manejar empates
+    if (index > 0 && miembro.score === miembrosConScore[index - 1].score) {
+      miembro.positionDisplay = miembrosConScore[index - 1].positionDisplay;
+    }
+  });
+  
+  // Convertir a mapa
+  const rankingMap = {};
+  miembrosConScore.forEach(miembro => {
+    rankingMap[miembro.id] = {
+      position: miembro.position,
+      positionDisplay: miembro.positionDisplay,
+      score: miembro.score,
+      icon: obtenerIconoRanking(miembro.position),
+      rankingClass: obtenerClaseRanking(miembro.position),
+      rowClass: obtenerClaseFilaRanking(miembro.position)
+    };
+  });
+  
+  return rankingMap;
+}
 
 /* === Auth y carga inicial === */
 onAuthStateChanged(auth, async user=>{
@@ -651,30 +965,46 @@ function mostrarValorPct(v){
 function cargarControl(){
   const tabla = document.getElementById("tablaControl");
   onSnapshot(collection(db,"members"), (snap) => {
+    const miembrosArray = [];
+    
+    // Primero recolectar todos los miembros
+    snap.forEach(d => {
+      miembrosArray.push({
+        id: d.id,
+        data: d.data()
+      });
+    });
+    
+    // Generar ranking mejorado
+    const ranking = generarRankingMejorado(miembrosArray);
+    
+    // Pintar tabla con RANKING en PRIMERA COLUMNA
     tabla.innerHTML = `
 <tr>
-  <th onclick="ordenarTabla(0)">Nombre ⬍</th>
-  <th onclick="ordenarTabla(1)">Clase ⬍</th>
-  <th onclick="ordenarTabla(2)">Nivel ⬍</th>
-  <th onclick="ordenarTabla(3)">Poder ⬍</th>
-  <th onclick="ordenarTabla(4)">PHYS ATK ⬍</th>
-  <th onclick="ordenarTabla(5)">PHYS DMG ⬍</th>
-  <th onclick="ordenarTabla(6)">MAG ATK ⬍</th>
-  <th onclick="ordenarTabla(7)">MAG DMG ⬍</th>
-  <th onclick="ordenarTabla(8)">PHYS DEF ⬍</th>
-  <th onclick="ordenarTabla(9)">PHYS DMG DEF ⬍</th>
-  <th onclick="ordenarTabla(10)">MAG DEF ⬍</th>
-  <th onclick="ordenarTabla(11)">MAG DMG DEF ⬍</th>
-  <th onclick="ordenarTabla(12)">ACC ⬍</th>
-  <th onclick="ordenarTabla(13)">EVA ⬍</th>
-  <th onclick="ordenarTabla(14)">Monster DMG ⬍</th>
-  <th onclick="ordenarTabla(15)">Monster DMG DEF ⬍</th>
-  <th onclick="ordenarTabla(16)">Boss DMG ⬍</th>
-  <th onclick="ordenarTabla(17)">Boss DMG DEF ⬍</th>
+  <th style="background: linear-gradient(135deg, #5a189a, #9d4edd) !important; color: white !important; font-weight: bold !important;" onclick="ordenarTabla(0)">🏆 RANK ⬍</th>
+  <th onclick="ordenarTabla(1)">Nombre ⬍</th>
+  <th onclick="ordenarTabla(2)">Clase ⬍</th>
+  <th onclick="ordenarTabla(3)">Nivel ⬍</th>
+  <th onclick="ordenarTabla(4)">Poder ⬍</th>
+  <th onclick="ordenarTabla(5)">PHYS ATK ⬍</th>
+  <th onclick="ordenarTabla(6)">PHYS DMG ⬍</th>
+  <th onclick="ordenarTabla(7)">MAG ATK ⬍</th>
+  <th onclick="ordenarTabla(8)">MAG DMG ⬍</th>
+  <th onclick="ordenarTabla(9)">PHYS DEF ⬍</th>
+  <th onclick="ordenarTabla(10)">PHYS DMG DEF ⬍</th>
+  <th onclick="ordenarTabla(11)">MAG DEF ⬍</th>
+  <th onclick="ordenarTabla(12)">MAG DMG DEF ⬍</th>
+  <th onclick="ordenarTabla(13)">ACC ⬍</th>
+  <th onclick="ordenarTabla(14)">EVA ⬍</th>
+  <th onclick="ordenarTabla(15)">Monster DMG ⬍</th>
+  <th onclick="ordenarTabla(16)">Monster DMG DEF ⬍</th>
+  <th onclick="ordenarTabla(17)">Boss DMG ⬍</th>
+  <th onclick="ordenarTabla(18)">Boss DMG DEF ⬍</th>
   <th>Acciones</th>
 </tr>
 
 <tr class="filtros">
+  <th><input type="number" placeholder="Min rank..."></th>
   <th><input placeholder="Filtrar..."></th>
   <th><input placeholder="Filtrar..."></th>
   <th><input type="number" placeholder="Min..."></th>
@@ -705,17 +1035,39 @@ function cargarControl(){
       // En Control: Miembros pueden editar SU PROPIA fila (solo stats), Líder/Oficial pueden editar TODAS (todo)
       const puedeEditar = esLiderOficial || esPropio;
       
-      // Determinar clase para fila propia
+      // Obtener datos del ranking
+      const rankInfo = ranking[d.id] || {
+        position: "-",
+        positionDisplay: "-",
+        score: 0,
+        icon: "🔸",
+        rankingClass: "ranking-other",
+        rowClass: ""
+      };
+      
+      // Combinar clase de fila propia con clase de ranking
       const filaClase = esPropio ? "self-row" : "";
-
+      const filaRankingClase = rankInfo.rowClass;
+      const clasesFila = [filaClase, filaRankingClase].filter(c => c).join(" ");
+      
       // Si está en modo edición
       if (estaEditando) {
         tabla.innerHTML += `
-          <tr id="fila_${d.id}" class="editing-mode ${filaClase}">
+          <tr id="fila_${d.id}" class="editing-mode ${clasesFila}">
+            <td>
+              <div class="ranking-container ${rankInfo.rankingClass}">
+                <div class="ranking-icon">${rankInfo.icon}</div>
+                <div class="ranking-position">${rankInfo.positionDisplay}</div>
+                <div class="ranking-value">${rankInfo.score.toFixed(1)} pts</div>
+              </div>
+            </td>
             <td id="nombre_${d.id}">
-              ${esLiderOficial ? 
-                `<input type="text" class="name-input" id="editNombre_${d.id}" value="${m.name || ''}">` : 
-                m.name || "-"}
+              <div class="nombre-input-container">
+                ${esLiderOficial ? 
+                  `<input type="text" class="name-input" id="editNombre_${d.id}" value="${m.name || ''}">` : 
+                  `<span class="nombre-text">${m.name || "-"}</span>`}
+                ${esPropio ? "<span class='tu-indicator'>(TÚ)</span>" : ""}
+              </div>
             </td>
             <td id="clase_${d.id}">
               ${esLiderOficial ? 
@@ -792,8 +1144,20 @@ function cargarControl(){
       } else {
         // Modo normal (solo lectura o mostrar datos)
         tabla.innerHTML += `
-          <tr id="fila_${d.id}" class="${filaClase}">
-            <td id="nombre_${d.id}">${m.name ?? "-"} ${esPropio ? "<span style='color:#9d4edd; font-size:11px;'>(TÚ)</span>" : ""}</td>
+          <tr id="fila_${d.id}" class="${clasesFila}">
+            <td>
+              <div class="ranking-container ${rankInfo.rankingClass}">
+                <div class="ranking-icon">${rankInfo.icon}</div>
+                <div class="ranking-position">${rankInfo.positionDisplay}</div>
+                <div class="ranking-value">${rankInfo.score.toFixed(1)} pts</div>
+              </div>
+            </td>
+            <td id="nombre_${d.id}">
+              <div class="nombre-container">
+                <span class="nombre-text">${m.name ?? "-"}</span>
+                ${esPropio ? "<span class='tu-indicator'>(TÚ)</span>" : ""}
+              </div>
+            </td>
             <td id="clase_${d.id}">${m.clase ?? "-"}</td>
             <td id="nivel_${d.id}">${mostrarValorNum(m.nivel)}</td>
             <td id="poder_${d.id}">${mostrarValorNum(m.poder)}</td>
@@ -1236,14 +1600,32 @@ function filtrarTabla(){
       const input = filtro.querySelector("input");
       if (!input || !input.value) return;
 
-      let celda = celdas[i].textContent.trim();
+      let celda = "";
+      
+      // Para la columna de ranking (ahora columna 1)
+      if (i === 0) {
+        const rankingContainer = fila.querySelector(".ranking-position");
+        if (rankingContainer) {
+          celda = rankingContainer.textContent.trim();
+        }
+      } else {
+        celda = celdas[i].textContent.trim();
+      }
+      
       let filtroVal = input.value.trim();
 
-      celda = celda.replace("%", "");
+      // Limpiar caracteres no numéricos
+      celda = celda.replace("%", "").replace("pts", "").trim();
+      filtroVal = filtroVal.replace("%", "").trim();
 
-      if (!isNaN(filtroVal)) {
-        if (Number(celda) < Number(filtroVal)) visible = false;
-      } else {
+      if (!isNaN(filtroVal) && filtroVal !== "") {
+        const celdaNum = celda === "-" || celda === "" ? -999999 : Number(celda);
+        const filtroNum = Number(filtroVal);
+        
+        if (celdaNum < filtroNum) {
+          visible = false;
+        }
+      } else if (filtroVal !== "") {
         if (!celda.toLowerCase().startsWith(filtroVal.toLowerCase())) {
           visible = false;
         }
@@ -1266,8 +1648,22 @@ window.ordenarTabla = (col) => {
   ordenCol = col;
 
   filas.sort((a, b) => {
-    let A = a.children[col].textContent.trim().replace("%","");
-    let B = b.children[col].textContent.trim().replace("%","");
+    let A = "";
+    let B = "";
+    
+    // Para la columna de ranking (columna 1)
+    if (col === 0) {
+      const rankingA = a.querySelector(".ranking-position");
+      const rankingB = b.querySelector(".ranking-position");
+      A = rankingA ? rankingA.textContent.trim() : "";
+      B = rankingB ? rankingB.textContent.trim() : "";
+    } else {
+      A = a.children[col].textContent.trim();
+      B = b.children[col].textContent.trim();
+    }
+
+    A = A.replace("%", "").replace("pts", "").trim();
+    B = B.replace("%", "").replace("pts", "").trim();
 
     if (A === "-" || A === "") A = "-999999";
     if (B === "-" || B === "") B = "-999999";
