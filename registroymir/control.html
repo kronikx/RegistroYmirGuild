@@ -437,6 +437,16 @@
     font-weight: bold;
   }
   
+  /* Ranking incompleto */
+  .ranking-incompleto .ranking-position { 
+    color: #888;
+    font-weight: 700;
+  }
+  .ranking-incompleto .ranking-icon { 
+    color: #888; 
+    font-size: 18px;
+  }
+  
   /* Colores según posición */
   .ranking-1 .ranking-position { 
     color: #FFD700; 
@@ -676,7 +686,7 @@
       💡 <strong>Miembros:</strong> Puedes editar tu propia fila (nivel, poder, stats).<br>
       💡 <strong>Líderes/Oficiales:</strong> Pueden editar todas las filas y TODOS los campos (nombre, clase, stats).<br>
       📊 <strong>Reinicio Stats:</strong> Solo Líderes/Oficiales pueden reiniciar stats y exportar backups.<br>
-      🏆 <strong>Ranking:</strong> Se calcula automáticamente basado en la media ponderada de todos los stats.
+      🏆 <strong>Ranking:</strong> Solo aparece para miembros con TODOS los stats completos (no vacíos y mayores que 0).
     </p>
   </div>
 </div>
@@ -737,9 +747,9 @@ updateTopClocks();
 
 /* === Funciones para calcular el ranking === */
 
-// Función para obtener valor numérico de una celda
+// Función para obtener valor numérico de una celda - MODIFICADA
 function obtenerValorNumerico(valor) {
-  if (!valor || valor === "-") return 0;
+  if (!valor || valor === "-" || valor === "" || valor === "0") return 0;
   
   // Quitar porcentajes
   const valorStr = String(valor).replace('%', '').trim();
@@ -748,8 +758,51 @@ function obtenerValorNumerico(valor) {
   return isNaN(num) ? 0 : num;
 }
 
-// Función para calcular el score total de un miembro (ponderado)
+// Función para calcular el score total de un miembro (ponderado) - MODIFICADA
 function calcularScoreTotal(miembro) {
+  // Lista de stats requeridos para considerar "completo"
+  const statsRequeridos = [
+    'nivel', 'poder', 'physAtk', 'magAtk', 'physDef', 'magDef', 
+    'acc', 'eva', 'physDmg', 'magDmg', 'physDmgDef', 'magDmgDef',
+    'monsterDmg', 'monsterDmgDef', 'bossDmg', 'bossDmgDef'
+  ];
+  
+  // Verificar si todos los stats requeridos están presentes y no son 0
+  let statsCompletos = true;
+  
+  for (const stat of statsRequeridos) {
+    const valor = miembro[stat];
+    
+    // Verificar si el stat está vacío, es 0, o es "-"
+    if (valor === undefined || valor === null || 
+        valor === "" || valor === "0" || 
+        valor === "-" || valor === "0%") {
+      statsCompletos = false;
+      break;
+    }
+    
+    // Para porcentajes, verificar que no sea 0%
+    if (typeof valor === 'string' && valor.includes('%')) {
+      const numValor = Number(valor.replace('%', '').trim());
+      if (numValor === 0 || isNaN(numValor)) {
+        statsCompletos = false;
+        break;
+      }
+    }
+    
+    // Para números, verificar que no sea 0
+    if (typeof valor === 'number' && valor === 0) {
+      statsCompletos = false;
+      break;
+    }
+  }
+  
+  // Si no tiene todos los stats completos, retornar null
+  if (!statsCompletos) {
+    return null; // null indicará que no debe aparecer en ranking
+  }
+  
+  // Si tiene todos los stats completos, calcular el score
   const pesos = {
     // Stats principales - alto peso
     nivel: 2.0,
@@ -790,7 +843,8 @@ function calcularScoreTotal(miembro) {
 }
 
 // Función para obtener icono según posición
-function obtenerIconoRanking(posicion) {
+function obtenerIconoRanking(posicion, tieneStatsCompletos) {
+  if (!tieneStatsCompletos) return "❓";
   if (posicion === 1) return "👑";
   if (posicion === 2) return "🥈";
   if (posicion === 3) return "🥉";
@@ -799,7 +853,8 @@ function obtenerIconoRanking(posicion) {
 }
 
 // Función para obtener clase CSS según posición
-function obtenerClaseRanking(posicion) {
+function obtenerClaseRanking(posicion, tieneStatsCompletos) {
+  if (!tieneStatsCompletos) return "ranking-incompleto";
   if (posicion === 1) return "ranking-1";
   if (posicion === 2) return "ranking-2";
   if (posicion === 3) return "ranking-3";
@@ -808,31 +863,60 @@ function obtenerClaseRanking(posicion) {
 }
 
 // Función para obtener clase de fila según posición
-function obtenerClaseFilaRanking(posicion) {
+function obtenerClaseFilaRanking(posicion, tieneStatsCompletos) {
+  if (!tieneStatsCompletos) return "";
   if (posicion === 1) return "top-1-row";
   if (posicion <= 3) return "top-3-row";
   return "";
 }
 
-// Generar ranking mejorado
+// Generar ranking mejorado - MODIFICADA
 function generarRankingMejorado(miembrosArray) {
-  const miembrosConScore = miembrosArray.map(miembro => ({
-    id: miembro.id,
-    data: miembro.data,
-    score: calcularScoreTotal(miembro.data)
-  }));
+  const miembrosConScore = [];
   
-  // Ordenar por score descendente
-  miembrosConScore.sort((a, b) => b.score - a.score);
+  // Filtrar solo miembros con stats completos
+  miembrosArray.forEach(miembro => {
+    const score = calcularScoreTotal(miembro.data);
+    
+    // Solo incluir si tiene score (no null)
+    if (score !== null) {
+      miembrosConScore.push({
+        id: miembro.id,
+        data: miembro.data,
+        score: score,
+        tieneStatsCompletos: true
+      });
+    } else {
+      // Guardar como sin stats completos para mostrar en tabla pero no en ranking
+      miembrosConScore.push({
+        id: miembro.id,
+        data: miembro.data,
+        score: 0,
+        tieneStatsCompletos: false
+      });
+    }
+  });
   
-  // Asignar posiciones
-  miembrosConScore.forEach((miembro, index) => {
+  // Ordenar por score descendente (solo los que tienen stats completos)
+  const miembrosConStatsCompletos = miembrosConScore.filter(m => m.tieneStatsCompletos);
+  miembrosConStatsCompletos.sort((a, b) => b.score - a.score);
+  
+  // Asignar posiciones solo a los que tienen stats completos
+  miembrosConStatsCompletos.forEach((miembro, index) => {
     miembro.position = index + 1;
     miembro.positionDisplay = index + 1;
     
     // Manejar empates
-    if (index > 0 && miembro.score === miembrosConScore[index - 1].score) {
-      miembro.positionDisplay = miembrosConScore[index - 1].positionDisplay;
+    if (index > 0 && miembro.score === miembrosConStatsCompletos[index - 1].score) {
+      miembro.positionDisplay = miembrosConStatsCompletos[index - 1].positionDisplay;
+    }
+  });
+  
+  // Para los miembros sin stats completos, asignar posición como "N/A"
+  miembrosConScore.forEach(miembro => {
+    if (!miembro.tieneStatsCompletos) {
+      miembro.position = 0;
+      miembro.positionDisplay = "N/A";
     }
   });
   
@@ -843,9 +927,10 @@ function generarRankingMejorado(miembrosArray) {
       position: miembro.position,
       positionDisplay: miembro.positionDisplay,
       score: miembro.score,
-      icon: obtenerIconoRanking(miembro.position),
-      rankingClass: obtenerClaseRanking(miembro.position),
-      rowClass: obtenerClaseFilaRanking(miembro.position)
+      tieneStatsCompletos: miembro.tieneStatsCompletos,
+      icon: obtenerIconoRanking(miembro.position, miembro.tieneStatsCompletos),
+      rankingClass: obtenerClaseRanking(miembro.position, miembro.tieneStatsCompletos),
+      rowClass: obtenerClaseFilaRanking(miembro.position, miembro.tieneStatsCompletos)
     };
   });
   
@@ -1037,11 +1122,12 @@ function cargarControl(){
       
       // Obtener datos del ranking
       const rankInfo = ranking[d.id] || {
-        position: "-",
-        positionDisplay: "-",
+        position: 0,
+        positionDisplay: "N/A",
         score: 0,
-        icon: "🔸",
-        rankingClass: "ranking-other",
+        tieneStatsCompletos: false,
+        icon: "❓",
+        rankingClass: "ranking-incompleto",
         rowClass: ""
       };
       
@@ -1058,7 +1144,7 @@ function cargarControl(){
               <div class="ranking-container ${rankInfo.rankingClass}">
                 <div class="ranking-icon">${rankInfo.icon}</div>
                 <div class="ranking-position">${rankInfo.positionDisplay}</div>
-                <div class="ranking-value">${rankInfo.score.toFixed(1)} pts</div>
+                ${rankInfo.tieneStatsCompletos ? `<div class="ranking-value">${rankInfo.score.toFixed(1)} pts</div>` : '<div class="ranking-value" style="color:#ff6b6b;">Incompleto</div>'}
               </div>
             </td>
             <td id="nombre_${d.id}">
@@ -1149,7 +1235,7 @@ function cargarControl(){
               <div class="ranking-container ${rankInfo.rankingClass}">
                 <div class="ranking-icon">${rankInfo.icon}</div>
                 <div class="ranking-position">${rankInfo.positionDisplay}</div>
-                <div class="ranking-value">${rankInfo.score.toFixed(1)} pts</div>
+                ${rankInfo.tieneStatsCompletos ? `<div class="ranking-value">${rankInfo.score.toFixed(1)} pts</div>` : '<div class="ranking-value" style="color:#ff6b6b;">Stats incompletos</div>'}
               </div>
             </td>
             <td id="nombre_${d.id}">
@@ -1619,7 +1705,7 @@ function filtrarTabla(){
       filtroVal = filtroVal.replace("%", "").trim();
 
       if (!isNaN(filtroVal) && filtroVal !== "") {
-        const celdaNum = celda === "-" || celda === "" ? -999999 : Number(celda);
+        const celdaNum = celda === "-" || celda === "" || celda === "N/A" ? -999999 : Number(celda);
         const filtroNum = Number(filtroVal);
         
         if (celdaNum < filtroNum) {
@@ -1665,6 +1751,10 @@ window.ordenarTabla = (col) => {
     A = A.replace("%", "").replace("pts", "").trim();
     B = B.replace("%", "").replace("pts", "").trim();
 
+    // Tratar "N/A" como el valor más bajo
+    if (A === "N/A") A = "999999";
+    if (B === "N/A") B = "999999";
+    
     if (A === "-" || A === "") A = "-999999";
     if (B === "-" || B === "") B = "-999999";
 
