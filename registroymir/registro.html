@@ -166,6 +166,9 @@
   <!-- Botones de administración (solo para Líderes/Oficiales) -->
   <div class="admin-buttons">
     <button id="limpiarHistorialBtn" onclick="limpiarHistorial()">🗑️ Limpiar Historial</button>
+    <button id="migrarNombresBtn" onclick="migrarNombresEnHistorial()" style="display:none; background: linear-gradient(135deg, #2196F3, #0D47A1); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      🔄 Migrar Nombres
+    </button>
   </div>
 
   <div class="card">
@@ -208,7 +211,9 @@ import {
   getDoc,
   deleteDoc,
   where,
-  writeBatch
+  writeBatch,
+  addDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -226,6 +231,42 @@ let registros = [];
 let esLiderOficial = false;
 let MI_ROL = "Miembro";
 let MI_UID = null;
+
+/* === Función para obtener el nombre del usuario por UID === */
+async function obtenerNombreUsuario(uid) {
+  try {
+    // Si el UID ya parece un nombre (no es un UID de Firebase), devolverlo tal cual
+    if (!uid || uid.length < 20 || uid.includes(' ')) {
+      return uid || "Usuario";
+    }
+    
+    const userRef = doc(db, "members", uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      return userData.name || userData.nombre || userData.userName || uid;
+    }
+    return uid; // Si no encuentra, devuelve el UID como fallback
+  } catch (error) {
+    console.error("Error al obtener nombre:", error);
+    return uid;
+  }
+}
+
+/* === Función para convertir UIDs a nombres en tiempo real === */
+async function convertirUIDaNombre(uid) {
+  // Si ya parece un nombre, devolverlo
+  if (!uid || uid.length < 20 || uid.includes(' ')) {
+    return uid;
+  }
+  
+  // Verificar si es un UID de Firebase (comienza con caracteres alfanuméricos)
+  if (/^[a-zA-Z0-9]{20,}$/.test(uid)) {
+    return await obtenerNombreUsuario(uid);
+  }
+  
+  return uid;
+}
 
 /* === Actualizar relojes superiores === */
 function updateTopClocks() {
@@ -270,10 +311,12 @@ onAuthStateChanged(auth, async user=>{
     // Mostrar/ocultar botones según rol
     const exportarFloatingBtn = document.querySelector(".export-excel-container");
     const limpiarBtn = document.getElementById("limpiarHistorialBtn");
+    const migrarBtn = document.getElementById("migrarNombresBtn");
     
     if (esLiderOficial) {
       if (exportarFloatingBtn) exportarFloatingBtn.style.display = "block";
       if (limpiarBtn) limpiarBtn.style.display = "flex";
+      if (migrarBtn) migrarBtn.style.display = "inline-block";
       
       // Mostrar enlace a baneados en menú
       const baneadosMenuItem = document.getElementById("baneadosMenuItem");
@@ -283,6 +326,7 @@ onAuthStateChanged(auth, async user=>{
     } else {
       if (exportarFloatingBtn) exportarFloatingBtn.style.display = "none";
       if (limpiarBtn) limpiarBtn.style.display = "none";
+      if (migrarBtn) migrarBtn.style.display = "none";
     }
   }
   
@@ -300,7 +344,16 @@ async function cargarHistorial(){
     registros.push({id: d.id, ...d.data()});
   });
 
-  pintarTabla(registros);
+  // Convertir UIDs a nombres para mostrar
+  const registrosConNombres = await Promise.all(registros.map(async (registro) => {
+    const nombreConvertido = await convertirUIDaNombre(registro.usuario);
+    return {
+      ...registro,
+      usuarioMostrar: nombreConvertido
+    };
+  }));
+
+  pintarTabla(registrosConNombres);
   actualizarContadores();
 }
 
@@ -308,7 +361,13 @@ function pintarTabla(lista){
   const tabla = document.getElementById("tablaHistorial");
 
   if(lista.length===0){
-    tabla.innerHTML = `<tr><td colspan="5">No hay registros en el historial</td></tr>`;
+    tabla.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align: center; padding: 20px; color: #666;">
+          📭 No hay registros que coincidan con el filtro
+        </td>
+      </tr>
+    `;
     return;
   }
 
@@ -324,21 +383,23 @@ function pintarTabla(lista){
 
   lista.forEach(h=>{
     let badgeClass = "";
-    if(h.accion.includes("poder") || h.accion.includes("nivel")){
+    const accion = (h.accion || "").toLowerCase();
+    
+    if(accion.includes("poder") || accion.includes("nivel")){
       badgeClass = "badge badge-poder";
-    }else if(h.accion.includes("semanal")){
+    }else if(accion.includes("semanal") || accion.includes("control")){
       badgeClass = "badge badge-semanal";
-    }else if(h.accion.includes("Puja")){
+    }else if(accion.includes("puja")){
       badgeClass = "badge badge-puja";
-    }else if(h.accion.includes("boss") || h.accion.includes("Boss")){
+    }else if(accion.includes("boss")){
       badgeClass = "badge badge-boss";
-    }else if(h.accion.includes("Reinicio")){
+    }else if(accion.includes("reinicio")){
       badgeClass = "badge badge-reinicio";
     }
 
     tabla.innerHTML += `
       <tr>
-        <td>${h.usuario}</td>
+        <td>${h.usuarioMostrar || h.usuario}</td>
         <td>${h.rol ? h.rol : "-"}</td>
         <td><span class="${badgeClass}">${h.accion}</span></td>
         <td>${h.cambio}</td>
@@ -363,21 +424,169 @@ function actualizarContadores() {
   document.getElementById('registrosHoy').textContent = registrosHoy;
 }
 
-/* === Filtro === */
-window.filtrar = (tipo)=>{
+/* === Filtro mejorado === */
+window.filtrar = async (tipo)=>{
   if(tipo==="todos"){
-    pintarTabla(registros);
+    cargarHistorial();
     return;
   }
+  
+  // Cargar todos los registros si no están cargados
+  if (registros.length === 0) {
+    await cargarHistorial();
+  }
+  
   const filtrados = registros.filter(h=>{
-    if(tipo==="poder") return h.accion.includes("poder") || h.accion.includes("nivel");
-    if(tipo==="semanal") return h.accion.includes("semanal");
-    if(tipo==="Puja") return h.accion.includes("Puja");
-    if(tipo==="boss") return h.accion.includes("boss") || h.accion.includes("Boss");
-    if(tipo==="reinicio") return h.accion.includes("Reinicio");
+    const accion = (h.accion || "").toLowerCase();
+    
+    if(tipo==="poder") {
+      return accion.includes("poder") || accion.includes("nivel");
+    }
+    if(tipo==="semanal") {
+      return accion.includes("semanal") || accion.includes("control");
+    }
+    if(tipo==="Puja") {
+      return accion.includes("puja");
+    }
+    if(tipo==="boss") {
+      return accion.includes("boss");
+    }
+    if(tipo==="reinicio") {
+      return accion.includes("reinicio");
+    }
     return true;
   });
-  pintarTabla(filtrados);
+  
+  // Convertir UIDs a nombres para los filtrados
+  const registrosConNombres = await Promise.all(
+    filtrados.map(async (registro) => {
+      const nombreConvertido = await convertirUIDaNombre(registro.usuario);
+      return {
+        ...registro,
+        usuarioMostrar: nombreConvertido
+      };
+    })
+  );
+  
+  pintarTabla(registrosConNombres);
+  
+  // Actualizar contadores para los filtrados
+  const totalRegistros = filtrados.length;
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  
+  const registrosHoy = filtrados.filter(r => {
+    const fechaRegistro = new Date(r.fecha);
+    return fechaRegistro >= hoy;
+  }).length;
+  
+  document.getElementById('totalRegistros').textContent = totalRegistros;
+  document.getElementById('registrosHoy').textContent = registrosHoy;
+};
+
+/* === SCRIPT DE MIGRACIÓN - Convertir UIDs existentes a nombres === */
+window.migrarNombresEnHistorial = async function() {
+  if (!esLiderOficial) {
+    alert("❌ Solo Líderes y Oficiales pueden ejecutar esta migración.");
+    return;
+  }
+  
+  const confirmar = confirm(
+    "⚠️ ¿Migrar todos los UIDs a nombres en el historial?\n\n" +
+    "📊 Esto recorrerá TODOS los registros del historial\n" +
+    "🔄 Convertirá los UIDs a nombres de usuario\n" +
+    "⏱️ Puede tomar unos minutos\n" +
+    "✅ Los cambios serán permanentes\n\n" +
+    "¿Continuar?"
+  );
+  
+  if (!confirmar) return;
+  
+  try {
+    const migrarBtn = document.getElementById("migrarNombresBtn");
+    const originalText = migrarBtn.innerHTML;
+    migrarBtn.innerHTML = '🔄 Migrando...';
+    migrarBtn.disabled = true;
+    
+    // Obtener todos los registros
+    const q = query(collection(db, "historial"));
+    const snap = await getDocs(q);
+    
+    let total = snap.size;
+    let procesados = 0;
+    let actualizados = 0;
+    let errores = 0;
+    
+    // Procesar en lotes para no sobrecargar
+    const batch = writeBatch(db);
+    let batchCount = 0;
+    
+    for (const docSnap of snap.docs) {
+      try {
+        const registro = docSnap.data();
+        const uid = registro.usuario;
+        
+        // Solo procesar si parece un UID de Firebase
+        if (uid && uid.length >= 20 && /^[a-zA-Z0-9]{20,}$/.test(uid) && !uid.includes(' ')) {
+          const nombre = await obtenerNombreUsuario(uid);
+          
+          // Solo actualizar si el nombre es diferente del UID
+          if (nombre !== uid) {
+            batch.update(docSnap.ref, { usuario: nombre });
+            batchCount++;
+            actualizados++;
+            
+            // Commit cada 100 operaciones
+            if (batchCount >= 100) {
+              await batch.commit();
+              batchCount = 0;
+            }
+          }
+        }
+        
+        procesados++;
+        
+        // Actualizar progreso cada 50 registros
+        if (procesados % 50 === 0) {
+          console.log(`Progreso: ${procesados}/${total} registros procesados`);
+        }
+        
+      } catch (error) {
+        console.error(`Error procesando registro ${docSnap.id}:`, error);
+        errores++;
+      }
+    }
+    
+    // Commit de las operaciones restantes
+    if (batchCount > 0) {
+      await batch.commit();
+    }
+    
+    // Registrar la migración en el historial
+    const nombreUsuario = await obtenerNombreUsuario(MI_UID);
+    await addDoc(collection(db, "historial"), {
+      usuario: nombreUsuario,
+      rol: MI_ROL,
+      accion: "Migración de historial",
+      cambio: `Migración completada: ${procesados} procesados, ${actualizados} actualizados, ${errores} errores`,
+      fecha: Date.now()
+    });
+    
+    alert(`✅ Migración completada!\n\n📊 Total procesados: ${procesados}\n🔄 Actualizados: ${actualizados}\n❌ Errores: ${errores}\n\nLa página se recargará para mostrar los cambios.`);
+    
+    // Recargar la página
+    location.reload();
+    
+  } catch (error) {
+    console.error('Error en migración:', error);
+    alert(`❌ Error en la migración: ${error.message}`);
+  } finally {
+    const migrarBtn = document.getElementById("migrarNombresBtn");
+    if (migrarBtn) {
+      migrarBtn.innerHTML = '🔄 Migrar Nombres';
+      migrarBtn.disabled = false;
+    }
+  }
 };
 
 /* === Limpiar Historial === */
@@ -478,9 +687,12 @@ async function borrarTodosRegistros() {
     
     await batch.commit();
     
-    // Registrar en historial (esto se guardará después del borrado)
+    // Obtener nombre del usuario actual
+    const nombreUsuario = await obtenerNombreUsuario(MI_UID);
+    
+    // Registrar en historial con el NOMBRE del usuario
     await addDoc(collection(db,"historial"),{
-      usuario: MI_UID,
+      usuario: nombreUsuario, // Usar nombre en lugar de UID
       rol: MI_ROL,
       accion: "Limpieza de historial",
       cambio: `Se borraron TODOS los registros del historial (${contador} registros eliminados)`,
@@ -529,9 +741,12 @@ async function borrarRegistrosAntiguos(fechaLimite) {
     
     await batch.commit();
     
-    // Registrar en historial
+    // Obtener nombre del usuario actual
+    const nombreUsuario = await obtenerNombreUsuario(MI_UID);
+    
+    // Registrar en historial con el NOMBRE del usuario
     await addDoc(collection(db,"historial"),{
-      usuario: MI_UID,
+      usuario: nombreUsuario, // Usar nombre en lugar de UID
       rol: MI_ROL,
       accion: "Limpieza de historial parcial",
       cambio: `Se borraron registros más antiguos que ${fechaLimite.toLocaleDateString()} (${contador} registros eliminados)`,
@@ -582,24 +797,30 @@ window.exportarHistorialAExcel = async () => {
     // Crear filas de datos
     const rows = [headers];
     
-    snap.forEach(doc => {
-      const h = doc.data();
+    for (const docSnap of snap.docs) {
+      const h = docSnap.data();
       const fechaCompleta = new Date(h.fecha);
       const fecha = fechaCompleta.toLocaleDateString('es-ES');
       const hora = fechaCompleta.toLocaleTimeString('es-ES');
+      
+      // Convertir UID a nombre para exportación
+      let usuarioExportar = h.usuario;
+      if (h.usuario && h.usuario.length >= 20 && /^[a-zA-Z0-9]{20,}$/.test(h.usuario)) {
+        usuarioExportar = await obtenerNombreUsuario(h.usuario);
+      }
       
       rows.push([
         fechaCompleta.toLocaleString('es-ES'),
         fecha,
         hora,
-        h.usuario || '',
+        usuarioExportar || '',
         h.rol || '',
         h.accion || '',
         h.cambio || '',
         h.fecha || '',
-        doc.id || ''
+        docSnap.id || ''
       ]);
-    });
+    }
     
     // Convertir a CSV
     const csvContent = rows.map(row => 
@@ -656,9 +877,6 @@ function escucharSolicitudesBadge(){
 document.addEventListener('DOMContentLoaded', function() {
   updateTopClocks();
 });
-
-// Necesitamos importar addDoc
-import { addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 </script>
 
 </body>

@@ -559,6 +559,137 @@
     word-break: break-word;
   }
   
+  /* === ESTILOS PARA CAPTURAS === */
+  .capturas-container {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(90, 24, 154, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #9d4edd;
+    grid-column: 1 / -1; /* Ocupa todas las columnas */
+  }
+  
+  .capturas-title {
+    font-weight: bold;
+    color: #9d4edd;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  
+  .capturas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .captura-item {
+    position: relative;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    padding: 6px;
+    text-align: center;
+  }
+  
+  .captura-imagen {
+    max-width: 100%;
+    max-height: 80px;
+    border-radius: 4px;
+    object-fit: cover;
+  }
+  
+  .captura-nombre {
+    font-size: 11px;
+    margin-top: 4px;
+    word-break: break-all;
+    color: #ccc;
+  }
+  
+  .borrar-captura {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .upload-area {
+    border: 2px dashed #9d4edd;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    background: rgba(90, 24, 154, 0.05);
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+  }
+  
+  .upload-area:hover {
+    background: rgba(90, 24, 154, 0.1);
+    border-color: #7b2cbf;
+  }
+  
+  .upload-text {
+    color: #9d4edd;
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+  
+  .upload-hint {
+    color: #aaa;
+    font-size: 12px;
+  }
+  
+  .btn-capturas {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+  }
+  
+  .btn-capturas:hover {
+    background: linear-gradient(135deg, #1976D2, #1565C0);
+  }
+  
+  .btn-enviar-discord {
+    background: linear-gradient(135deg, #7289DA, #5865F2);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+  }
+  
+  .btn-enviar-discord:hover {
+    background: linear-gradient(135deg, #5865F2, #4752C4);
+  }
+  
+  .btn-enviar-discord:disabled {
+    background: #666;
+    cursor: not-allowed;
+  }
+  
   /* Responsive */
   @media (max-width: 1920px) {
     .container {
@@ -600,6 +731,10 @@
     
     .nombre-input-container input {
       max-width: 100%;
+    }
+    
+    .capturas-grid {
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     }
   }
 </style>
@@ -666,6 +801,12 @@
 
 <div class="container">
   <h1>Control Semanal <span id="userRoleBadge" class="role-badge" style="font-size: 14px; margin-left: 10px;"></span></h1>
+  
+  <!-- Indicador de días de capturas -->
+  <div id="diasCapturasInfo" style="padding: 8px 12px; background: rgba(90, 24, 154, 0.2); border-radius: 6px; margin: 10px 0; border-left: 4px solid #9d4edd;">
+    <span>📅 Hoy es <strong id="nombreDiaActual"></strong> - 
+    <span id="estadoCapturas"></span></span>
+  </div>
 
   <!-- Permiso de edición -->
   <div id="edicionPermisos" class="permission-warning" style="display: none;">
@@ -686,7 +827,8 @@
       💡 <strong>Miembros:</strong> Puedes editar tu propia fila (nivel, poder, stats).<br>
       💡 <strong>Líderes/Oficiales:</strong> Pueden editar todas las filas y TODOS los campos (nombre, clase, stats).<br>
       📊 <strong>Reinicio Stats:</strong> Solo Líderes/Oficiales pueden reiniciar stats y exportar backups.<br>
-      🏆 <strong>Ranking:</strong> Solo aparece para miembros con TODOS los stats completos (no vacíos y mayores que 0).
+      🏆 <strong>Ranking:</strong> Solo aparece para miembros con TODOS los stats completos (no vacíos y mayores que 0).<br>
+      📸 <strong>Capturas:</strong> Disponibles solo de <strong>Jueves a Sábado</strong>. Se envían a Discord y se borran de la web.
     </p>
   </div>
 </div>
@@ -730,6 +872,52 @@ let MI_UID = null;
 let esLiderOficial = false;
 let modoEdicionControl = {};
 
+/* === Configuración de Discord === */
+// ⚠️ IMPORTANTE: Reemplaza esta URL con tu Webhook de Discord
+// Cómo obtenerlo: Configuración del canal → Integrations → Webhooks → New Webhook → Copiar URL
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1454543720627179835/MLCNGtb7fOQrb3d9OfeIWdZlGa9_IZ1hlnhE1JmGDnQClb1wDwR3EdwcFsIxY_ZIf-k8';
+
+/* === Variables para capturas === */
+let capturasTemporales = {};
+
+/* === FUNCIONES PARA VERIFICAR DÍAS DE CAPTURAS === */
+function obtenerDiaSemana() {
+  const ahora = new Date();
+  return ahora.getDay(); // 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
+}
+
+function esDiaDeCapturas() {
+  const diaSemana = obtenerDiaSemana();
+  // Jueves=4, Viernes=5, Sábado=6
+  return diaSemana >= 4 && diaSemana <= 6;
+}
+
+function obtenerNombreDia() {
+  const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  return dias[obtenerDiaSemana()];
+}
+
+/* === ACTUALIZAR INDICADOR DE DÍAS === */
+function actualizarIndicadorDias() {
+  const nombreDiaElement = document.getElementById('nombreDiaActual');
+  const estadoElement = document.getElementById('estadoCapturas');
+  
+  if (nombreDiaElement && estadoElement) {
+    const nombreDia = obtenerNombreDia();
+    const esValido = esDiaDeCapturas();
+    
+    nombreDiaElement.textContent = nombreDia;
+    
+    if (esValido) {
+      estadoElement.innerHTML = '<span style="color:#4CAF50">✅ Capturas HABILITADAS (Jueves a Sábado)</span>';
+      document.getElementById('diasCapturasInfo').style.borderLeftColor = '#4CAF50';
+    } else {
+      estadoElement.innerHTML = '<span style="color:#ff9800">❌ Capturas NO disponibles (solo Jueves a Sábado)</span>';
+      document.getElementById('diasCapturasInfo').style.borderLeftColor = '#ff9800';
+    }
+  }
+}
+
 /* === Actualizar relojes superiores === */
 function updateTopClocks() {
   const now = new Date();
@@ -740,6 +928,9 @@ function updateTopClocks() {
   const serverTime = new Date(now.getTime() - (4 * 3600 * 1000));
   const serverTimeStr = serverTime.toISOString().substr(11, 8);
   document.getElementById('serverTime').textContent = serverTimeStr;
+  
+  // Actualizar también el indicador de días cada minuto
+  actualizarIndicadorDias();
 }
 
 setInterval(updateTopClocks, 1000);
@@ -937,6 +1128,266 @@ function generarRankingMejorado(miembrosArray) {
   return rankingMap;
 }
 
+/* === FUNCIONES PARA CAPTURAS === */
+
+// Mostrar/ocultar panel de capturas
+window.mostrarCapturas = function(id) {
+  // Verificar si es día de capturas
+  if (!esDiaDeCapturas()) {
+    alert("❌ Las capturas solo están disponibles de Jueves a Sábado.");
+    return;
+  }
+  
+  const fila = document.getElementById(`fila_${id}`);
+  if (!fila) return;
+  
+  // Buscar si ya existe el contenedor de capturas
+  const existingContainer = fila.querySelector('.capturas-container');
+  
+  if (existingContainer) {
+    existingContainer.remove();
+  } else {
+    // Crear nuevo contenedor
+    const capturasContainer = document.createElement('div');
+    capturasContainer.className = 'capturas-container';
+    capturasContainer.innerHTML = `
+      <div class="capturas-title">📸 Adjuntar Capturas</div>
+      
+      <div class="upload-area" onclick="document.getElementById('fileInput_${id}').click()">
+        <div class="upload-text">📁 Arrastra o haz clic para subir</div>
+        <div class="upload-hint">Formatos: JPG, PNG, GIF (máx. 5MB cada una)</div>
+      </div>
+      
+      <input type="file" id="fileInput_${id}" 
+             style="display: none;" 
+             multiple 
+             accept="image/*"
+             onchange="manejarSubidaArchivos('${id}', this.files)">
+      
+      <div id="capturasGrid_${id}" class="capturas-grid">
+        <!-- Las capturas se mostrarán aquí -->
+      </div>
+      
+      <button class="btn-enviar-discord" onclick="enviarCapturasADiscord('${id}')" id="btnEnviar_${id}">
+        🚀 Enviar a Discord
+      </button>
+      <button class="btn-capturas" onclick="mostrarCapturas('${id}')">
+        Cerrar
+      </button>
+      
+      <div style="font-size: 11px; color: #aaa; margin-top: 8px;">
+        ⚠️ Las capturas se enviarán al canal de Discord y luego se eliminarán de la web
+      </div>
+    `;
+    
+    // Insertar después de la fila
+    fila.parentNode.insertBefore(capturasContainer, fila.nextSibling);
+    
+    // Inicializar array de capturas si no existe
+    if (!capturasTemporales[id]) {
+      capturasTemporales[id] = [];
+    }
+    
+    // Cargar capturas existentes si las hay
+    cargarCapturasExistentes(id);
+  }
+};
+
+// Manejar subida de archivos
+window.manejarSubidaArchivos = function(id, files) {
+  if (!capturasTemporales[id]) {
+    capturasTemporales[id] = [];
+  }
+  
+  Array.from(files).forEach(file => {
+    // Validar tamaño (5MB máximo)
+    if (file.size > 5 * 1024 * 1024) {
+      alert(`El archivo ${file.name} es demasiado grande (máximo 5MB)`);
+      return;
+    }
+    
+    // Validar tipo
+    if (!file.type.startsWith('image/')) {
+      alert(`El archivo ${file.name} no es una imagen válida`);
+      return;
+    }
+    
+    // Crear objeto para la captura
+    const captura = {
+      id: Date.now() + Math.random(),
+      file: file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      preview: URL.createObjectURL(file)
+    };
+    
+    // Añadir al array
+    capturasTemporales[id].push(captura);
+  });
+  
+  // Actualizar la vista
+  actualizarVistaCapturas(id);
+};
+
+// Actualizar vista de capturas
+function actualizarVistaCapturas(id) {
+  const grid = document.getElementById(`capturasGrid_${id}`);
+  if (!grid) return;
+  
+  grid.innerHTML = '';
+  
+  if (!capturasTemporales[id] || capturasTemporales[id].length === 0) {
+    grid.innerHTML = '<div style="color: #888; font-size: 12px; text-align: center; padding: 20px;">No hay capturas subidas</div>';
+    return;
+  }
+  
+  capturasTemporales[id].forEach(captura => {
+    const item = document.createElement('div');
+    item.className = 'captura-item';
+    item.innerHTML = `
+      <button class="borrar-captura" onclick="eliminarCaptura('${id}', ${captura.id})">×</button>
+      <img src="${captura.preview}" class="captura-imagen" alt="Captura">
+      <div class="captura-nombre">${captura.name.substring(0, 15)}${captura.name.length > 15 ? '...' : ''}</div>
+    `;
+    grid.appendChild(item);
+  });
+  
+  // Actualizar botón de enviar
+  const btnEnviar = document.getElementById(`btnEnviar_${id}`);
+  if (btnEnviar) {
+    btnEnviar.disabled = capturasTemporales[id].length === 0;
+    btnEnviar.innerHTML = `🚀 Enviar a Discord (${capturasTemporales[id].length})`;
+  }
+}
+
+// Eliminar captura
+window.eliminarCaptura = function(memberId, capturaId) {
+  if (!capturasTemporales[memberId]) return;
+  
+  // Encontrar y eliminar la captura
+  const index = capturasTemporales[memberId].findIndex(c => c.id === capturaId);
+  if (index !== -1) {
+    // Liberar la URL del objeto
+    URL.revokeObjectURL(capturasTemporales[memberId][index].preview);
+    capturasTemporales[memberId].splice(index, 1);
+  }
+  
+  actualizarVistaCapturas(memberId);
+};
+
+// Cargar capturas existentes (si hubiera una implementación previa)
+function cargarCapturasExistentes(memberId) {
+  // Aquí puedes cargar capturas existentes de Firebase si las guardas
+  // Por ahora, solo inicializa el array vacío
+  actualizarVistaCapturas(memberId);
+}
+
+// Enviar capturas a Discord
+window.enviarCapturasADiscord = async function(memberId) {
+  if (!capturasTemporales[memberId] || capturasTemporales[memberId].length === 0) {
+    alert('No hay capturas para enviar');
+    return;
+  }
+  
+  // Verificar que la URL del webhook esté configurada
+  if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.includes('TU_WEBHOOK_AQUI')) {
+    alert('❌ Error: El webhook de Discord no está configurado.\n\nPor favor, configura la URL del webhook en el código.');
+    return;
+  }
+  
+  const btnEnviar = document.getElementById(`btnEnviar_${memberId}`);
+  if (btnEnviar) {
+    btnEnviar.disabled = true;
+    btnEnviar.innerHTML = '⏳ Enviando...';
+  }
+  
+  try {
+    // Obtener información del miembro
+    const memberDoc = await getDoc(doc(db, "members", memberId));
+    const memberData = memberDoc.exists() ? memberDoc.data() : {};
+    const memberName = memberData.name || 'Miembro desconocido';
+    
+    let enviadasConExito = 0;
+    let errores = [];
+    
+    // Para cada captura, crear un mensaje
+    for (const captura of capturasTemporales[memberId]) {
+      try {
+        // Discord requiere multipart/form-data para archivos
+        const discordFormData = new FormData();
+        
+        // Crear payload del mensaje
+        const payload = {
+          content: `📸 **Captura subida por ${memberName}**\n📅 ${new Date().toLocaleString('es-ES')}\n📊 Stats verificados en Control Semanal`,
+          username: 'YMIR Guild Bot',
+          avatar_url: 'https://cdn.discordapp.com/embed/avatars/0.png'
+        };
+        
+        discordFormData.append('payload_json', JSON.stringify(payload));
+        discordFormData.append('file', captura.file, captura.name);
+        
+        // Enviar al webhook de Discord
+        const response = await fetch(DISCORD_WEBHOOK_URL, {
+          method: 'POST',
+          body: discordFormData
+        });
+        
+        if (response.ok) {
+          enviadasConExito++;
+        } else {
+          errores.push(`${captura.name}: Error ${response.status}`);
+        }
+        
+        // Esperar un poco entre envíos para evitar rate limits
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+      } catch (error) {
+        errores.push(`${captura.name}: ${error.message}`);
+      }
+    }
+    
+    // Registrar en el historial
+    await addDoc(collection(db, "historial"), {
+      usuario: memberId,
+      rol: MI_ROL,
+      accion: "Envío de capturas a Discord",
+      cambio: `${enviadasConExito} capturas enviadas por ${memberName}`,
+      fecha: Date.now()
+    });
+    
+    // Limpiar capturas temporales
+    capturasTemporales[memberId].forEach(captura => {
+      URL.revokeObjectURL(captura.preview);
+    });
+    capturasTemporales[memberId] = [];
+    
+    // Actualizar vista
+    actualizarVistaCapturas(memberId);
+    
+    // Cerrar el panel de capturas
+    const container = document.querySelector(`#fila_${memberId} + .capturas-container`);
+    if (container) {
+      container.remove();
+    }
+    
+    if (errores.length === 0) {
+      alert(`✅ ${enviadasConExito} capturas enviadas a Discord correctamente`);
+    } else {
+      alert(`⚠️ ${enviadasConExito} capturas enviadas, ${errores.length} con error:\n${errores.join('\n')}`);
+    }
+    
+  } catch (error) {
+    console.error('Error al enviar a Discord:', error);
+    alert(`❌ Error al enviar capturas: ${error.message}`);
+  } finally {
+    if (btnEnviar) {
+      btnEnviar.disabled = false;
+      btnEnviar.innerHTML = '🚀 Enviar a Discord';
+    }
+  }
+};
+
 /* === Auth y carga inicial === */
 onAuthStateChanged(auth, async user=>{
   if(!user){ location.href = "index.html"; return; }
@@ -1008,6 +1459,7 @@ onAuthStateChanged(auth, async user=>{
   
   cargarControl();
   escucharSolicitudesBadge();
+  actualizarIndicadorDias();
   
   // MOSTRAR/OCULTAR BOTONES SEGÚN ROL
   const reinicioBtn = document.getElementById("reinicioStatsBtn");
@@ -1224,6 +1676,9 @@ function cargarControl(){
             <td>
               <button class="btn" onclick="guardarControl('${d.id}')">Guardar</button>
               <button class="btn cancel" onclick="cancelarEdicionControl('${d.id}')">Cancelar</button>
+              ${esDiaDeCapturas() ? 
+                `<button class="btn" onclick="mostrarCapturas('${d.id}')" style="background:#2196F3; margin-top:4px;">📸 Capturas</button>` : 
+                `<button class="btn" style="background:#666; margin-top:4px; cursor:not-allowed;" title="Capturas solo disponibles de Jueves a Sábado" disabled>📸 Capturas</button>`}
             </td>
           </tr>
         `;
@@ -1262,7 +1717,12 @@ function cargarControl(){
             <td id="bossDmg_${d.id}">${mostrarValorPct(m.bossDmg)}</td>
             <td id="bossDmgDef_${d.id}">${mostrarValorPct(m.bossDmgDef)}</td>
             <td>
-              ${puedeEditar ? `<button class="btn" onclick="editarControl('${d.id}')">Editar</button>` : 
+              ${puedeEditar ? `
+                <button class="btn" onclick="editarControl('${d.id}')">Editar</button>
+                ${esDiaDeCapturas() ? 
+                  `<button class="btn" onclick="mostrarCapturas('${d.id}')" style="background:#2196F3; margin-top:4px;">📸 Capturas</button>` : 
+                  `<button class="btn" style="background:#666; margin-top:4px; cursor:not-allowed;" title="Capturas solo disponibles de Jueves a Sábado" disabled>📸 Capturas</button>`}
+              ` : 
                 `<span style="color: #999; font-size: 11px; font-style: italic;">solo stats propios</span>`}
             </td>
           </tr>
@@ -1293,6 +1753,20 @@ window.editarControl = (id)=>{
 
 /* === Cancelar edición en Control === */
 window.cancelarEdicionControl = (id)=>{
+  // Limpiar capturas temporales si existen
+  if (capturasTemporales[id]) {
+    capturasTemporales[id].forEach(captura => {
+      URL.revokeObjectURL(captura.preview);
+    });
+    delete capturasTemporales[id];
+  }
+  
+  // Remover contenedor de capturas si está abierto
+  const container = document.querySelector(`#fila_${id} + .capturas-container`);
+  if (container) {
+    container.remove();
+  }
+  
   modoEdicionControl[id] = false;
   cargarControl();
 };
@@ -1371,6 +1845,14 @@ window.guardarControl = async (id)=>{
       fecha: Date.now()
     });
 
+    // Limpiar capturas temporales si existen
+    if (capturasTemporales[id]) {
+      capturasTemporales[id].forEach(captura => {
+        URL.revokeObjectURL(captura.preview);
+      });
+      delete capturasTemporales[id];
+    }
+    
     modoEdicionControl[id] = false;
     
     alert("✅ Cambios guardados y registrados en historial.");
