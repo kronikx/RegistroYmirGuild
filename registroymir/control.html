@@ -242,6 +242,34 @@
     transform: translateY(0);
   }
   
+  /* BOTÓN CONFIGURACIÓN */
+  #configBtn {
+    padding: 8px 16px;
+    font-size: 14px;
+    background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px;
+    box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  #configBtn:hover { 
+    background: linear-gradient(135deg, #7B1FA2, #6A1B9A);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(156, 39, 176, 0.4);
+  }
+  
+  #configBtn:active {
+    transform: translateY(0);
+  }
+  
   /* BOTONES - ESTILO MORADO ORIGINAL */
   .btn {
     font-size: 12px;
@@ -690,6 +718,187 @@
     cursor: not-allowed;
   }
   
+  /* === ESTILOS PARA MODAL DE CONFIGURACIÓN === */
+  .config-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .config-content {
+    background: linear-gradient(135deg, #1a0b2e, #2d1b47);
+    border-radius: 12px;
+    padding: 25px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid #5a189a;
+  }
+  
+  .config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .config-header h2 {
+    margin: 0;
+    color: #9d4edd;
+    font-size: 22px;
+  }
+  
+  .close-config {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  
+  .close-config:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  
+  .config-section {
+    margin-bottom: 25px;
+  }
+  
+  .config-section h3 {
+    color: #9d4edd;
+    margin-bottom: 15px;
+    font-size: 16px;
+    border-left: 4px solid #9d4edd;
+    padding-left: 10px;
+  }
+  
+  .dias-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .dia-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .dia-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .dia-option input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+  }
+  
+  .dia-option label {
+    cursor: pointer;
+    user-select: none;
+    color: #eee;
+  }
+  
+  .hora-config {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  
+  .hora-input {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .hora-input label {
+    color: #eee;
+    font-size: 14px;
+  }
+  
+  .hora-input input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #5a189a;
+    border-radius: 4px;
+    color: #eee;
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 60px;
+    text-align: center;
+  }
+  
+  .config-info {
+    background: rgba(90, 24, 154, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #aaa;
+  }
+  
+  .config-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+  }
+  
+  .btn-guardar-config {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .btn-guardar-config:hover {
+    background: linear-gradient(135deg, #388E3C, #1B5E20);
+  }
+  
+  .btn-cancelar-config {
+    background: #666;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .btn-cancelar-config:hover {
+    background: #777;
+  }
+  
   /* Responsive */
   @media (max-width: 1920px) {
     .container {
@@ -735,6 +944,20 @@
     
     .capturas-grid {
       grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+    
+    .dias-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .hora-config {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .hora-input {
+      width: 100%;
+      justify-content: space-between;
     }
   }
 </style>
@@ -799,6 +1022,52 @@
   </ul>
 </nav>
 
+<!-- Modal de Configuración -->
+<div id="configModal" class="config-modal">
+  <div class="config-content">
+    <div class="config-header">
+      <h2>⚙️ Configuración</h2>
+      <button class="close-config" onclick="cerrarConfig()">&times;</button>
+    </div>
+    
+    <div class="config-section">
+      <h3>📅 Días de Capturas</h3>
+      <p style="color: #ccc; margin-bottom: 15px; font-size: 14px;">Selecciona los días en que estarán disponibles las capturas:</p>
+      
+      <div class="dias-container" id="diasConfigContainer">
+        <!-- Los días se cargarán dinámicamente -->
+      </div>
+      
+      <div class="config-info">
+        <strong>💡 Información:</strong> Los días seleccionados determinarán cuándo los miembros pueden subir capturas. Por defecto: Jueves, Viernes y Sábado.
+      </div>
+    </div>
+    
+    <div class="config-section">
+      <h3>⏰ Hora del Servidor</h3>
+      <p style="color: #ccc; margin-bottom: 15px; font-size: 14px;">Configura la diferencia horaria del servidor (UTC):</p>
+      
+      <div class="hora-config">
+        <div class="hora-input">
+          <label for="horaDiferencia">Diferencia horaria:</label>
+          <input type="number" id="horaDiferencia" min="-12" max="14" step="1" placeholder="Ej: -4">
+          <span style="color: #aaa;">horas (UTC)</span>
+        </div>
+        <div style="color: #aaa; font-size: 13px;">
+          Ejemplo: -4 para Venezuela, -5 para Colombia/Perú, -6 para México
+        </div>
+      </div>
+    </div>
+    
+    <div class="config-buttons">
+      <button class="btn-cancelar-config" onclick="cerrarConfig()">Cancelar</button>
+      <button class="btn-guardar-config" id="guardarConfigBtn">
+        💾 Guardar Configuración
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="container">
   <h1>Control Semanal <span id="userRoleBadge" class="role-badge" style="font-size: 14px; margin-left: 10px;"></span></h1>
   
@@ -816,6 +1085,7 @@
   <div style="text-align: right; margin-bottom: 15px;">
     <button id="reinicioStatsBtn" onclick="iniciarReinicioConBackup()" style="display: none;">🔄 Reiniciar Stats</button>
     <button id="exportarBtn" onclick="exportarAExcel()" style="display: none;">📊 Exportar Backup</button>
+    <button id="configBtn" onclick="abrirConfiguracion()" style="display: none;">⚙️ Configuración</button>
   </div>
 
   <div class="card">
@@ -828,7 +1098,7 @@
       💡 <strong>Líderes/Oficiales:</strong> Pueden editar todas las filas y TODOS los campos (nombre, clase, stats).<br>
       📊 <strong>Reinicio Stats:</strong> Solo Líderes/Oficiales pueden reiniciar stats y exportar backups.<br>
       🏆 <strong>Ranking:</strong> Solo aparece para miembros con TODOS los stats completos (no vacíos y mayores que 0).<br>
-      📸 <strong>Capturas:</strong> Disponibles solo de <strong>Jueves a Sábado</strong>. Se envían a Discord y se borran de la web.
+      📸 <strong>Capturas:</strong> Disponibles según configuración. Se requieren <strong>EXACTAMENTE 4 capturas</strong> para enviar a Discord.
     </p>
   </div>
 </div>
@@ -873,12 +1143,68 @@ let esLiderOficial = false;
 let modoEdicionControl = {};
 
 /* === Configuración de Discord === */
-// ⚠️ IMPORTANTE: Reemplaza esta URL con tu Webhook de Discord
-// Cómo obtenerlo: Configuración del canal → Integrations → Webhooks → New Webhook → Copiar URL
 const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1454543720627179835/MLCNGtb7fOQrb3d9OfeIWdZlGa9_IZ1hlnhE1JmGDnQClb1wDwR3EdwcFsIxY_ZIf-k8';
 
 /* === Variables para capturas === */
 let capturasTemporales = {};
+
+/* === CONFIGURACIÓN GLOBAL === */
+let CONFIG = {
+  diasCapturas: [4, 5, 6], // Por defecto: Jueves(4), Viernes(5), Sábado(6)
+  diferenciaHoraria: -4, // Por defecto: -4 horas (UTC-4)
+  ultimaActualizacion: null
+};
+
+/* === Cargar configuración desde Firebase === */
+async function cargarConfiguracion() {
+  console.log("Cargando configuración desde Firebase...");
+  
+  try {
+    const configDoc = await getDoc(doc(db, "configuracion", "control_capturas"));
+    
+    if (configDoc.exists()) {
+      const data = configDoc.data();
+      CONFIG.diasCapturas = data.diasCapturas || [4, 5, 6];
+      CONFIG.diferenciaHoraria = data.diferenciaHoraria || -4;
+      CONFIG.ultimaActualizacion = data.ultimaActualizacion || null;
+      
+      console.log("Configuración cargada desde Firebase:", CONFIG);
+    } else {
+      console.log("No existe configuración, creando por defecto...");
+      
+      // Crear configuración por defecto si no existe
+      const defaultConfig = {
+        diasCapturas: [4, 5, 6],
+        diferenciaHoraria: -4,
+        ultimaActualizacion: Date.now(),
+        creadoPor: "Sistema",
+        fechaCreacion: new Date().toISOString()
+      };
+      
+      await setDoc(doc(db, "configuracion", "control_capturas"), defaultConfig);
+      CONFIG = defaultConfig;
+      
+      console.log("Configuración por defecto creada:", CONFIG);
+    }
+    
+    // Actualizar el indicador de días
+    actualizarIndicadorDias();
+    
+    // Llamar a updateTopClocks para aplicar la diferencia horaria
+    updateTopClocks();
+    
+  } catch (error) {
+    console.error("Error al cargar configuración:", error);
+    console.error("Usando configuración por defecto");
+    
+    // Usar configuración por defecto en caso de error
+    CONFIG = {
+      diasCapturas: [4, 5, 6],
+      diferenciaHoraria: -4,
+      ultimaActualizacion: null
+    };
+  }
+}
 
 /* === FUNCIONES PARA VERIFICAR DÍAS DE CAPTURAS === */
 function obtenerDiaSemana() {
@@ -888,13 +1214,18 @@ function obtenerDiaSemana() {
 
 function esDiaDeCapturas() {
   const diaSemana = obtenerDiaSemana();
-  // Jueves=4, Viernes=5, Sábado=6
-  return diaSemana >= 4 && diaSemana <= 6;
+  // Usar los días configurados
+  return CONFIG.diasCapturas.includes(diaSemana);
 }
 
 function obtenerNombreDia() {
   const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
   return dias[obtenerDiaSemana()];
+}
+
+function obtenerNombreDiaPorNumero(numeroDia) {
+  const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  return dias[numeroDia] || "Desconocido";
 }
 
 /* === ACTUALIZAR INDICADOR DE DÍAS === */
@@ -905,14 +1236,15 @@ function actualizarIndicadorDias() {
   if (nombreDiaElement && estadoElement) {
     const nombreDia = obtenerNombreDia();
     const esValido = esDiaDeCapturas();
+    const diasHabilitados = CONFIG.diasCapturas.map(d => obtenerNombreDiaPorNumero(d)).join(', ');
     
     nombreDiaElement.textContent = nombreDia;
     
     if (esValido) {
-      estadoElement.innerHTML = '<span style="color:#4CAF50">✅ Capturas HABILITADAS (Jueves a Sábado)</span>';
+      estadoElement.innerHTML = `<span style="color:#4CAF50">✅ Capturas HABILITADAS hoy (Días permitidos: ${diasHabilitados})</span>`;
       document.getElementById('diasCapturasInfo').style.borderLeftColor = '#4CAF50';
     } else {
-      estadoElement.innerHTML = '<span style="color:#ff9800">❌ Capturas NO disponibles (solo Jueves a Sábado)</span>';
+      estadoElement.innerHTML = `<span style="color:#ff9800">❌ Capturas NO disponibles hoy (Días permitidos: ${diasHabilitados})</span>`;
       document.getElementById('diasCapturasInfo').style.borderLeftColor = '#ff9800';
     }
   }
@@ -925,7 +1257,8 @@ function updateTopClocks() {
   const localTime = now.toLocaleTimeString('es-ES', { hour12: false });
   document.getElementById('localTime').textContent = localTime;
   
-  const serverTime = new Date(now.getTime() - (4 * 3600 * 1000));
+  // Calcular hora del servidor usando la diferencia configurada
+  const serverTime = new Date(now.getTime() + (CONFIG.diferenciaHoraria * 3600 * 1000));
   const serverTimeStr = serverTime.toISOString().substr(11, 8);
   document.getElementById('serverTime').textContent = serverTimeStr;
   
@@ -934,11 +1267,203 @@ function updateTopClocks() {
 }
 
 setInterval(updateTopClocks, 1000);
-updateTopClocks();
+
+/* === Funciones para el modal de configuración === */
+window.abrirConfiguracion = function() {
+  console.log("Abriendo configuración...");
+  
+  if (!esLiderOficial) {
+    alert("❌ Solo Líderes y Oficiales pueden acceder a la configuración.");
+    return;
+  }
+  
+  const modal = document.getElementById('configModal');
+  const container = document.getElementById('diasConfigContainer');
+  
+  if (!modal || !container) {
+    console.error("Modal o contenedor no encontrado");
+    return;
+  }
+  
+  console.log("Cargando días de la semana...");
+  
+  // Cargar días de la semana
+  const diasSemana = [
+    { numero: 0, nombre: "Domingo" },
+    { numero: 1, nombre: "Lunes" },
+    { numero: 2, nombre: "Martes" },
+    { numero: 3, nombre: "Miércoles" },
+    { numero: 4, nombre: "Jueves" },
+    { numero: 5, nombre: "Viernes" },
+    { numero: 6, nombre: "Sábado" }
+  ];
+  
+  container.innerHTML = '';
+  
+  diasSemana.forEach(dia => {
+    const isChecked = CONFIG.diasCapturas.includes(dia.numero);
+    const diaOption = document.createElement('div');
+    diaOption.className = 'dia-option';
+    diaOption.innerHTML = `
+      <input type="checkbox" id="dia_${dia.numero}" value="${dia.numero}" ${isChecked ? 'checked' : ''}>
+      <label for="dia_${dia.numero}">${dia.nombre}</label>
+    `;
+    container.appendChild(diaOption);
+  });
+  
+  // Cargar diferencia horaria
+  const horaInput = document.getElementById('horaDiferencia');
+  if (horaInput) {
+    horaInput.value = CONFIG.diferenciaHoraria;
+    console.log("Diferencia horaria cargada:", CONFIG.diferenciaHoraria);
+  }
+  
+  // Mostrar modal
+  modal.style.display = 'flex';
+  console.log("Modal mostrado");
+  
+  // Configurar evento del botón de guardar
+  setTimeout(() => {
+    const guardarBtn = document.getElementById('guardarConfigBtn');
+    if (guardarBtn) {
+      guardarBtn.onclick = guardarConfiguracion;
+    }
+    
+    // Agregar evento para detectar cambios en los checkboxes
+    const checkboxes = document.querySelectorAll('.dia-option input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        console.log(`Checkbox ${this.value} cambiado a ${this.checked}`);
+      });
+    });
+  }, 100);
+};
+
+window.cerrarConfig = function() {
+  const modal = document.getElementById('configModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+};
+
+// Cerrar modal al hacer clic fuera del contenido
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('configModal');
+  if (modal && e.target === modal) {
+    cerrarConfig();
+  }
+});
+
+/* === Guardar configuración en Firebase === */
+async function guardarConfiguracion() {
+  console.log("Iniciando guardarConfiguracion...");
+  
+  if (!esLiderOficial) {
+    alert("❌ Solo Líderes y Oficiales pueden guardar configuración.");
+    return;
+  }
+  
+  try {
+    console.log("Recopilando datos de configuración...");
+    
+    // Obtener días seleccionados
+    const diasSeleccionados = [];
+    const checkboxes = document.querySelectorAll('.dia-option input[type="checkbox"]:checked');
+    
+    console.log("Checkboxes encontrados:", checkboxes.length);
+    
+    checkboxes.forEach(checkbox => {
+      const valor = parseInt(checkbox.value);
+      if (!isNaN(valor)) {
+        diasSeleccionados.push(valor);
+        console.log("Día seleccionado:", valor);
+      }
+    });
+    
+    // Obtener diferencia horaria
+    const diferenciaInput = document.getElementById('horaDiferencia');
+    const diferenciaHoraria = diferenciaInput ? parseInt(diferenciaInput.value) : -4;
+    
+    console.log("Días seleccionados:", diasSeleccionados);
+    console.log("Diferencia horaria:", diferenciaHoraria);
+    
+    // Validar días
+    if (diasSeleccionados.length === 0) {
+      alert("❌ Debes seleccionar al menos un día para capturas.");
+      return;
+    }
+    
+    // Validar diferencia horaria
+    if (isNaN(diferenciaHoraria) || diferenciaHoraria < -12 || diferenciaHoraria > 14) {
+      alert("❌ La diferencia horaria debe ser un número entre -12 y +14 horas.");
+      return;
+    }
+    
+    console.log("Validaciones pasadas. Actualizando configuración...");
+    
+    // Actualizar configuración local
+    CONFIG.diasCapturas = diasSeleccionados.sort((a, b) => a - b);
+    CONFIG.diferenciaHoraria = diferenciaHoraria;
+    CONFIG.ultimaActualizacion = Date.now();
+    
+    // Preparar datos para Firebase
+    const configData = {
+      diasCapturas: CONFIG.diasCapturas,
+      diferenciaHoraria: CONFIG.diferenciaHoraria,
+      ultimaActualizacion: CONFIG.ultimaActualizacion,
+      actualizadoPor: MI_UID,
+      fechaActualizacion: new Date().toISOString(),
+      actualizadoPorNombre: MI_ROL
+    };
+    
+    console.log("Guardando en Firebase:", configData);
+    
+    // Guardar en Firebase
+    await setDoc(doc(db, "configuracion", "control_capturas"), configData);
+    
+    console.log("Guardado en Firebase exitoso");
+    
+    // Registrar en historial
+    const diasNombres = CONFIG.diasCapturas.map(d => obtenerNombreDiaPorNumero(d)).join(', ');
+    await addDoc(collection(db, "historial"), {
+      usuario: MI_UID,
+      rol: MI_ROL,
+      accion: "Actualización de configuración de capturas",
+      cambio: `Días de capturas: ${diasNombres} | Hora servidor: UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria}`,
+      fecha: Date.now(),
+      detalles: `Configuración actualizada por ${MI_ROL}`
+    });
+    
+    console.log("Registro en historial completado");
+    
+    // Actualizar indicador de días inmediatamente
+    actualizarIndicadorDias();
+    
+    // Actualizar relojes con nueva configuración
+    updateTopClocks();
+    
+    // Cerrar modal
+    cerrarConfig();
+    
+    console.log("Configuración guardada exitosamente");
+    
+    // Mostrar mensaje de éxito
+    setTimeout(() => {
+      alert(`✅ Configuración guardada exitosamente.\n\n📅 Días de capturas: ${diasNombres}\n⏰ Hora servidor: UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria}\n\nLos cambios se aplicarán inmediatamente.`);
+    }, 300);
+    
+  } catch (error) {
+    console.error("❌ Error al guardar configuración:", error);
+    console.error("Detalles del error:", error.message, error.stack);
+    
+    // Mostrar error más detallado
+    alert(`❌ Error al guardar configuración:\n\n${error.message}\n\nPor favor, intenta de nuevo.`);
+  }
+}
 
 /* === Funciones para calcular el ranking === */
 
-// Función para obtener valor numérico de una celda - MODIFICADA
+// Función para obtener valor numérico de una celda
 function obtenerValorNumerico(valor) {
   if (!valor || valor === "-" || valor === "" || valor === "0") return 0;
   
@@ -949,7 +1474,7 @@ function obtenerValorNumerico(valor) {
   return isNaN(num) ? 0 : num;
 }
 
-// Función para calcular el score total de un miembro (ponderado) - MODIFICADA
+// Función para calcular el score total de un miembro (ponderado)
 function calcularScoreTotal(miembro) {
   // Lista de stats requeridos para considerar "completo"
   const statsRequeridos = [
@@ -1061,7 +1586,7 @@ function obtenerClaseFilaRanking(posicion, tieneStatsCompletos) {
   return "";
 }
 
-// Generar ranking mejorado - MODIFICADA
+// Generar ranking mejorado
 function generarRankingMejorado(miembrosArray) {
   const miembrosConScore = [];
   
@@ -1134,7 +1659,8 @@ function generarRankingMejorado(miembrosArray) {
 window.mostrarCapturas = function(id) {
   // Verificar si es día de capturas
   if (!esDiaDeCapturas()) {
-    alert("❌ Las capturas solo están disponibles de Jueves a Sábado.");
+    const diasHabilitados = CONFIG.diasCapturas.map(d => obtenerNombreDiaPorNumero(d)).join(', ');
+    alert(`❌ Las capturas solo están disponibles en los siguientes días:\n${diasHabilitados}`);
     return;
   }
   
@@ -1151,11 +1677,14 @@ window.mostrarCapturas = function(id) {
     const capturasContainer = document.createElement('div');
     capturasContainer.className = 'capturas-container';
     capturasContainer.innerHTML = `
-      <div class="capturas-title">📸 Adjuntar Capturas</div>
+      <div class="capturas-title">📸 Adjuntar Capturas (4 REQUERIDAS)</div>
       
       <div class="upload-area" onclick="document.getElementById('fileInput_${id}').click()">
         <div class="upload-text">📁 Arrastra o haz clic para subir</div>
-        <div class="upload-hint">Formatos: JPG, PNG, GIF (máx. 5MB cada una)</div>
+        <div class="upload-hint">Se requieren <strong>EXACTAMENTE 4 capturas</strong> (JPG, PNG, GIF - máx. 5MB cada una)</div>
+        <div class="upload-hint" id="contador_${id}" style="margin-top: 5px; color: ${capturasTemporales[id] && capturasTemporales[id].length === 4 ? '#4CAF50' : '#ff9800'}">
+          ${capturasTemporales[id] ? `${capturasTemporales[id].length}/4` : '0/4'} capturas subidas
+        </div>
       </div>
       
       <input type="file" id="fileInput_${id}" 
@@ -1168,15 +1697,17 @@ window.mostrarCapturas = function(id) {
         <!-- Las capturas se mostrarán aquí -->
       </div>
       
-      <button class="btn-enviar-discord" onclick="enviarCapturasADiscord('${id}')" id="btnEnviar_${id}">
-        🚀 Enviar a Discord
-      </button>
-      <button class="btn-capturas" onclick="mostrarCapturas('${id}')">
-        Cerrar
-      </button>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="btn-enviar-discord" onclick="enviarCapturasADiscord('${id}')" id="btnEnviar_${id}" style="flex: 1;">
+          🚀 Enviar 4 Capturas a Discord
+        </button>
+        <button class="btn-capturas" onclick="mostrarCapturas('${id}')" style="background: #666;">
+          Cerrar
+        </button>
+      </div>
       
       <div style="font-size: 11px; color: #aaa; margin-top: 8px;">
-        ⚠️ Las capturas se enviarán al canal de Discord y luego se eliminarán de la web
+        ⚠️ Se deben enviar <strong>EXACTAMENTE 4 capturas</strong> de tus stats. Se enviarán como pack al canal de Discord y luego se eliminarán de la web.
       </div>
     `;
     
@@ -1199,7 +1730,16 @@ window.manejarSubidaArchivos = function(id, files) {
     capturasTemporales[id] = [];
   }
   
-  Array.from(files).forEach(file => {
+  const filesArray = Array.from(files);
+  const totalDespues = capturasTemporales[id].length + filesArray.length;
+  
+  // Verificar si supera el límite de 4
+  if (totalDespues > 4) {
+    alert(`❌ Máximo 4 capturas permitidas. Ya tienes ${capturasTemporales[id].length} y estás intentando subir ${filesArray.length} más.`);
+    return;
+  }
+  
+  filesArray.forEach(file => {
     // Validar tamaño (5MB máximo)
     if (file.size > 5 * 1024 * 1024) {
       alert(`El archivo ${file.name} es demasiado grande (máximo 5MB)`);
@@ -1233,31 +1773,50 @@ window.manejarSubidaArchivos = function(id, files) {
 // Actualizar vista de capturas
 function actualizarVistaCapturas(id) {
   const grid = document.getElementById(`capturasGrid_${id}`);
+  const contador = document.getElementById(`contador_${id}`);
+  const btnEnviar = document.getElementById(`btnEnviar_${id}`);
+  
   if (!grid) return;
   
   grid.innerHTML = '';
   
   if (!capturasTemporales[id] || capturasTemporales[id].length === 0) {
     grid.innerHTML = '<div style="color: #888; font-size: 12px; text-align: center; padding: 20px;">No hay capturas subidas</div>';
-    return;
+  } else {
+    capturasTemporales[id].forEach(captura => {
+      const item = document.createElement('div');
+      item.className = 'captura-item';
+      item.innerHTML = `
+        <button class="borrar-captura" onclick="eliminarCaptura('${id}', ${captura.id})">×</button>
+        <img src="${captura.preview}" class="captura-imagen" alt="Captura">
+        <div class="captura-nombre">${captura.name.substring(0, 15)}${captura.name.length > 15 ? '...' : ''}</div>
+      `;
+      grid.appendChild(item);
+    });
   }
   
-  capturasTemporales[id].forEach(captura => {
-    const item = document.createElement('div');
-    item.className = 'captura-item';
-    item.innerHTML = `
-      <button class="borrar-captura" onclick="eliminarCaptura('${id}', ${captura.id})">×</button>
-      <img src="${captura.preview}" class="captura-imagen" alt="Captura">
-      <div class="captura-nombre">${captura.name.substring(0, 15)}${captura.name.length > 15 ? '...' : ''}</div>
-    `;
-    grid.appendChild(item);
-  });
+  // Actualizar contador
+  if (contador) {
+    const count = capturasTemporales[id] ? capturasTemporales[id].length : 0;
+    contador.textContent = `${count}/4 capturas subidas`;
+    contador.style.color = count === 4 ? '#4CAF50' : '#ff9800';
+  }
   
   // Actualizar botón de enviar
-  const btnEnviar = document.getElementById(`btnEnviar_${id}`);
   if (btnEnviar) {
-    btnEnviar.disabled = capturasTemporales[id].length === 0;
-    btnEnviar.innerHTML = `🚀 Enviar a Discord (${capturasTemporales[id].length})`;
+    const count = capturasTemporales[id] ? capturasTemporales[id].length : 0;
+    const tieneExactamente4 = count === 4;
+    
+    btnEnviar.disabled = !tieneExactamente4;
+    btnEnviar.innerHTML = tieneExactamente4 ? 
+      `🚀 Enviar 4 Capturas a Discord` : 
+      `🚀 Enviar (${count}/4)`;
+    
+    if (!tieneExactamente4) {
+      btnEnviar.title = `Se requieren exactamente 4 capturas. Tienes ${count}/4.`;
+    } else {
+      btnEnviar.title = "Haz clic para enviar las 4 capturas a Discord";
+    }
   }
 }
 
@@ -1285,8 +1844,14 @@ function cargarCapturasExistentes(memberId) {
 
 // Enviar capturas a Discord
 window.enviarCapturasADiscord = async function(memberId) {
-  if (!capturasTemporales[memberId] || capturasTemporales[memberId].length === 0) {
+  if (!capturasTemporales[memberId]) {
     alert('No hay capturas para enviar');
+    return;
+  }
+  
+  const count = capturasTemporales[memberId].length;
+  if (count !== 4) {
+    alert(`❌ Se requieren EXACTAMENTE 4 capturas. Tienes ${count}/4.`);
     return;
   }
   
@@ -1299,7 +1864,7 @@ window.enviarCapturasADiscord = async function(memberId) {
   const btnEnviar = document.getElementById(`btnEnviar_${memberId}`);
   if (btnEnviar) {
     btnEnviar.disabled = true;
-    btnEnviar.innerHTML = '⏳ Enviando...';
+    btnEnviar.innerHTML = '⏳ Enviando 4 capturas...';
   }
   
   try {
@@ -1307,74 +1872,62 @@ window.enviarCapturasADiscord = async function(memberId) {
     const memberDoc = await getDoc(doc(db, "members", memberId));
     const memberData = memberDoc.exists() ? memberDoc.data() : {};
     const memberName = memberData.name || 'Miembro desconocido';
+    const memberClase = memberData.clase || 'Sin clase';
+    const memberNivel = memberData.nivel || '?';
+    const memberPoder = memberData.poder || '?';
     
-    let enviadasConExito = 0;
-    let errores = [];
+    // Crear FormData para enviar múltiples archivos
+    const discordFormData = new FormData();
     
-    // Para cada captura, crear un mensaje
-    for (const captura of capturasTemporales[memberId]) {
-      try {
-        // Discord requiere multipart/form-data para archivos
-        const discordFormData = new FormData();
-        
-        // Crear payload del mensaje
-        const payload = {
-          content: `📸 **Captura subida por ${memberName}**\n📅 ${new Date().toLocaleString('es-ES')}\n📊 Stats verificados en Control Semanal`,
-          username: 'YMIR Guild Bot',
-          avatar_url: 'https://cdn.discordapp.com/embed/avatars/0.png'
-        };
-        
-        discordFormData.append('payload_json', JSON.stringify(payload));
-        discordFormData.append('file', captura.file, captura.name);
-        
-        // Enviar al webhook de Discord
-        const response = await fetch(DISCORD_WEBHOOK_URL, {
-          method: 'POST',
-          body: discordFormData
-        });
-        
-        if (response.ok) {
-          enviadasConExito++;
-        } else {
-          errores.push(`${captura.name}: Error ${response.status}`);
-        }
-        
-        // Esperar un poco entre envíos para evitar rate limits
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-      } catch (error) {
-        errores.push(`${captura.name}: ${error.message}`);
+    // Crear payload del mensaje con información detallada
+    const payload = {
+      content: `📸 **PACK DE 4 CAPTURAS**\n👤 **${memberName}** (${memberClase})\n📊 Nivel: ${memberNivel} | Poder: ${memberPoder}\n📅 ${new Date().toLocaleString('es-ES')}\n🔍 Stats verificados en Control Semanal\n━━━━━━━━━━━━━━━━━━━━━━`,
+      username: 'YMIR Guild Bot',
+      avatar_url: 'https://cdn.discordapp.com/embed/avatars/0.png'
+    };
+    
+    discordFormData.append('payload_json', JSON.stringify(payload));
+    
+    // Añadir las 4 capturas al FormData
+    capturasTemporales[memberId].forEach((captura, index) => {
+      discordFormData.append(`file${index + 1}`, captura.file, `captura_${index + 1}_${captura.name}`);
+    });
+    
+    // Enviar al webhook de Discord
+    const response = await fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      body: discordFormData
+    });
+    
+    if (response.ok) {
+      // Registrar en el historial
+      await addDoc(collection(db, "historial"), {
+        usuario: memberId,
+        rol: MI_ROL,
+        accion: "Envío de pack de 4 capturas a Discord",
+        cambio: `4 capturas enviadas por ${memberName} (${memberClase})`,
+        fecha: Date.now()
+      });
+      
+      // Limpiar capturas temporales
+      capturasTemporales[memberId].forEach(captura => {
+        URL.revokeObjectURL(captura.preview);
+      });
+      capturasTemporales[memberId] = [];
+      
+      // Actualizar vista
+      actualizarVistaCapturas(memberId);
+      
+      // Cerrar el panel de capturas
+      const container = document.querySelector(`#fila_${memberId} + .capturas-container`);
+      if (container) {
+        container.remove();
       }
-    }
-    
-    // Registrar en el historial
-    await addDoc(collection(db, "historial"), {
-      usuario: memberId,
-      rol: MI_ROL,
-      accion: "Envío de capturas a Discord",
-      cambio: `${enviadasConExito} capturas enviadas por ${memberName}`,
-      fecha: Date.now()
-    });
-    
-    // Limpiar capturas temporales
-    capturasTemporales[memberId].forEach(captura => {
-      URL.revokeObjectURL(captura.preview);
-    });
-    capturasTemporales[memberId] = [];
-    
-    // Actualizar vista
-    actualizarVistaCapturas(memberId);
-    
-    // Cerrar el panel de capturas
-    const container = document.querySelector(`#fila_${memberId} + .capturas-container`);
-    if (container) {
-      container.remove();
-    }
-    
-    if (errores.length === 0) {
-      alert(`✅ ${enviadasConExito} capturas enviadas a Discord correctamente`);
+      
+      alert(`✅ Pack de 4 capturas enviado a Discord correctamente`);
     } else {
-      alert(`⚠️ ${enviadasConExito} capturas enviadas, ${errores.length} con error:\n${errores.join('\n')}`);
+      const errorText = await response.text();
+      throw new Error(`Discord respondió con ${response.status}: ${errorText}`);
     }
     
   } catch (error) {
@@ -1383,7 +1936,7 @@ window.enviarCapturasADiscord = async function(memberId) {
   } finally {
     if (btnEnviar) {
       btnEnviar.disabled = false;
-      btnEnviar.innerHTML = '🚀 Enviar a Discord';
+      btnEnviar.innerHTML = '🚀 Enviar 4 Capturas a Discord';
     }
   }
 };
@@ -1457,6 +2010,12 @@ onAuthStateChanged(auth, async user=>{
     }
   }
   
+  // Cargar configuración
+  await cargarConfiguracion();
+  
+  // Actualizar relojes con la configuración cargada
+  updateTopClocks();
+  
   cargarControl();
   escucharSolicitudesBadge();
   actualizarIndicadorDias();
@@ -1464,15 +2023,18 @@ onAuthStateChanged(auth, async user=>{
   // MOSTRAR/OCULTAR BOTONES SEGÚN ROL
   const reinicioBtn = document.getElementById("reinicioStatsBtn");
   const exportarBtn = document.getElementById("exportarBtn");
+  const configBtn = document.getElementById("configBtn");
   const exportarFloatingBtn = document.querySelector(".export-excel-container");
   
   if(!esLiderOficial){
     if (reinicioBtn) reinicioBtn.style.display = "none";
     if (exportarBtn) exportarBtn.style.display = "none";
+    if (configBtn) configBtn.style.display = "none";
     if (exportarFloatingBtn) exportarFloatingBtn.style.display = "none";
   } else {
     if (reinicioBtn) reinicioBtn.style.display = "flex";
     if (exportarBtn) exportarBtn.style.display = "flex";
+    if (configBtn) configBtn.style.display = "flex";
     if (exportarFloatingBtn) exportarFloatingBtn.style.display = "block";
   }
 });
@@ -1678,7 +2240,7 @@ function cargarControl(){
               <button class="btn cancel" onclick="cancelarEdicionControl('${d.id}')">Cancelar</button>
               ${esDiaDeCapturas() ? 
                 `<button class="btn" onclick="mostrarCapturas('${d.id}')" style="background:#2196F3; margin-top:4px;">📸 Capturas</button>` : 
-                `<button class="btn" style="background:#666; margin-top:4px; cursor:not-allowed;" title="Capturas solo disponibles de Jueves a Sábado" disabled>📸 Capturas</button>`}
+                `<button class="btn" style="background:#666; margin-top:4px; cursor:not-allowed;" title="Capturas no disponibles hoy" disabled>📸 Capturas</button>`}
             </td>
           </tr>
         `;
@@ -1721,7 +2283,7 @@ function cargarControl(){
                 <button class="btn" onclick="editarControl('${d.id}')">Editar</button>
                 ${esDiaDeCapturas() ? 
                   `<button class="btn" onclick="mostrarCapturas('${d.id}')" style="background:#2196F3; margin-top:4px;">📸 Capturas</button>` : 
-                  `<button class="btn" style="background:#666; margin-top:4px; cursor:not-allowed;" title="Capturas solo disponibles de Jueves a Sábado" disabled>📸 Capturas</button>`}
+                  `<button class="btn" style="background:#666; margin-top:4px; cursor:not-allowed;" title="Capturas no disponibles hoy" disabled>📸 Capturas</button>`}
               ` : 
                 `<span style="color: #999; font-size: 11px; font-style: italic;">solo stats propios</span>`}
             </td>
