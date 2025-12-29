@@ -718,7 +718,7 @@
     cursor: not-allowed;
   }
   
-  /* === ESTILOS PARA MODAL DE CONFIGURACIÓN === */
+  /* === NUEVOS ESTILOS PARA MODAL DE CONFIGURACIÓN MEJORADO === */
   .config-modal {
     display: none;
     position: fixed;
@@ -726,50 +726,59 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.95);
     z-index: 2000;
     justify-content: center;
     align-items: center;
+    overflow-y: auto;
+    padding: 20px 0;
   }
   
   .config-content {
     background: linear-gradient(135deg, #1a0b2e, #2d1b47);
-    border-radius: 12px;
-    padding: 25px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    border: 1px solid #5a189a;
+    border-radius: 16px;
+    padding: 30px;
+    width: 95%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    border: 2px solid #5a189a;
+    position: relative;
   }
   
   .config-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
   }
   
   .config-header h2 {
     margin: 0;
     color: #9d4edd;
-    font-size: 22px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   
   .close-config {
     background: none;
     border: none;
     color: #aaa;
-    font-size: 24px;
+    font-size: 28px;
     cursor: pointer;
     padding: 0;
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    transition: all 0.3s ease;
   }
   
   .close-config:hover {
@@ -778,125 +787,253 @@
   }
   
   .config-section {
-    margin-bottom: 25px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border-left: 4px solid #9d4edd;
   }
   
   .config-section h3 {
     color: #9d4edd;
-    margin-bottom: 15px;
-    font-size: 16px;
-    border-left: 4px solid #9d4edd;
-    padding-left: 10px;
+    margin-bottom: 20px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .config-section h3 span {
+    font-size: 20px;
+  }
+  
+  .config-input-group {
+    margin-bottom: 20px;
+  }
+  
+  .config-input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #9d4edd;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  
+  .config-input-group input[type="text"],
+  .config-input-group input[type="url"],
+  .config-input-group input[type="number"],
+  .config-input-group input[type="time"],
+  .config-input-group textarea,
+  .config-input-group select {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #5a189a;
+    border-radius: 8px;
+    color: #eee;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+  }
+  
+  .config-input-group input[type="time"] {
+    width: 120px;
+  }
+  
+  .config-input-group textarea {
+    min-height: 100px;
+    resize: vertical;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  
+  .config-input-group input:focus,
+  .config-input-group textarea:focus,
+  .config-input-group select:focus {
+    outline: none;
+    border-color: #9d4edd;
+    box-shadow: 0 0 0 2px rgba(157, 78, 221, 0.3);
+  }
+  
+  .config-help-text {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 6px;
+    line-height: 1.4;
+    font-style: italic;
+  }
+  
+  .config-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .config-row .config-input-group {
+    flex: 1;
+  }
+  
+  .config-test-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+  }
+  
+  .btn-test {
+    padding: 8px 16px;
+    font-size: 13px;
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-test:hover {
+    background: linear-gradient(135deg, #1976D2, #1565C0);
+    transform: translateY(-2px);
+  }
+  
+  .btn-test-danger {
+    background: linear-gradient(135deg, #f44336, #d32f2f);
+  }
+  
+  .btn-test-danger:hover {
+    background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  }
+  
+  .btn-test-success {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  }
+  
+  .btn-test-success:hover {
+    background: linear-gradient(135deg, #388E3C, #1B5E20);
   }
   
   .dias-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
   }
   
   .dia-option {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: 10px;
+    padding: 12px 15px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
+    border: 1px solid transparent;
   }
   
   .dia-option:hover {
     background: rgba(255, 255, 255, 0.1);
+    border-color: #5a189a;
   }
   
   .dia-option input[type="checkbox"] {
     margin: 0;
     cursor: pointer;
+    width: 18px;
+    height: 18px;
   }
   
   .dia-option label {
     cursor: pointer;
     user-select: none;
     color: #eee;
-  }
-  
-  .hora-config {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
-  
-  .hora-input {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  
-  .hora-input label {
-    color: #eee;
     font-size: 14px;
-  }
-  
-  .hora-input input {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid #5a189a;
-    border-radius: 4px;
-    color: #eee;
-    padding: 8px 12px;
-    font-size: 14px;
-    width: 60px;
-    text-align: center;
   }
   
   .config-info {
-    background: rgba(90, 24, 154, 0.1);
-    border-radius: 8px;
-    padding: 15px;
-    margin-top: 20px;
+    background: rgba(90, 24, 154, 0.15);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 25px;
     font-size: 13px;
     color: #aaa;
+    border-left: 4px solid #9d4edd;
+  }
+  
+  .config-info strong {
+    color: #9d4edd;
+    display: block;
+    margin-bottom: 10px;
   }
   
   .config-buttons {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    margin-top: 25px;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
   }
   
   .btn-guardar-config {
     background: linear-gradient(135deg, #4CAF50, #2E7D32);
     color: white;
     border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-size: 14px;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    transition: all 0.3s ease;
   }
   
   .btn-guardar-config:hover {
     background: linear-gradient(135deg, #388E3C, #1B5E20);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
   }
   
   .btn-cancelar-config {
     background: #666;
     color: white;
     border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-size: 14px;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
     cursor: pointer;
+    transition: all 0.3s ease;
   }
   
   .btn-cancelar-config:hover {
     background: #777;
+    transform: translateY(-2px);
+  }
+  
+  /* Scrollbar personalizado para el modal */
+  .config-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .config-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+  
+  .config-content::-webkit-scrollbar-thumb {
+    background: #5a189a;
+    border-radius: 4px;
+  }
+  
+  .config-content::-webkit-scrollbar-thumb:hover {
+    background: #7b2cbf;
   }
   
   /* Responsive */
@@ -946,18 +1083,28 @@
       grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     }
     
+    .config-content {
+      padding: 20px;
+      width: 98%;
+      max-height: 85vh;
+    }
+    
+    .config-row {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
     .dias-container {
       grid-template-columns: repeat(2, 1fr);
     }
     
-    .hora-config {
+    .config-test-buttons {
       flex-direction: column;
-      align-items: flex-start;
     }
     
-    .hora-input {
+    .btn-test {
       width: 100%;
-      justify-content: space-between;
+      justify-content: center;
     }
   }
 </style>
@@ -1022,47 +1169,168 @@
   </ul>
 </nav>
 
-<!-- Modal de Configuración -->
+<!-- Modal de Configuración MEJORADO -->
 <div id="configModal" class="config-modal">
   <div class="config-content">
     <div class="config-header">
-      <h2>⚙️ Configuración</h2>
+      <h2><span>⚙️</span> Configuración del Control Semanal</h2>
       <button class="close-config" onclick="cerrarConfig()">&times;</button>
     </div>
     
+    <!-- Sección 1: Días de Capturas -->
     <div class="config-section">
-      <h3>📅 Días de Capturas</h3>
+      <h3><span>📅</span> Días de Capturas</h3>
       <p style="color: #ccc; margin-bottom: 15px; font-size: 14px;">Selecciona los días en que estarán disponibles las capturas:</p>
       
       <div class="dias-container" id="diasConfigContainer">
         <!-- Los días se cargarán dinámicamente -->
       </div>
       
-      <div class="config-info">
-        <strong>💡 Información:</strong> Los días seleccionados determinarán cuándo los miembros pueden subir capturas. Por defecto: Jueves, Viernes y Sábado.
+      <div class="config-help-text">
+        💡 Los días seleccionados determinarán cuándo los miembros pueden subir capturas.
       </div>
     </div>
     
+    <!-- Sección 2: Horarios -->
     <div class="config-section">
-      <h3>⏰ Hora del Servidor</h3>
-      <p style="color: #ccc; margin-bottom: 15px; font-size: 14px;">Configura la diferencia horaria del servidor (UTC):</p>
+      <h3><span>⏰</span> Horarios del Servidor</h3>
       
-      <div class="hora-config">
-        <div class="hora-input">
-          <label for="horaDiferencia">Diferencia horaria:</label>
-          <input type="number" id="horaDiferencia" min="-12" max="14" step="1" placeholder="Ej: -4">
-          <span style="color: #aaa;">horas (UTC)</span>
+      <div class="config-row">
+        <div class="config-input-group">
+          <label for="horaDiferencia">Diferencia horaria (UTC):</label>
+          <input type="number" id="horaDiferencia" min="-12" max="14" step="1" placeholder="-4">
+          <div class="config-help-text">Ej: -4 para Venezuela, -5 para Colombia/Perú</div>
         </div>
-        <div style="color: #aaa; font-size: 13px;">
-          Ejemplo: -4 para Venezuela, -5 para Colombia/Perú, -6 para México
+        
+        <div class="config-input-group">
+          <label for="horaApertura">Hora de apertura:</label>
+          <input type="time" id="horaApertura" value="00:01">
+          <div class="config-help-text">Jueves a esta hora (UTC-4)</div>
+        </div>
+        
+        <div class="config-input-group">
+          <label for="horaCierre">Hora de cierre:</label>
+          <input type="time" id="horaCierre" value="00:00">
+          <div class="config-help-text">Sábado a esta hora (UTC-4)</div>
         </div>
       </div>
     </div>
     
+    <!-- Sección 3: Configuración Discord -->
+    <div class="config-section">
+      <h3><span>🤖</span> Configuración de Discord</h3>
+      
+      <div class="config-input-group">
+        <label for="discordWebhook">Webhook URL de Discord:</label>
+        <input type="url" id="discordWebhook" placeholder="https://discord.com/api/webhooks/...">
+        <div class="config-help-text">
+          📌 Obtén el webhook en: Configuración del canal → Integraciones → Webhooks
+        </div>
+      </div>
+      
+      <div class="config-input-group">
+        <label for="discordMencion">Menciones para notificaciones:</label>
+        <input type="text" id="discordMencion" placeholder="@everyone o @rol" value="@everyone">
+        <div class="config-help-text">
+          💡 Usa @everyone, @here o <@&ROLE_ID> para roles específicos
+        </div>
+      </div>
+      
+      <div class="config-input-group">
+        <label for="urlControl">URL del Control Semanal:</label>
+        <input type="url" id="urlControl" placeholder="https://tudominio.com/control.html">
+        <div class="config-help-text">
+          🔗 Enlace que aparecerá en las notificaciones
+        </div>
+      </div>
+      
+      <div class="config-test-buttons">
+        <button class="btn-test" onclick="probarNotificacionApertura()">
+          <span>🧪</span> Probar Apertura
+        </button>
+        <button class="btn-test" onclick="probarNotificacionCierre()">
+          <span>🧪</span> Probar Cierre
+        </button>
+        <button class="btn-test btn-test-danger" onclick="probarWebhook()">
+          <span>🔗</span> Probar Webhook
+        </button>
+        <button class="btn-test btn-test-success" onclick="enviarNotificacionManual()">
+          <span>📢</span> Enviar Notificación Manual
+        </button>
+      </div>
+    </div>
+    
+    <!-- Sección 4: URLs de Imágenes -->
+    <div class="config-section">
+      <h3><span>🖼️</span> URLs de Imágenes</h3>
+      
+      <div class="config-input-group">
+        <label for="urlImagenApertura">Banner de Apertura:</label>
+        <input type="url" id="urlImagenApertura" placeholder="https://cdn.discordapp.com/attachments/.../control1.png">
+        <div class="config-help-text">
+          Imagen que aparecerá en la notificación de apertura
+        </div>
+      </div>
+      
+      <div class="config-input-group">
+        <label for="urlImagenCierre">Banner de Cierre:</label>
+        <input type="url" id="urlImagenCierre" placeholder="https://cdn.discordapp.com/attachments/.../control3.png">
+        <div class="config-help-text">
+          Imagen que aparecerá en la notificación de cierre
+        </div>
+      </div>
+      
+      <div class="config-input-group">
+        <label for="urlLogoGuild">Logo de la Guild:</label>
+        <input type="url" id="urlLogoGuild" placeholder="https://cdn.discordapp.com/.../logo.png">
+        <div class="config-help-text">
+          🏆 Puede ser emoji del servidor o imagen personalizada
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sección 5: Mensaje ANSI -->
+    <div class="config-section">
+      <h3><span>📝</span> Mensaje ANSI Personalizado</h3>
+      
+      <div class="config-input-group">
+        <label for="textoAnsi">Texto ANSI para notificaciones:</label>
+        <textarea id="textoAnsi" rows="5">
+```ansi
+[1;33m⚠️  ATENCIÓN  ⚠️[0m
+
+[1;36mHola![0m Para evitar problemas y confusiones:
+
+[1;32m✔️ El control semanal se abrirá los [4;32mJUEVES[0m[1;32m.[0m  
+[1;31m❌ Se cerrará los [4;31mSÁBADOS[0m[1;31m.[0m
+
+[1;35m⛔ Fuera de ese plazo NO se admitirán fotos por ningún otro medio que no sea este canal.[0m
+
+[1;34mTodo con el fin de procesar todos los datos correctamente antes del calabozo del gremio.[0m
+```</textarea>
+        <div class="config-help-text">
+          ✨ Usa código ANSI para colores en Discord. <a href="https://gist.github.com/kkrypt0nn/a02506f3712ff2d1c8ca7c9e0aed7c06" target="_blank" style="color: #9d4edd;">Ver códigos ANSI</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Información Importante -->
+    <div class="config-info">
+      <strong>💡 Información importante:</strong><br>
+      • Las notificaciones se enviarán automáticamente según los horarios configurados.<br>
+      • El sistema verifica cada minuto si debe enviar notificaciones.<br>
+      • Las URLs de imágenes deben ser accesibles públicamente.<br>
+      • Los cambios se aplicarán inmediatamente después de guardar.<br>
+      • Puedes probar las notificaciones con los botones de arriba antes de activar el sistema automático.
+    </div>
+    
+    <!-- Botones de acción -->
     <div class="config-buttons">
-      <button class="btn-cancelar-config" onclick="cerrarConfig()">Cancelar</button>
+      <button class="btn-cancelar-config" onclick="cerrarConfig()">
+        Cancelar
+      </button>
       <button class="btn-guardar-config" id="guardarConfigBtn">
-        💾 Guardar Configuración
+        <span>💾</span> Guardar Configuración Completa
       </button>
     </div>
   </div>
@@ -1142,49 +1410,89 @@ let MI_UID = null;
 let esLiderOficial = false;
 let modoEdicionControl = {};
 
-/* === Configuración de Discord === */
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1454543720627179835/MLCNGtb7fOQrb3d9OfeIWdZlGa9_IZ1hlnhE1JmGDnQClb1wDwR3EdwcFsIxY_ZIf-k8';
-
 /* === Variables para capturas === */
 let capturasTemporales = {};
 
-/* === CONFIGURACIÓN GLOBAL === */
+/* === CONFIGURACIÓN GLOBAL COMPLETA === */
 let CONFIG = {
+  // Días y horarios
   diasCapturas: [4, 5, 6], // Por defecto: Jueves(4), Viernes(5), Sábado(6)
   diferenciaHoraria: -4, // Por defecto: -4 horas (UTC-4)
+  horaApertura: "00:01", // Jueves a esta hora
+  horaCierre: "00:00", // Sábado a esta hora
+  
+  // Discord
+  discordWebhook: 'https://discord.com/api/webhooks/1454543720627179835/MLCNGtb7fOQrb3d9OfeIWdZlGa9_IZ1hlnhE1JmGDnQClb1wDwR3EdwcFsIxY_ZIf-k8',
+  discordMencion: "@everyone",
+  urlControl: window.location.origin + "/control.html",
+  
+  // Imágenes
+  urlImagenApertura: "https://cdn.discordapp.com/attachments/1454991002526945330/1454991313366814763/control1.png",
+  urlImagenCierre: "https://cdn.discordapp.com/attachments/1454991002526945330/1454991436792729770/control3.png",
+  urlLogoGuild: "https://cdn.discordapp.com/icons/1223035000967139449/a_d85e3b6e6c5c8b5c8b5c8b5c8b5c8b5c.png",
+  
+  // Texto
+  textoAnsi: `\`\`\`ansi
+[1;33m⚠️  ATENCIÓN  ⚠️[0m
+
+[1;36mHola![0m Para evitar problemas y confusiones:
+
+[1;32m✔️ El control semanal se abrirá los [4;32mJUEVES[0m[1;32m.[0m  
+[1;31m❌ Se cerrará los [4;31mSÁBADOS[0m[1;31m.[0m
+
+[1;35m⛔ Fuera de ese plazo NO se admitirán fotos por ningún otro medio que no sea este canal.[0m
+
+[1;34mTodo con el fin de procesar todos los datos correctamente antes del calabozo del gremio.[0m
+\`\`\``,
+  
+  // Sistema
   ultimaActualizacion: null
 };
 
-/* === Cargar configuración desde Firebase === */
+/* === Cargar configuración completa desde Firebase === */
 async function cargarConfiguracion() {
-  console.log("Cargando configuración desde Firebase...");
+  console.log("Cargando configuración completa desde Firebase...");
   
   try {
-    const configDoc = await getDoc(doc(db, "configuracion", "control_capturas"));
+    const configDoc = await getDoc(doc(db, "configuracion", "control_completo"));
     
     if (configDoc.exists()) {
       const data = configDoc.data();
+      
+      // Días y horarios
       CONFIG.diasCapturas = data.diasCapturas || [4, 5, 6];
       CONFIG.diferenciaHoraria = data.diferenciaHoraria || -4;
+      CONFIG.horaApertura = data.horaApertura || "00:01";
+      CONFIG.horaCierre = data.horaCierre || "00:00";
+      
+      // Discord
+      CONFIG.discordWebhook = data.discordWebhook || CONFIG.discordWebhook;
+      CONFIG.discordMencion = data.discordMencion || "@everyone";
+      CONFIG.urlControl = data.urlControl || window.location.origin + "/control.html";
+      
+      // Imágenes
+      CONFIG.urlImagenApertura = data.urlImagenApertura || CONFIG.urlImagenApertura;
+      CONFIG.urlImagenCierre = data.urlImagenCierre || CONFIG.urlImagenCierre;
+      CONFIG.urlLogoGuild = data.urlLogoGuild || CONFIG.urlLogoGuild;
+      
+      // Texto
+      CONFIG.textoAnsi = data.textoAnsi || CONFIG.textoAnsi;
+      
       CONFIG.ultimaActualizacion = data.ultimaActualizacion || null;
       
-      console.log("Configuración cargada desde Firebase:", CONFIG);
+      console.log("Configuración completa cargada:", CONFIG);
     } else {
-      console.log("No existe configuración, creando por defecto...");
+      console.log("No existe configuración completa, creando por defecto...");
       
-      // Crear configuración por defecto si no existe
-      const defaultConfig = {
-        diasCapturas: [4, 5, 6],
-        diferenciaHoraria: -4,
+      // Crear configuración por defecto
+      await setDoc(doc(db, "configuracion", "control_completo"), {
+        ...CONFIG,
         ultimaActualizacion: Date.now(),
         creadoPor: "Sistema",
         fechaCreacion: new Date().toISOString()
-      };
+      });
       
-      await setDoc(doc(db, "configuracion", "control_capturas"), defaultConfig);
-      CONFIG = defaultConfig;
-      
-      console.log("Configuración por defecto creada:", CONFIG);
+      console.log("Configuración completa por defecto creada");
     }
     
     // Actualizar el indicador de días
@@ -1194,15 +1502,625 @@ async function cargarConfiguracion() {
     updateTopClocks();
     
   } catch (error) {
-    console.error("Error al cargar configuración:", error);
+    console.error("Error al cargar configuración completa:", error);
     console.error("Usando configuración por defecto");
+  }
+}
+
+/* === FUNCIONES PARA EL MODAL DE CONFIGURACIÓN MEJORADO === */
+window.abrirConfiguracion = function() {
+  console.log("Abriendo configuración completa...");
+  
+  if (!esLiderOficial) {
+    alert("❌ Solo Líderes y Oficiales pueden acceder a la configuración.");
+    return;
+  }
+  
+  const modal = document.getElementById('configModal');
+  const container = document.getElementById('diasConfigContainer');
+  
+  if (!modal || !container) {
+    console.error("Modal o contenedor no encontrado");
+    return;
+  }
+  
+  console.log("Cargando configuración en el modal...");
+  
+  // Cargar días de la semana
+  const diasSemana = [
+    { numero: 0, nombre: "Domingo" },
+    { numero: 1, nombre: "Lunes" },
+    { numero: 2, nombre: "Martes" },
+    { numero: 3, nombre: "Miércoles" },
+    { numero: 4, nombre: "Jueves" },
+    { numero: 5, nombre: "Viernes" },
+    { numero: 6, nombre: "Sábado" }
+  ];
+  
+  container.innerHTML = '';
+  
+  diasSemana.forEach(dia => {
+    const isChecked = CONFIG.diasCapturas.includes(dia.numero);
+    const diaOption = document.createElement('div');
+    diaOption.className = 'dia-option';
+    diaOption.innerHTML = `
+      <input type="checkbox" id="dia_${dia.numero}" value="${dia.numero}" ${isChecked ? 'checked' : ''}>
+      <label for="dia_${dia.numero}">${dia.nombre}</label>
+    `;
+    container.appendChild(diaOption);
+  });
+  
+  // Cargar TODOS los campos de configuración
+  const camposConfig = [
+    { id: 'horaDiferencia', value: CONFIG.diferenciaHoraria },
+    { id: 'horaApertura', value: CONFIG.horaApertura },
+    { id: 'horaCierre', value: CONFIG.horaCierre },
+    { id: 'discordWebhook', value: CONFIG.discordWebhook },
+    { id: 'discordMencion', value: CONFIG.discordMencion },
+    { id: 'urlControl', value: CONFIG.urlControl },
+    { id: 'urlImagenApertura', value: CONFIG.urlImagenApertura },
+    { id: 'urlImagenCierre', value: CONFIG.urlImagenCierre },
+    { id: 'urlLogoGuild', value: CONFIG.urlLogoGuild },
+    { id: 'textoAnsi', value: CONFIG.textoAnsi }
+  ];
+  
+  camposConfig.forEach(campo => {
+    const element = document.getElementById(campo.id);
+    if (element) {
+      element.value = campo.value;
+    }
+  });
+  
+  // Mostrar modal
+  modal.style.display = 'flex';
+  console.log("Modal de configuración completa mostrado");
+  
+  // Configurar eventos
+  setTimeout(() => {
+    const guardarBtn = document.getElementById('guardarConfigBtn');
+    if (guardarBtn) {
+      guardarBtn.onclick = guardarConfiguracionCompleta;
+    }
+  }, 100);
+};
+
+window.cerrarConfig = function() {
+  const modal = document.getElementById('configModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+};
+
+// Cerrar modal al hacer clic fuera del contenido
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('configModal');
+  if (modal && e.target === modal) {
+    cerrarConfig();
+  }
+});
+
+/* === Guardar configuración COMPLETA en Firebase === */
+async function guardarConfiguracionCompleta() {
+  console.log("Iniciando guardarConfiguracionCompleta...");
+  
+  if (!esLiderOficial) {
+    alert("❌ Solo Líderes y Oficiales pueden guardar configuración.");
+    return;
+  }
+  
+  try {
+    console.log("Recopilando datos de configuración completa...");
     
-    // Usar configuración por defecto en caso de error
-    CONFIG = {
-      diasCapturas: [4, 5, 6],
-      diferenciaHoraria: -4,
-      ultimaActualizacion: null
+    // 1. Obtener días seleccionados
+    const diasSeleccionados = [];
+    const checkboxes = document.querySelectorAll('.dia-option input[type="checkbox"]:checked');
+    
+    checkboxes.forEach(checkbox => {
+      const valor = parseInt(checkbox.value);
+      if (!isNaN(valor)) {
+        diasSeleccionados.push(valor);
+      }
+    });
+    
+    // 2. Obtener todos los valores de los campos
+    const nuevaConfig = {
+      // Días y horarios
+      diasCapturas: diasSeleccionados.sort((a, b) => a - b),
+      diferenciaHoraria: parseInt(document.getElementById('horaDiferencia').value) || -4,
+      horaApertura: document.getElementById('horaApertura').value || "00:01",
+      horaCierre: document.getElementById('horaCierre').value || "00:00",
+      
+      // Discord
+      discordWebhook: document.getElementById('discordWebhook').value.trim(),
+      discordMencion: document.getElementById('discordMencion').value.trim(),
+      urlControl: document.getElementById('urlControl').value.trim(),
+      
+      // Imágenes
+      urlImagenApertura: document.getElementById('urlImagenApertura').value.trim(),
+      urlImagenCierre: document.getElementById('urlImagenCierre').value.trim(),
+      urlLogoGuild: document.getElementById('urlLogoGuild').value.trim(),
+      
+      // Texto
+      textoAnsi: document.getElementById('textoAnsi').value.trim(),
+      
+      // Sistema
+      ultimaActualizacion: Date.now(),
+      actualizadoPor: MI_UID,
+      fechaActualizacion: new Date().toISOString(),
+      actualizadoPorNombre: MI_ROL
     };
+    
+    console.log("Configuración a guardar:", nuevaConfig);
+    
+    // 3. Validaciones básicas
+    if (nuevaConfig.diasCapturas.length === 0) {
+      alert("❌ Debes seleccionar al menos un día para capturas.");
+      return;
+    }
+    
+    if (isNaN(nuevaConfig.diferenciaHoraria) || nuevaConfig.diferenciaHoraria < -12 || nuevaConfig.diferenciaHoraria > 14) {
+      alert("❌ La diferencia horaria debe ser un número entre -12 y +14 horas.");
+      return;
+    }
+    
+    if (!nuevaConfig.discordWebhook || !nuevaConfig.discordWebhook.includes('discord.com/api/webhooks')) {
+      alert("⚠️ La URL del webhook de Discord no parece válida.");
+    }
+    
+    // 4. Guardar en Firebase
+    await setDoc(doc(db, "configuracion", "control_completo"), nuevaConfig);
+    
+    // 5. Actualizar configuración local
+    Object.keys(nuevaConfig).forEach(key => {
+      CONFIG[key] = nuevaConfig[key];
+    });
+    
+    // 6. Registrar en historial
+    const diasNombres = CONFIG.diasCapturas.map(d => obtenerNombreDiaPorNumero(d)).join(', ');
+    await addDoc(collection(db, "historial"), {
+      usuario: MI_UID,
+      rol: MI_ROL,
+      accion: "Actualización de configuración completa",
+      cambio: `Configuración actualizada: ${diasNombres} días | Webhook: ${CONFIG.discordWebhook ? 'Sí' : 'No'}`,
+      fecha: Date.now(),
+      detalles: `Configuración actualizada por ${MI_ROL}`
+    });
+    
+    // 7. Actualizar interfaz
+    actualizarIndicadorDias();
+    updateTopClocks();
+    cerrarConfig();
+    
+    // 8. Mostrar confirmación
+    alert(`✅ Configuración guardada exitosamente!\n\n📅 Días: ${diasNombres}\n⏰ Horario: ${CONFIG.horaApertura} - ${CONFIG.horaCierre}\n🤖 Webhook: ${CONFIG.discordWebhook ? 'Configurado' : 'No configurado'}\n🖼️ Imágenes: ${CONFIG.urlImagenApertura ? 'Sí' : 'No'}`);
+    
+  } catch (error) {
+    console.error("❌ Error al guardar configuración:", error);
+    alert(`❌ Error al guardar configuración:\n\n${error.message}`);
+  }
+}
+
+/* === FUNCIONES DE PRUEBA PARA LA CONFIGURACIÓN === */
+window.probarWebhook = async function() {
+  if (!esLiderOficial) {
+    alert("❌ Solo Líderes y Oficiales pueden probar el webhook.");
+    return;
+  }
+  
+  const webhookUrl = document.getElementById('discordWebhook').value.trim() || CONFIG.discordWebhook;
+  
+  if (!webhookUrl) {
+    alert("❌ No hay URL de webhook configurada.");
+    return;
+  }
+  
+  try {
+    const mensajePrueba = {
+      content: "🔧 **PRUEBA DE WEBHOOK**\n\n✅ Este es un mensaje de prueba para verificar la conexión con Discord.\n\n📅 Configuración del Control Semanal funcionando correctamente.",
+      username: 'YMIR Control - Prueba',
+      avatar_url: CONFIG.urlLogoGuild
+    };
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mensajePrueba)
+    });
+    
+    if (response.ok) {
+      alert("✅ Webhook funcionando correctamente.\n\nEl mensaje de prueba fue enviado a Discord.");
+    } else {
+      throw new Error(`Discord respondió con ${response.status}`);
+    }
+    
+  } catch (error) {
+    alert(`❌ Error al probar webhook:\n\n${error.message}\n\nVerifica que la URL sea correcta y que el webhook esté activo en Discord.`);
+  }
+};
+
+window.probarNotificacionApertura = async function() {
+  if (!esLiderOficial) {
+    alert("❌ Solo Líderes y Oficiales pueden probar notificaciones.");
+    return;
+  }
+  
+  const confirmacion = confirm("🧪 ¿Enviar NOTIFICACIÓN DE APERTURA DE PRUEBA?\n\nEsto enviará un mensaje real a Discord usando la configuración actual.");
+  
+  if (!confirmacion) return;
+  
+  try {
+    // Usar la función real pero con marca de prueba
+    await enviarNotificacionApertura(true);
+    alert("✅ Notificación de apertura de prueba enviada correctamente.\n\nRevisa el canal de Discord.");
+  } catch (error) {
+    alert(`❌ Error en prueba: ${error.message}`);
+  }
+};
+
+window.probarNotificacionCierre = async function() {
+  if (!esLiderOficial) {
+    alert("❌ Solo Líderes y Oficiales pueden probar notificaciones.");
+    return;
+  }
+  
+  const confirmacion = confirm("🧪 ¿Enviar NOTIFICACIÓN DE CIERRE DE PRUEBA?\n\nEsto enviará un mensaje real a Discord usando la configuración actual.");
+  
+  if (!confirmacion) return;
+  
+  try {
+    // Usar la función real pero con marca de prueba
+    await enviarNotificacionCierre(true);
+    alert("✅ Notificación de cierre de prueba enviada correctamente.\n\nRevisa el canal de Discord.");
+  } catch (error) {
+    alert(`❌ Error en prueba: ${error.message}`);
+  }
+};
+
+/* === FUNCIÓN PARA ENVIAR NOTIFICACIÓN MANUAL === */
+window.enviarNotificacionManual = async function() {
+  if (!esLiderOficial) {
+    alert("❌ Solo Líderes y Oficiales pueden enviar notificaciones.");
+    return;
+  }
+  
+  const opciones = `
+Selecciona el tipo de notificación a enviar:
+
+1. 📢 Apertura del Control Semanal
+2. 🔒 Cierre del Control Semanal
+3. 📊 Recordatorio de Stats
+4. ⚠️ Aviso Urgente
+
+Se enviará un mensaje real a Discord.`;
+  
+  const tipo = prompt(opciones + "\n\nIngresa el número de opción (1-4):");
+  
+  if (!tipo) return;
+  
+  try {
+    switch(tipo) {
+      case '1':
+        await enviarNotificacionApertura(true);
+        alert("✅ Notificación de APERTURA enviada correctamente.");
+        break;
+      case '2':
+        await enviarNotificacionCierre(true);
+        alert("✅ Notificación de CIERRE enviada correctamente.");
+        break;
+      case '3':
+        await enviarNotificacionRecordatorio();
+        alert("✅ Recordatorio enviado correctamente.");
+        break;
+      case '4':
+        await enviarNotificacionUrgente();
+        alert("✅ Aviso urgente enviado correctamente.");
+        break;
+      default:
+        alert("❌ Opción no válida.");
+    }
+  } catch (error) {
+    alert(`❌ Error al enviar notificación: ${error.message}`);
+  }
+};
+
+/* === FUNCIONES PARA NOTIFICACIONES AUTOMÁTICAS === */
+// Obtener día y hora del servidor
+function obtenerDiaYHoraServidor() {
+  const ahora = new Date();
+  const horaServidor = new Date(ahora.getTime() + (CONFIG.diferenciaHoraria * 3600 * 1000));
+  
+  return {
+    diaSemana: horaServidor.getDay(), // 0=Domingo, 1=Lunes, etc.
+    hora: horaServidor.getHours(),
+    minutos: horaServidor.getMinutes(),
+    segundos: horaServidor.getSeconds(),
+    fechaCompleta: horaServidor,
+    timestamp: horaServidor.getTime()
+  };
+}
+
+// Parsear hora de formato "HH:MM"
+function parsearHoraConfigurada(horaStr) {
+  const [horas, minutos] = horaStr.split(':').map(Number);
+  return { horas, minutos };
+}
+
+// Verificar y enviar notificaciones automáticas
+async function verificarYEnviarNotificaciones() {
+  try {
+    const { diaSemana, hora, minutos } = obtenerDiaYHoraServidor();
+    const horaApertura = parsearHoraConfigurada(CONFIG.horaApertura);
+    const horaCierre = parsearHoraConfigurada(CONFIG.horaCierre);
+    
+    // JUEVES (día 4) - Apertura del control semanal
+    if (diaSemana === 4 && hora === horaApertura.horas && minutos === horaApertura.minutos) {
+      console.log('📅 Condición de APERTURA detectada');
+      await enviarNotificacionApertura();
+    }
+    
+    // SÁBADO (día 6) - Cierre del control semanal
+    if (diaSemana === 6 && hora === horaCierre.horas && minutos === horaCierre.minutos) {
+      console.log('📅 Condición de CIERRE detectada');
+      await enviarNotificacionCierre();
+    }
+    
+  } catch (error) {
+    console.error('Error en verificación de notificaciones:', error);
+  }
+}
+
+/* === FUNCIONES DE NOTIFICACIÓN COMPLETAS === */
+// Enviar notificación de APERTURA
+async function enviarNotificacionApertura(esPrueba = false) {
+  try {
+    if (!CONFIG.discordWebhook) {
+      throw new Error("No hay webhook de Discord configurado.");
+    }
+    
+    const fechaActual = new Date();
+    const fechaFormateada = fechaActual.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'America/Caracas'
+    });
+    
+    const mensajeSufijo = esPrueba ? " (PRUEBA MANUAL)" : "";
+    
+    const mensajeBanner = {
+      content: `${CONFIG.discordMencion} 📢 **¡CONTROL SEMANAL ABIERTO${mensajeSufijo}!** 📢\n\n${CONFIG.textoAnsi}\n\n🔗 **Acceso rápido:** ${CONFIG.urlControl}`,
+      username: `🏆 YMIR Control${mensajeSufijo}`,
+      avatar_url: CONFIG.urlLogoGuild,
+      embeds: [
+        {
+          title: `🏆 ¡HA COMENZADO EL CONTROL SEMANAL${mensajeSufijo}!`,
+          description: `**Período activo para registrar stats y subir capturas**\n\n**Horario:** Jueves ${CONFIG.horaApertura} - Sábado ${CONFIG.horaCierre} (UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria})`,
+          color: 0x00FF7F, // Verde
+          image: { url: CONFIG.urlImagenApertura },
+          thumbnail: { url: CONFIG.urlLogoGuild },
+          fields: [
+            { name: "📅 Fecha apertura", value: fechaFormateada, inline: true },
+            { name: "⏰ Hora servidor", value: `${CONFIG.horaApertura} UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria}`, inline: true },
+            { name: "📸 Capturas", value: "4 REQUERIDAS", inline: true },
+            { name: "🔗 Enlace web", value: `[👉 HAZ CLIC AQUÍ 👈](${CONFIG.urlControl})`, inline: false }
+          ],
+          footer: { text: `Guild YMIR • Control Semanal${mensajeSufijo}`, icon_url: CONFIG.urlLogoGuild },
+          timestamp: new Date().toISOString()
+        }
+      ]
+    };
+    
+    console.log(`🚀 Enviando ${esPrueba ? 'prueba de ' : ''}apertura a Discord...`);
+    const response = await fetch(CONFIG.discordWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mensajeBanner)
+    });
+    
+    if (!response.ok) throw new Error(`Error al enviar: ${response.status}`);
+    
+    if (!esPrueba) {
+      // Guardar registro en Firebase
+      await addDoc(collection(db, "notificaciones_control"), {
+        tipo: 'apertura',
+        timestamp: Date.now(),
+        enviadoPor: 'Sistema automático',
+        detalles: `Jueves ${CONFIG.horaApertura} UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria}`,
+        fechaCompleta: new Date().toISOString()
+      });
+      
+      // Registrar en historial
+      await addDoc(collection(db, "historial"), {
+        usuario: MI_UID,
+        rol: MI_ROL,
+        accion: "Notificación automática de apertura",
+        cambio: `Control semanal abierto - Jueves ${CONFIG.horaApertura} UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria}`,
+        fecha: Date.now()
+      });
+      
+      console.log(`✅ Notificación de apertura enviada y registrada`);
+    }
+    
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error en notificación apertura:', error);
+    if (esPrueba) throw error;
+    return false;
+  }
+}
+
+// Enviar notificación de CIERRE
+async function enviarNotificacionCierre(esPrueba = false) {
+  try {
+    if (!CONFIG.discordWebhook) {
+      throw new Error("No hay webhook de Discord configurado.");
+    }
+    
+    const fechaActual = new Date();
+    const fechaFormateada = fechaActual.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'America/Caracas'
+    });
+    
+    const mensajeSufijo = esPrueba ? " (PRUEBA MANUAL)" : "";
+    
+    const mensajeCierre = {
+      content: `${CONFIG.discordMencion} 📢 **¡CONTROL SEMANAL CERRADO${mensajeSufijo}!** 📢\n\n⚠️ **YA NO se pueden modificar stats ni subir capturas**`,
+      username: `🏆 YMIR Control${mensajeSufijo}`,
+      avatar_url: CONFIG.urlLogoGuild,
+      embeds: [
+        {
+          title: `🏆 CONTROL SEMANAL FINALIZADO${mensajeSufijo}`,
+          description: `**Período cerrado:** Sábado ${CONFIG.horaCierre} (UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria})\n\nLos líderes procederán con la revisión de stats.`,
+          color: 0xFF4444, // Rojo
+          image: { url: CONFIG.urlImagenCierre },
+          thumbnail: { url: CONFIG.urlLogoGuild },
+          fields: [
+            { name: "📅 Fecha cierre", value: fechaFormateada, inline: true },
+            { name: "⏰ Hora servidor", value: `${CONFIG.horaCierre} UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria}`, inline: true },
+            { name: "📊 Próximos pasos", value: "1. Revisión stats\n2. Cálculo ranking\n3. Publicación resultados", inline: false },
+            { name: "⏳ Siguiente apertura", value: `Próximo Jueves ${CONFIG.horaApertura}`, inline: true }
+          ],
+          footer: { text: `Guild YMIR • Control Semanal Cerrado${mensajeSufijo}`, icon_url: CONFIG.urlLogoGuild },
+          timestamp: new Date().toISOString()
+        }
+      ]
+    };
+    
+    console.log(`🚀 Enviando ${esPrueba ? 'prueba de ' : ''}cierre a Discord...`);
+    const response = await fetch(CONFIG.discordWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mensajeCierre)
+    });
+    
+    if (!response.ok) throw new Error(`Error al enviar: ${response.status}`);
+    
+    if (!esPrueba) {
+      // Guardar registro en Firebase
+      await addDoc(collection(db, "notificaciones_control"), {
+        tipo: 'cierre',
+        timestamp: Date.now(),
+        enviadoPor: 'Sistema automático',
+        detalles: `Sábado ${CONFIG.horaCierre} UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria}`,
+        fechaCompleta: new Date().toISOString()
+      });
+      
+      // Registrar en historial
+      await addDoc(collection(db, "historial"), {
+        usuario: MI_UID,
+        rol: MI_ROL,
+        accion: "Notificación automática de cierre",
+        cambio: `Control semanal cerrado - Sábado ${CONFIG.horaCierre} UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria}`,
+        fecha: Date.now()
+      });
+      
+      console.log(`✅ Notificación de cierre enviada y registrada`);
+    }
+    
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error en notificación cierre:', error);
+    if (esPrueba) throw error;
+    return false;
+  }
+}
+
+// Enviar notificación de RECORDATORIO
+async function enviarNotificacionRecordatorio() {
+  try {
+    if (!CONFIG.discordWebhook) {
+      throw new Error("No hay webhook de Discord configurado.");
+    }
+    
+    const mensajeRecordatorio = {
+      content: `${CONFIG.discordMencion} ⏰ **¡RECORDATORIO!** ⏰\n\n📊 No olvides actualizar tus stats en el Control Semanal.\n\n📸 Recuerda que necesitas **4 capturas** completas.`,
+      username: '🏆 YMIR Recordatorio',
+      avatar_url: CONFIG.urlLogoGuild,
+      embeds: [
+        {
+          title: "📊 Recordatorio Control Semanal",
+          description: "Queda poco tiempo para actualizar tus estadísticas.",
+          color: 0xFF9800, // Naranja
+          thumbnail: { url: CONFIG.urlLogoGuild },
+          fields: [
+            { name: "🔗 Enlace rápido", value: `[👉 IR AL CONTROL 👈](${CONFIG.urlControl})`, inline: false },
+            { name: "📸 Requisitos", value: "4 capturas obligatorias:\n1. Personaje completo\n2. Estadísticas página 2\n3. Estadísticas página 3\n4. Estadísticas página 4", inline: false },
+            { name: "⏰ Tiempo restante", value: "Consulta los horarios en #anuncios", inline: true }
+          ],
+          footer: { text: "Guild YMIR • Control Semanal", icon_url: CONFIG.urlLogoGuild },
+          timestamp: new Date().toISOString()
+        }
+      ]
+    };
+    
+    const response = await fetch(CONFIG.discordWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mensajeRecordatorio)
+    });
+    
+    if (!response.ok) throw new Error(`Error al enviar: ${response.status}`);
+    
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error en notificación recordatorio:', error);
+    return false;
+  }
+}
+
+// Enviar notificación URGENTE
+async function enviarNotificacionUrgente() {
+  try {
+    if (!CONFIG.discordWebhook) {
+      throw new Error("No hay webhook de Discord configurado.");
+    }
+    
+    const mensajeUrgente = {
+      content: `${CONFIG.discordMencion} ⚠️ **¡AVISO URGENTE!** ⚠️\n\nSe cerrará el Control Semanal en breve. Si no has subido tus stats, hazlo AHORA.`,
+      username: '🏆 YMIR Aviso Urgente',
+      avatar_url: CONFIG.urlLogoGuild,
+      embeds: [
+        {
+          title: "⚠️ CIERRE INMINENTE DEL CONTROL",
+          description: "Última oportunidad para subir tus estadísticas.",
+          color: 0xFF0000, // Rojo intenso
+          thumbnail: { url: CONFIG.urlLogoGuild },
+          fields: [
+            { name: "🚨 Acción requerida", value: "Actualiza tus stats INMEDIATAMENTE", inline: false },
+            { name: "🔗 Enlace de emergencia", value: `[👉 ACCESO DIRECTO 👈](${CONFIG.urlControl})`, inline: false },
+            { name: "📞 Contacto", value: "Si tienes problemas, contacta a un Líder/Oficial", inline: false }
+          ],
+          footer: { text: "Guild YMIR • Aviso Urgente", icon_url: CONFIG.urlLogoGuild },
+          timestamp: new Date().toISOString()
+        }
+      ]
+    };
+    
+    const response = await fetch(CONFIG.discordWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mensajeUrgente)
+    });
+    
+    if (!response.ok) throw new Error(`Error al enviar: ${response.status}`);
+    
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Error en notificación urgente:', error);
+    return false;
   }
 }
 
@@ -1268,681 +2186,8 @@ function updateTopClocks() {
 
 setInterval(updateTopClocks, 1000);
 
-/* === Funciones para el modal de configuración === */
-window.abrirConfiguracion = function() {
-  console.log("Abriendo configuración...");
-  
-  if (!esLiderOficial) {
-    alert("❌ Solo Líderes y Oficiales pueden acceder a la configuración.");
-    return;
-  }
-  
-  const modal = document.getElementById('configModal');
-  const container = document.getElementById('diasConfigContainer');
-  
-  if (!modal || !container) {
-    console.error("Modal o contenedor no encontrado");
-    return;
-  }
-  
-  console.log("Cargando días de la semana...");
-  
-  // Cargar días de la semana
-  const diasSemana = [
-    { numero: 0, nombre: "Domingo" },
-    { numero: 1, nombre: "Lunes" },
-    { numero: 2, nombre: "Martes" },
-    { numero: 3, nombre: "Miércoles" },
-    { numero: 4, nombre: "Jueves" },
-    { numero: 5, nombre: "Viernes" },
-    { numero: 6, nombre: "Sábado" }
-  ];
-  
-  container.innerHTML = '';
-  
-  diasSemana.forEach(dia => {
-    const isChecked = CONFIG.diasCapturas.includes(dia.numero);
-    const diaOption = document.createElement('div');
-    diaOption.className = 'dia-option';
-    diaOption.innerHTML = `
-      <input type="checkbox" id="dia_${dia.numero}" value="${dia.numero}" ${isChecked ? 'checked' : ''}>
-      <label for="dia_${dia.numero}">${dia.nombre}</label>
-    `;
-    container.appendChild(diaOption);
-  });
-  
-  // Cargar diferencia horaria
-  const horaInput = document.getElementById('horaDiferencia');
-  if (horaInput) {
-    horaInput.value = CONFIG.diferenciaHoraria;
-    console.log("Diferencia horaria cargada:", CONFIG.diferenciaHoraria);
-  }
-  
-  // Mostrar modal
-  modal.style.display = 'flex';
-  console.log("Modal mostrado");
-  
-  // Configurar evento del botón de guardar
-  setTimeout(() => {
-    const guardarBtn = document.getElementById('guardarConfigBtn');
-    if (guardarBtn) {
-      guardarBtn.onclick = guardarConfiguracion;
-    }
-    
-    // Agregar evento para detectar cambios en los checkboxes
-    const checkboxes = document.querySelectorAll('.dia-option input[type="checkbox"]');
-    checkboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        console.log(`Checkbox ${this.value} cambiado a ${this.checked}`);
-      });
-    });
-  }, 100);
-};
-
-window.cerrarConfig = function() {
-  const modal = document.getElementById('configModal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
-};
-
-// Cerrar modal al hacer clic fuera del contenido
-document.addEventListener('click', (e) => {
-  const modal = document.getElementById('configModal');
-  if (modal && e.target === modal) {
-    cerrarConfig();
-  }
-});
-
-/* === Guardar configuración en Firebase === */
-async function guardarConfiguracion() {
-  console.log("Iniciando guardarConfiguracion...");
-  
-  if (!esLiderOficial) {
-    alert("❌ Solo Líderes y Oficiales pueden guardar configuración.");
-    return;
-  }
-  
-  try {
-    console.log("Recopilando datos de configuración...");
-    
-    // Obtener días seleccionados
-    const diasSeleccionados = [];
-    const checkboxes = document.querySelectorAll('.dia-option input[type="checkbox"]:checked');
-    
-    console.log("Checkboxes encontrados:", checkboxes.length);
-    
-    checkboxes.forEach(checkbox => {
-      const valor = parseInt(checkbox.value);
-      if (!isNaN(valor)) {
-        diasSeleccionados.push(valor);
-        console.log("Día seleccionado:", valor);
-      }
-    });
-    
-    // Obtener diferencia horaria
-    const diferenciaInput = document.getElementById('horaDiferencia');
-    const diferenciaHoraria = diferenciaInput ? parseInt(diferenciaInput.value) : -4;
-    
-    console.log("Días seleccionados:", diasSeleccionados);
-    console.log("Diferencia horaria:", diferenciaHoraria);
-    
-    // Validar días
-    if (diasSeleccionados.length === 0) {
-      alert("❌ Debes seleccionar al menos un día para capturas.");
-      return;
-    }
-    
-    // Validar diferencia horaria
-    if (isNaN(diferenciaHoraria) || diferenciaHoraria < -12 || diferenciaHoraria > 14) {
-      alert("❌ La diferencia horaria debe ser un número entre -12 y +14 horas.");
-      return;
-    }
-    
-    console.log("Validaciones pasadas. Actualizando configuración...");
-    
-    // Actualizar configuración local
-    CONFIG.diasCapturas = diasSeleccionados.sort((a, b) => a - b);
-    CONFIG.diferenciaHoraria = diferenciaHoraria;
-    CONFIG.ultimaActualizacion = Date.now();
-    
-    // Preparar datos para Firebase
-    const configData = {
-      diasCapturas: CONFIG.diasCapturas,
-      diferenciaHoraria: CONFIG.diferenciaHoraria,
-      ultimaActualizacion: CONFIG.ultimaActualizacion,
-      actualizadoPor: MI_UID,
-      fechaActualizacion: new Date().toISOString(),
-      actualizadoPorNombre: MI_ROL
-    };
-    
-    console.log("Guardando en Firebase:", configData);
-    
-    // Guardar en Firebase
-    await setDoc(doc(db, "configuracion", "control_capturas"), configData);
-    
-    console.log("Guardado en Firebase exitoso");
-    
-    // Registrar en historial
-    const diasNombres = CONFIG.diasCapturas.map(d => obtenerNombreDiaPorNumero(d)).join(', ');
-    await addDoc(collection(db, "historial"), {
-      usuario: MI_UID,
-      rol: MI_ROL,
-      accion: "Actualización de configuración de capturas",
-      cambio: `Días de capturas: ${diasNombres} | Hora servidor: UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria}`,
-      fecha: Date.now(),
-      detalles: `Configuración actualizada por ${MI_ROL}`
-    });
-    
-    console.log("Registro en historial completado");
-    
-    // Actualizar indicador de días inmediatamente
-    actualizarIndicadorDias();
-    
-    // Actualizar relojes con nueva configuración
-    updateTopClocks();
-    
-    // Cerrar modal
-    cerrarConfig();
-    
-    console.log("Configuración guardada exitosamente");
-    
-    // Mostrar mensaje de éxito
-    setTimeout(() => {
-      alert(`✅ Configuración guardada exitosamente.\n\n📅 Días de capturas: ${diasNombres}\n⏰ Hora servidor: UTC${CONFIG.diferenciaHoraria >= 0 ? '+' : ''}${CONFIG.diferenciaHoraria}\n\nLos cambios se aplicarán inmediatamente.`);
-    }, 300);
-    
-  } catch (error) {
-    console.error("❌ Error al guardar configuración:", error);
-    console.error("Detalles del error:", error.message, error.stack);
-    
-    // Mostrar error más detallado
-    alert(`❌ Error al guardar configuración:\n\n${error.message}\n\nPor favor, intenta de nuevo.`);
-  }
-}
-
-/* === Funciones para calcular el ranking === */
-
-// Función para obtener valor numérico de una celda
-function obtenerValorNumerico(valor) {
-  if (!valor || valor === "-" || valor === "" || valor === "0") return 0;
-  
-  // Quitar porcentajes
-  const valorStr = String(valor).replace('%', '').trim();
-  const num = Number(valorStr);
-  
-  return isNaN(num) ? 0 : num;
-}
-
-// Función para calcular el score total de un miembro (ponderado)
-function calcularScoreTotal(miembro) {
-  // Lista de stats requeridos para considerar "completo"
-  const statsRequeridos = [
-    'nivel', 'poder', 'physAtk', 'magAtk', 'physDef', 'magDef', 
-    'acc', 'eva', 'physDmg', 'magDmg', 'physDmgDef', 'magDmgDef',
-    'monsterDmg', 'monsterDmgDef', 'bossDmg', 'bossDmgDef'
-  ];
-  
-  // Verificar si todos los stats requeridos están presentes y no son 0
-  let statsCompletos = true;
-  
-  for (const stat of statsRequeridos) {
-    const valor = miembro[stat];
-    
-    // Verificar si el stat está vacío, es 0, o es "-"
-    if (valor === undefined || valor === null || 
-        valor === "" || valor === "0" || 
-        valor === "-" || valor === "0%") {
-      statsCompletos = false;
-      break;
-    }
-    
-    // Para porcentajes, verificar que no sea 0%
-    if (typeof valor === 'string' && valor.includes('%')) {
-      const numValor = Number(valor.replace('%', '').trim());
-      if (numValor === 0 || isNaN(numValor)) {
-        statsCompletos = false;
-        break;
-      }
-    }
-    
-    // Para números, verificar que no sea 0
-    if (typeof valor === 'number' && valor === 0) {
-      statsCompletos = false;
-      break;
-    }
-  }
-  
-  // Si no tiene todos los stats completos, retornar null
-  if (!statsCompletos) {
-    return null; // null indicará que no debe aparecer en ranking
-  }
-  
-  // Si tiene todos los stats completos, calcular el score
-  const pesos = {
-    // Stats principales - alto peso
-    nivel: 2.0,
-    poder: 3.0,
-    
-    // ATK - peso alto
-    physAtk: 1.5,
-    magAtk: 1.5,
-    
-    // DEF - peso medio
-    physDef: 1.2,
-    magDef: 1.2,
-    
-    // Stats secundarios - peso medio
-    acc: 1.0,
-    eva: 1.0,
-    
-    // Porcentajes de daño - peso medio-alto
-    physDmg: 1.3,
-    magDmg: 1.3,
-    physDmgDef: 1.1,
-    magDmgDef: 1.1,
-    monsterDmg: 1.2,
-    monsterDmgDef: 1.0,
-    bossDmg: 1.4,
-    bossDmgDef: 1.1
-  };
-  
-  let scoreTotal = 0;
-  
-  Object.keys(pesos).forEach(stat => {
-    const valor = obtenerValorNumerico(miembro[stat]);
-    const peso = pesos[stat];
-    scoreTotal += valor * peso;
-  });
-  
-  return Math.round(scoreTotal * 100) / 100; // Redondear a 2 decimales
-}
-
-// Función para obtener icono según posición
-function obtenerIconoRanking(posicion, tieneStatsCompletos) {
-  if (!tieneStatsCompletos) return "❓";
-  if (posicion === 1) return "👑";
-  if (posicion === 2) return "🥈";
-  if (posicion === 3) return "🥉";
-  if (posicion <= 10) return "⭐";
-  return "🔸";
-}
-
-// Función para obtener clase CSS según posición
-function obtenerClaseRanking(posicion, tieneStatsCompletos) {
-  if (!tieneStatsCompletos) return "ranking-incompleto";
-  if (posicion === 1) return "ranking-1";
-  if (posicion === 2) return "ranking-2";
-  if (posicion === 3) return "ranking-3";
-  if (posicion <= 10) return "ranking-4-10";
-  return "ranking-other";
-}
-
-// Función para obtener clase de fila según posición
-function obtenerClaseFilaRanking(posicion, tieneStatsCompletos) {
-  if (!tieneStatsCompletos) return "";
-  if (posicion === 1) return "top-1-row";
-  if (posicion <= 3) return "top-3-row";
-  return "";
-}
-
-// Generar ranking mejorado
-function generarRankingMejorado(miembrosArray) {
-  const miembrosConScore = [];
-  
-  // Filtrar solo miembros con stats completos
-  miembrosArray.forEach(miembro => {
-    const score = calcularScoreTotal(miembro.data);
-    
-    // Solo incluir si tiene score (no null)
-    if (score !== null) {
-      miembrosConScore.push({
-        id: miembro.id,
-        data: miembro.data,
-        score: score,
-        tieneStatsCompletos: true
-      });
-    } else {
-      // Guardar como sin stats completos para mostrar en tabla pero no en ranking
-      miembrosConScore.push({
-        id: miembro.id,
-        data: miembro.data,
-        score: 0,
-        tieneStatsCompletos: false
-      });
-    }
-  });
-  
-  // Ordenar por score descendente (solo los que tienen stats completos)
-  const miembrosConStatsCompletos = miembrosConScore.filter(m => m.tieneStatsCompletos);
-  miembrosConStatsCompletos.sort((a, b) => b.score - a.score);
-  
-  // Asignar posiciones solo a los que tienen stats completos
-  miembrosConStatsCompletos.forEach((miembro, index) => {
-    miembro.position = index + 1;
-    miembro.positionDisplay = index + 1;
-    
-    // Manejar empates
-    if (index > 0 && miembro.score === miembrosConStatsCompletos[index - 1].score) {
-      miembro.positionDisplay = miembrosConStatsCompletos[index - 1].positionDisplay;
-    }
-  });
-  
-  // Para los miembros sin stats completos, asignar posición como "N/A"
-  miembrosConScore.forEach(miembro => {
-    if (!miembro.tieneStatsCompletos) {
-      miembro.position = 0;
-      miembro.positionDisplay = "N/A";
-    }
-  });
-  
-  // Convertir a mapa
-  const rankingMap = {};
-  miembrosConScore.forEach(miembro => {
-    rankingMap[miembro.id] = {
-      position: miembro.position,
-      positionDisplay: miembro.positionDisplay,
-      score: miembro.score,
-      tieneStatsCompletos: miembro.tieneStatsCompletos,
-      icon: obtenerIconoRanking(miembro.position, miembro.tieneStatsCompletos),
-      rankingClass: obtenerClaseRanking(miembro.position, miembro.tieneStatsCompletos),
-      rowClass: obtenerClaseFilaRanking(miembro.position, miembro.tieneStatsCompletos)
-    };
-  });
-  
-  return rankingMap;
-}
-
-/* === FUNCIONES PARA CAPTURAS === */
-
-// Mostrar/ocultar panel de capturas
-window.mostrarCapturas = function(id) {
-  // Verificar si es día de capturas
-  if (!esDiaDeCapturas()) {
-    const diasHabilitados = CONFIG.diasCapturas.map(d => obtenerNombreDiaPorNumero(d)).join(', ');
-    alert(`❌ Las capturas solo están disponibles en los siguientes días:\n${diasHabilitados}`);
-    return;
-  }
-  
-  const fila = document.getElementById(`fila_${id}`);
-  if (!fila) return;
-  
-  // Buscar si ya existe el contenedor de capturas
-  const existingContainer = fila.querySelector('.capturas-container');
-  
-  if (existingContainer) {
-    existingContainer.remove();
-  } else {
-    // Crear nuevo contenedor
-    const capturasContainer = document.createElement('div');
-    capturasContainer.className = 'capturas-container';
-    capturasContainer.innerHTML = `
-      <div class="capturas-title">📸 Adjuntar Capturas (4 REQUERIDAS)</div>
-      
-      <div class="upload-area" onclick="document.getElementById('fileInput_${id}').click()">
-        <div class="upload-text">📁 Arrastra o haz clic para subir</div>
-        <div class="upload-hint">Se requieren <strong>EXACTAMENTE 4 capturas</strong> (JPG, PNG, GIF - máx. 5MB cada una)</div>
-        <div class="upload-hint" id="contador_${id}" style="margin-top: 5px; color: ${capturasTemporales[id] && capturasTemporales[id].length === 4 ? '#4CAF50' : '#ff9800'}">
-          ${capturasTemporales[id] ? `${capturasTemporales[id].length}/4` : '0/4'} capturas subidas
-        </div>
-      </div>
-      
-      <input type="file" id="fileInput_${id}" 
-             style="display: none;" 
-             multiple 
-             accept="image/*"
-             onchange="manejarSubidaArchivos('${id}', this.files)">
-      
-      <div id="capturasGrid_${id}" class="capturas-grid">
-        <!-- Las capturas se mostrarán aquí -->
-      </div>
-      
-      <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button class="btn-enviar-discord" onclick="enviarCapturasADiscord('${id}')" id="btnEnviar_${id}" style="flex: 1;">
-          🚀 Enviar 4 Capturas a Discord
-        </button>
-        <button class="btn-capturas" onclick="mostrarCapturas('${id}')" style="background: #666;">
-          Cerrar
-        </button>
-      </div>
-      
-      <div style="font-size: 11px; color: #aaa; margin-top: 8px;">
-        ⚠️ Se deben enviar <strong>EXACTAMENTE 4 capturas</strong> de tus stats. Se enviarán como pack al canal de Discord y luego se eliminarán de la web.
-      </div>
-    `;
-    
-    // Insertar después de la fila
-    fila.parentNode.insertBefore(capturasContainer, fila.nextSibling);
-    
-    // Inicializar array de capturas si no existe
-    if (!capturasTemporales[id]) {
-      capturasTemporales[id] = [];
-    }
-    
-    // Cargar capturas existentes si las hay
-    cargarCapturasExistentes(id);
-  }
-};
-
-// Manejar subida de archivos
-window.manejarSubidaArchivos = function(id, files) {
-  if (!capturasTemporales[id]) {
-    capturasTemporales[id] = [];
-  }
-  
-  const filesArray = Array.from(files);
-  const totalDespues = capturasTemporales[id].length + filesArray.length;
-  
-  // Verificar si supera el límite de 4
-  if (totalDespues > 4) {
-    alert(`❌ Máximo 4 capturas permitidas. Ya tienes ${capturasTemporales[id].length} y estás intentando subir ${filesArray.length} más.`);
-    return;
-  }
-  
-  filesArray.forEach(file => {
-    // Validar tamaño (5MB máximo)
-    if (file.size > 5 * 1024 * 1024) {
-      alert(`El archivo ${file.name} es demasiado grande (máximo 5MB)`);
-      return;
-    }
-    
-    // Validar tipo
-    if (!file.type.startsWith('image/')) {
-      alert(`El archivo ${file.name} no es una imagen válida`);
-      return;
-    }
-    
-    // Crear objeto para la captura
-    const captura = {
-      id: Date.now() + Math.random(),
-      file: file,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      preview: URL.createObjectURL(file)
-    };
-    
-    // Añadir al array
-    capturasTemporales[id].push(captura);
-  });
-  
-  // Actualizar la vista
-  actualizarVistaCapturas(id);
-};
-
-// Actualizar vista de capturas
-function actualizarVistaCapturas(id) {
-  const grid = document.getElementById(`capturasGrid_${id}`);
-  const contador = document.getElementById(`contador_${id}`);
-  const btnEnviar = document.getElementById(`btnEnviar_${id}`);
-  
-  if (!grid) return;
-  
-  grid.innerHTML = '';
-  
-  if (!capturasTemporales[id] || capturasTemporales[id].length === 0) {
-    grid.innerHTML = '<div style="color: #888; font-size: 12px; text-align: center; padding: 20px;">No hay capturas subidas</div>';
-  } else {
-    capturasTemporales[id].forEach(captura => {
-      const item = document.createElement('div');
-      item.className = 'captura-item';
-      item.innerHTML = `
-        <button class="borrar-captura" onclick="eliminarCaptura('${id}', ${captura.id})">×</button>
-        <img src="${captura.preview}" class="captura-imagen" alt="Captura">
-        <div class="captura-nombre">${captura.name.substring(0, 15)}${captura.name.length > 15 ? '...' : ''}</div>
-      `;
-      grid.appendChild(item);
-    });
-  }
-  
-  // Actualizar contador
-  if (contador) {
-    const count = capturasTemporales[id] ? capturasTemporales[id].length : 0;
-    contador.textContent = `${count}/4 capturas subidas`;
-    contador.style.color = count === 4 ? '#4CAF50' : '#ff9800';
-  }
-  
-  // Actualizar botón de enviar
-  if (btnEnviar) {
-    const count = capturasTemporales[id] ? capturasTemporales[id].length : 0;
-    const tieneExactamente4 = count === 4;
-    
-    btnEnviar.disabled = !tieneExactamente4;
-    btnEnviar.innerHTML = tieneExactamente4 ? 
-      `🚀 Enviar 4 Capturas a Discord` : 
-      `🚀 Enviar (${count}/4)`;
-    
-    if (!tieneExactamente4) {
-      btnEnviar.title = `Se requieren exactamente 4 capturas. Tienes ${count}/4.`;
-    } else {
-      btnEnviar.title = "Haz clic para enviar las 4 capturas a Discord";
-    }
-  }
-}
-
-// Eliminar captura
-window.eliminarCaptura = function(memberId, capturaId) {
-  if (!capturasTemporales[memberId]) return;
-  
-  // Encontrar y eliminar la captura
-  const index = capturasTemporales[memberId].findIndex(c => c.id === capturaId);
-  if (index !== -1) {
-    // Liberar la URL del objeto
-    URL.revokeObjectURL(capturasTemporales[memberId][index].preview);
-    capturasTemporales[memberId].splice(index, 1);
-  }
-  
-  actualizarVistaCapturas(memberId);
-};
-
-// Cargar capturas existentes (si hubiera una implementación previa)
-function cargarCapturasExistentes(memberId) {
-  // Aquí puedes cargar capturas existentes de Firebase si las guardas
-  // Por ahora, solo inicializa el array vacío
-  actualizarVistaCapturas(memberId);
-}
-
-// Enviar capturas a Discord
-window.enviarCapturasADiscord = async function(memberId) {
-  if (!capturasTemporales[memberId]) {
-    alert('No hay capturas para enviar');
-    return;
-  }
-  
-  const count = capturasTemporales[memberId].length;
-  if (count !== 4) {
-    alert(`❌ Se requieren EXACTAMENTE 4 capturas. Tienes ${count}/4.`);
-    return;
-  }
-  
-  // Verificar que la URL del webhook esté configurada
-  if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.includes('TU_WEBHOOK_AQUI')) {
-    alert('❌ Error: El webhook de Discord no está configurado.\n\nPor favor, configura la URL del webhook en el código.');
-    return;
-  }
-  
-  const btnEnviar = document.getElementById(`btnEnviar_${memberId}`);
-  if (btnEnviar) {
-    btnEnviar.disabled = true;
-    btnEnviar.innerHTML = '⏳ Enviando 4 capturas...';
-  }
-  
-  try {
-    // Obtener información del miembro
-    const memberDoc = await getDoc(doc(db, "members", memberId));
-    const memberData = memberDoc.exists() ? memberDoc.data() : {};
-    const memberName = memberData.name || 'Miembro desconocido';
-    const memberClase = memberData.clase || 'Sin clase';
-    const memberNivel = memberData.nivel || '?';
-    const memberPoder = memberData.poder || '?';
-    
-    // Crear FormData para enviar múltiples archivos
-    const discordFormData = new FormData();
-    
-    // Crear payload del mensaje con información detallada
-    const payload = {
-      content: `📸 **PACK DE 4 CAPTURAS**\n👤 **${memberName}** (${memberClase})\n📊 Nivel: ${memberNivel} | Poder: ${memberPoder}\n📅 ${new Date().toLocaleString('es-ES')}\n🔍 Stats verificados en Control Semanal\n━━━━━━━━━━━━━━━━━━━━━━`,
-      username: 'YMIR Guild Bot',
-      avatar_url: 'https://cdn.discordapp.com/embed/avatars/0.png'
-    };
-    
-    discordFormData.append('payload_json', JSON.stringify(payload));
-    
-    // Añadir las 4 capturas al FormData
-    capturasTemporales[memberId].forEach((captura, index) => {
-      discordFormData.append(`file${index + 1}`, captura.file, `captura_${index + 1}_${captura.name}`);
-    });
-    
-    // Enviar al webhook de Discord
-    const response = await fetch(DISCORD_WEBHOOK_URL, {
-      method: 'POST',
-      body: discordFormData
-    });
-    
-    if (response.ok) {
-      // Registrar en el historial
-      await addDoc(collection(db, "historial"), {
-        usuario: memberId,
-        rol: MI_ROL,
-        accion: "Envío de pack de 4 capturas a Discord",
-        cambio: `4 capturas enviadas por ${memberName} (${memberClase})`,
-        fecha: Date.now()
-      });
-      
-      // Limpiar capturas temporales
-      capturasTemporales[memberId].forEach(captura => {
-        URL.revokeObjectURL(captura.preview);
-      });
-      capturasTemporales[memberId] = [];
-      
-      // Actualizar vista
-      actualizarVistaCapturas(memberId);
-      
-      // Cerrar el panel de capturas
-      const container = document.querySelector(`#fila_${memberId} + .capturas-container`);
-      if (container) {
-        container.remove();
-      }
-      
-      alert(`✅ Pack de 4 capturas enviado a Discord correctamente`);
-    } else {
-      const errorText = await response.text();
-      throw new Error(`Discord respondió con ${response.status}: ${errorText}`);
-    }
-    
-  } catch (error) {
-    console.error('Error al enviar a Discord:', error);
-    alert(`❌ Error al enviar capturas: ${error.message}`);
-  } finally {
-    if (btnEnviar) {
-      btnEnviar.disabled = false;
-      btnEnviar.innerHTML = '🚀 Enviar 4 Capturas a Discord';
-    }
-  }
-};
-
 /* === Auth y carga inicial === */
-onAuthStateChanged(auth, async user=>{
+onAuthStateChanged(auth, async user => {
   if(!user){ location.href = "index.html"; return; }
   
   // === BLOQUEO SI ESTÁ BANEADO ===
@@ -2010,11 +2255,14 @@ onAuthStateChanged(auth, async user=>{
     }
   }
   
-  // Cargar configuración
+  // Cargar configuración COMPLETA
   await cargarConfiguracion();
   
   // Actualizar relojes con la configuración cargada
   updateTopClocks();
+  
+  // VERIFICAR NOTIFICACIONES AUTOMÁTICAS CADA MINUTO
+  setInterval(verificarYEnviarNotificaciones, 60 * 1000);
   
   cargarControl();
   escucharSolicitudesBadge();
@@ -2300,6 +2548,198 @@ function cargarControl(){
   });
 }
 
+/* === Funciones para calcular el ranking === */
+
+// Función para obtener valor numérico de una celda
+function obtenerValorNumerico(valor) {
+  if (!valor || valor === "-" || valor === "" || valor === "0") return 0;
+  
+  // Quitar porcentajes
+  const valorStr = String(valor).replace('%', '').trim();
+  const num = Number(valorStr);
+  
+  return isNaN(num) ? 0 : num;
+}
+
+// Función para calcular el score total de un miembro (ponderado)
+function calcularScoreTotal(miembro) {
+  // Lista de stats requeridos para considerar "completo"
+  const statsRequeridos = [
+    'nivel', 'poder', 'physAtk', 'magAtk', 'physDef', 'magDef', 
+    'acc', 'eva', 'physDmg', 'magDmg', 'physDmgDef', 'magDmgDef',
+    'monsterDmg', 'monsterDmgDef', 'bossDmg', 'bossDmgDef'
+  ];
+  
+  // Verificar si todos los stats requeridos están presentes y no son 0
+  let statsCompletos = true;
+  
+  for (const stat of statsRequeridos) {
+    const valor = miembro[stat];
+    
+    // Verificar si el stat está vacío, es 0, o es "-"
+    if (valor === undefined || valor === null || 
+        valor === "" || valor === "0" || 
+        valor === "-" || valor === "0%") {
+      statsCompletos = false;
+      break;
+    }
+    
+    // Para porcentajes, verificar que no sea 0%
+    if (typeof valor === 'string' && valor.includes('%')) {
+      const numValor = Number(valor.replace('%', '').trim());
+      if (numValor === 0 || isNaN(numValor)) {
+        statsCompletos = false;
+        break;
+      }
+    }
+    
+    // Para números, verificar que no sea 0
+    if (typeof valor === 'number' && valor === 0) {
+      statsCompletos = false;
+      break;
+    }
+  }
+  
+  // Si no tiene todos los stats completos, retornar null
+  if (!statsCompletos) {
+    return null; // null indicará que no debe aparecer en ranking
+  }
+  
+  // Si tiene todos los stats completos, calcular el score
+  const pesos = {
+    // Stats principales - alto peso
+    nivel: 2.0,
+    poder: 3.0,
+    
+    // ATK - peso alto
+    physAtk: 1.5,
+    magAtk: 1.5,
+    
+    // DEF - peso medio
+    physDef: 1.2,
+    magDef: 1.2,
+    
+    // Stats secundarios - peso medio
+    acc: 1.0,
+    eva: 1.0,
+    
+    // Porcentajes de daño - peso medio-alto
+    physDmg: 1.3,
+    magDmg: 1.3,
+    physDmgDef: 1.1,
+    magDmgDef: 1.1,
+    monsterDmg: 1.2,
+    monsterDmgDef: 1.0,
+    bossDmg: 1.4,
+    bossDmgDef: 1.1
+  };
+  
+  let scoreTotal = 0;
+  
+  Object.keys(pesos).forEach(stat => {
+    const valor = obtenerValorNumerico(miembro[stat]);
+    const peso = pesos[stat];
+    scoreTotal += valor * peso;
+  });
+  
+  return Math.round(scoreTotal * 100) / 100; // Redondear a 2 decimales
+}
+
+// Función para obtener icono según posición
+function obtenerIconoRanking(posicion, tieneStatsCompletos) {
+  if (!tieneStatsCompletos) return "❓";
+  if (posicion === 1) return "👑";
+  if (posicion === 2) return "🥈";
+  if (posicion === 3) return "🥉";
+  if (posicion <= 10) return "⭐";
+  return "🔸";
+}
+
+// Función para obtener clase CSS según posición
+function obtenerClaseRanking(posicion, tieneStatsCompletos) {
+  if (!tieneStatsCompletos) return "ranking-incompleto";
+  if (posicion === 1) return "ranking-1";
+  if (posicion === 2) return "ranking-2";
+  if (posicion === 3) return "ranking-3";
+  if (posicion <= 10) return "ranking-4-10";
+  return "ranking-other";
+}
+
+// Función para obtener clase de fila según posición
+function obtenerClaseFilaRanking(posicion, tieneStatsCompletos) {
+  if (!tieneStatsCompletos) return "";
+  if (posicion === 1) return "top-1-row";
+  if (posicion <= 3) return "top-3-row";
+  return "";
+}
+
+// Generar ranking mejorado
+function generarRankingMejorado(miembrosArray) {
+  const miembrosConScore = [];
+  
+  // Filtrar solo miembros con stats completos
+  miembrosArray.forEach(miembro => {
+    const score = calcularScoreTotal(miembro.data);
+    
+    // Solo incluir si tiene score (no null)
+    if (score !== null) {
+      miembrosConScore.push({
+        id: miembro.id,
+        data: miembro.data,
+        score: score,
+        tieneStatsCompletos: true
+      });
+    } else {
+      // Guardar como sin stats completos para mostrar en tabla pero no en ranking
+      miembrosConScore.push({
+        id: miembro.id,
+        data: miembro.data,
+        score: 0,
+        tieneStatsCompletos: false
+      });
+    }
+  });
+  
+  // Ordenar por score descendente (solo los que tienen stats completos)
+  const miembrosConStatsCompletos = miembrosConScore.filter(m => m.tieneStatsCompletos);
+  miembrosConStatsCompletos.sort((a, b) => b.score - a.score);
+  
+  // Asignar posiciones solo a los que tienen stats completos
+  miembrosConStatsCompletos.forEach((miembro, index) => {
+    miembro.position = index + 1;
+    miembro.positionDisplay = index + 1;
+    
+    // Manejar empates
+    if (index > 0 && miembro.score === miembrosConStatsCompletos[index - 1].score) {
+      miembro.positionDisplay = miembrosConStatsCompletos[index - 1].positionDisplay;
+    }
+  });
+  
+  // Para los miembros sin stats completos, asignar posición como "N/A"
+  miembrosConScore.forEach(miembro => {
+    if (!miembro.tieneStatsCompletos) {
+      miembro.position = 0;
+      miembro.positionDisplay = "N/A";
+    }
+  });
+  
+  // Convertir a mapa
+  const rankingMap = {};
+  miembrosConScore.forEach(miembro => {
+    rankingMap[miembro.id] = {
+      position: miembro.position,
+      positionDisplay: miembro.positionDisplay,
+      score: miembro.score,
+      tieneStatsCompletos: miembro.tieneStatsCompletos,
+      icon: obtenerIconoRanking(miembro.position, miembro.tieneStatsCompletos),
+      rankingClass: obtenerClaseRanking(miembro.position, miembro.tieneStatsCompletos),
+      rowClass: obtenerClaseFilaRanking(miembro.position, miembro.tieneStatsCompletos)
+    };
+  });
+  
+  return rankingMap;
+}
+
 /* === Editar en Control === */
 window.editarControl = (id)=>{
   const esPropio = (id === MI_UID);
@@ -2423,6 +2863,294 @@ window.guardarControl = async (id)=>{
     
   } catch(e) {
     alert("❌ Error al guardar: " + e.message);
+  }
+};
+
+/* === Funciones para capturas === */
+
+// Mostrar/ocultar panel de capturas
+window.mostrarCapturas = function(id) {
+  // Verificar si es día de capturas
+  if (!esDiaDeCapturas()) {
+    const diasHabilitados = CONFIG.diasCapturas.map(d => obtenerNombreDiaPorNumero(d)).join(', ');
+    alert(`❌ Las capturas solo están disponibles en los siguientes días:\n${diasHabilitados}`);
+    return;
+  }
+  
+  const fila = document.getElementById(`fila_${id}`);
+  if (!fila) return;
+  
+  // Buscar si ya existe el contenedor de capturas
+  const existingContainer = fila.querySelector('.capturas-container');
+  
+  if (existingContainer) {
+    existingContainer.remove();
+  } else {
+    // Crear nuevo contenedor
+    const capturasContainer = document.createElement('div');
+    capturasContainer.className = 'capturas-container';
+    capturasContainer.innerHTML = `
+      <div class="capturas-title">📸 Adjuntar Capturas (4 REQUERIDAS)</div>
+      
+      <div class="upload-area" onclick="document.getElementById('fileInput_${id}').click()">
+        <div class="upload-text">📁 Arrastra o haz clic para subir</div>
+        <div class="upload-hint">Se requieren <strong>EXACTAMENTE 4 capturas</strong> (JPG, PNG, GIF - máx. 5MB cada una)</div>
+        <div class="upload-hint" id="contador_${id}" style="margin-top: 5px; color: ${capturasTemporales[id] && capturasTemporales[id].length === 4 ? '#4CAF50' : '#ff9800'}">
+          ${capturasTemporales[id] ? `${capturasTemporales[id].length}/4` : '0/4'} capturas subidas
+        </div>
+      </div>
+      
+      <input type="file" id="fileInput_${id}" 
+             style="display: none;" 
+             multiple 
+             accept="image/*"
+             onchange="manejarSubidaArchivos('${id}', this.files)">
+      
+      <div id="capturasGrid_${id}" class="capturas-grid">
+        <!-- Las capturas se mostrarán aquí -->
+      </div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="btn-enviar-discord" onclick="enviarCapturasADiscord('${id}')" id="btnEnviar_${id}" style="flex: 1;">
+          🚀 Enviar 4 Capturas a Discord
+        </button>
+        <button class="btn-capturas" onclick="mostrarCapturas('${id}')" style="background: #666;">
+          Cerrar
+        </button>
+      </div>
+      
+      <div style="font-size: 11px; color: #aaa; margin-top: 8px;">
+        ⚠️ Se deben enviar <strong>EXACTAMENTE 4 capturas</strong> de tus stats. Se enviarán como pack al canal de Discord y luego se eliminarán de la web.
+      </div>
+    `;
+    
+    // Insertar después de la fila
+    fila.parentNode.insertBefore(capturasContainer, fila.nextSibling);
+    
+    // Inicializar array de capturas si no existe
+    if (!capturasTemporales[id]) {
+      capturasTemporales[id] = [];
+    }
+    
+    // Cargar capturas existentes si las hay
+    cargarCapturasExistentes(id);
+  }
+};
+
+// Manejar subida de archivos
+window.manejarSubidaArchivos = function(id, files) {
+  if (!capturasTemporales[id]) {
+    capturasTemporales[id] = [];
+  }
+  
+  const filesArray = Array.from(files);
+  const totalDespues = capturasTemporales[id].length + filesArray.length;
+  
+  // Verificar si supera el límite de 4
+  if (totalDespues > 4) {
+    alert(`❌ Máximo 4 capturas permitidas. Ya tienes ${capturasTemporales[id].length} y estás intentando subir ${filesArray.length} más.`);
+    return;
+  }
+  
+  filesArray.forEach(file => {
+    // Validar tamaño (5MB máximo)
+    if (file.size > 5 * 1024 * 1024) {
+      alert(`El archivo ${file.name} es demasiado grande (máximo 5MB)`);
+      return;
+    }
+    
+    // Validar tipo
+    if (!file.type.startsWith('image/')) {
+      alert(`El archivo ${file.name} no es una imagen válida`);
+      return;
+    }
+    
+    // Crear objeto para la captura
+    const captura = {
+      id: Date.now() + Math.random(),
+      file: file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      preview: URL.createObjectURL(file)
+    };
+    
+    // Añadir al array
+    capturasTemporales[id].push(captura);
+  });
+  
+  // Actualizar la vista
+  actualizarVistaCapturas(id);
+};
+
+// Actualizar vista de capturas
+function actualizarVistaCapturas(id) {
+  const grid = document.getElementById(`capturasGrid_${id}`);
+  const contador = document.getElementById(`contador_${id}`);
+  const btnEnviar = document.getElementById(`btnEnviar_${id}`);
+  
+  if (!grid) return;
+  
+  grid.innerHTML = '';
+  
+  if (!capturasTemporales[id] || capturasTemporales[id].length === 0) {
+    grid.innerHTML = '<div style="color: #888; font-size: 12px; text-align: center; padding: 20px;">No hay capturas subidas</div>';
+  } else {
+    capturasTemporales[id].forEach(captura => {
+      const item = document.createElement('div');
+      item.className = 'captura-item';
+      item.innerHTML = `
+        <button class="borrar-captura" onclick="eliminarCaptura('${id}', ${captura.id})">×</button>
+        <img src="${captura.preview}" class="captura-imagen" alt="Captura">
+        <div class="captura-nombre">${captura.name.substring(0, 15)}${captura.name.length > 15 ? '...' : ''}</div>
+      `;
+      grid.appendChild(item);
+    });
+  }
+  
+  // Actualizar contador
+  if (contador) {
+    const count = capturasTemporales[id] ? capturasTemporales[id].length : 0;
+    contador.textContent = `${count}/4 capturas subidas`;
+    contador.style.color = count === 4 ? '#4CAF50' : '#ff9800';
+  }
+  
+  // Actualizar botón de enviar
+  if (btnEnviar) {
+    const count = capturasTemporales[id] ? capturasTemporales[id].length : 0;
+    const tieneExactamente4 = count === 4;
+    
+    btnEnviar.disabled = !tieneExactamente4;
+    btnEnviar.innerHTML = tieneExactamente4 ? 
+      `🚀 Enviar 4 Capturas a Discord` : 
+      `🚀 Enviar (${count}/4)`;
+    
+    if (!tieneExactamente4) {
+      btnEnviar.title = `Se requieren exactamente 4 capturas. Tienes ${count}/4.`;
+    } else {
+      btnEnviar.title = "Haz clic para enviar las 4 capturas a Discord";
+    }
+  }
+}
+
+// Eliminar captura
+window.eliminarCaptura = function(memberId, capturaId) {
+  if (!capturasTemporales[memberId]) return;
+  
+  // Encontrar y eliminar la captura
+  const index = capturasTemporales[memberId].findIndex(c => c.id === capturaId);
+  if (index !== -1) {
+    // Liberar la URL del objeto
+    URL.revokeObjectURL(capturasTemporales[memberId][index].preview);
+    capturasTemporales[memberId].splice(index, 1);
+  }
+  
+  actualizarVistaCapturas(memberId);
+};
+
+// Cargar capturas existentes (si hubiera una implementación previa)
+function cargarCapturasExistentes(memberId) {
+  // Aquí puedes cargar capturas existentes de Firebase si las guardas
+  // Por ahora, solo inicializa el array vacío
+  actualizarVistaCapturas(memberId);
+}
+
+// Enviar capturas a Discord
+window.enviarCapturasADiscord = async function(memberId) {
+  if (!capturasTemporales[memberId]) {
+    alert('No hay capturas para enviar');
+    return;
+  }
+  
+  const count = capturasTemporales[memberId].length;
+  if (count !== 4) {
+    alert(`❌ Se requieren EXACTAMENTE 4 capturas. Tienes ${count}/4.`);
+    return;
+  }
+  
+  // Verificar que la URL del webhook esté configurada
+  if (!CONFIG.discordWebhook) {
+    alert('❌ Error: El webhook de Discord no está configurado.\n\nPor favor, configura la URL del webhook en Configuración.');
+    return;
+  }
+  
+  const btnEnviar = document.getElementById(`btnEnviar_${memberId}`);
+  if (btnEnviar) {
+    btnEnviar.disabled = true;
+    btnEnviar.innerHTML = '⏳ Enviando 4 capturas...';
+  }
+  
+  try {
+    // Obtener información del miembro
+    const memberDoc = await getDoc(doc(db, "members", memberId));
+    const memberData = memberDoc.exists() ? memberDoc.data() : {};
+    const memberName = memberData.name || 'Miembro desconocido';
+    const memberClase = memberData.clase || 'Sin clase';
+    const memberNivel = memberData.nivel || '?';
+    const memberPoder = memberData.poder || '?';
+    
+    // Crear FormData para enviar múltiples archivos
+    const discordFormData = new FormData();
+    
+    // Crear payload del mensaje con información detallada
+    const payload = {
+      content: `📸 **PACK DE 4 CAPTURAS**\n👤 **${memberName}** (${memberClase})\n📊 Nivel: ${memberNivel} | Poder: ${memberPoder}\n📅 ${new Date().toLocaleString('es-ES')}\n🔍 Stats verificados en Control Semanal\n━━━━━━━━━━━━━━━━━━━━━━`,
+      username: 'YMIR Guild Bot',
+      avatar_url: CONFIG.urlLogoGuild
+    };
+    
+    discordFormData.append('payload_json', JSON.stringify(payload));
+    
+    // Añadir las 4 capturas al FormData
+    capturasTemporales[memberId].forEach((captura, index) => {
+      discordFormData.append(`file${index + 1}`, captura.file, `captura_${index + 1}_${captura.name}`);
+    });
+    
+    // Enviar al webhook de Discord
+    const response = await fetch(CONFIG.discordWebhook, {
+      method: 'POST',
+      body: discordFormData
+    });
+    
+    if (response.ok) {
+      // Registrar en el historial
+      await addDoc(collection(db, "historial"), {
+        usuario: memberId,
+        rol: MI_ROL,
+        accion: "Envío de pack de 4 capturas a Discord",
+        cambio: `4 capturas enviadas por ${memberName} (${memberClase})`,
+        fecha: Date.now()
+      });
+      
+      // Limpiar capturas temporales
+      capturasTemporales[memberId].forEach(captura => {
+        URL.revokeObjectURL(captura.preview);
+      });
+      capturasTemporales[memberId] = [];
+      
+      // Actualizar vista
+      actualizarVistaCapturas(memberId);
+      
+      // Cerrar el panel de capturas
+      const container = document.querySelector(`#fila_${memberId} + .capturas-container`);
+      if (container) {
+        container.remove();
+      }
+      
+      alert(`✅ Pack de 4 capturas enviado a Discord correctamente`);
+    } else {
+      const errorText = await response.text();
+      throw new Error(`Discord respondió con ${response.status}: ${errorText}`);
+    }
+    
+  } catch (error) {
+    console.error('Error al enviar a Discord:', error);
+    alert(`❌ Error al enviar capturas: ${error.message}`);
+  } finally {
+    if (btnEnviar) {
+      btnEnviar.disabled = false;
+      btnEnviar.innerHTML = '🚀 Enviar 4 Capturas a Discord';
+    }
   }
 };
 
