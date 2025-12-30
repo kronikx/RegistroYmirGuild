@@ -2839,8 +2839,8 @@ function calcularScoreTotal(miembro) {
   // Si tiene todos los stats completos, calcular el score
   const pesos = {
     // Stats principales - alto peso
-    nivel: 2.0,
-    poder: 3.0,
+    nivel: 3.0,
+    poder: 2.0,
     
     // ATK - peso alto
     physAtk: 1.5,
@@ -2851,18 +2851,18 @@ function calcularScoreTotal(miembro) {
     magDef: 1.2,
     
     // Stats secundarios - peso medio
-    acc: 1.0,
-    eva: 1.0,
+    acc: 2.0,
+    eva: 2.0,
     
     // Porcentajes de daño - peso medio-alto
-    physDmg: 1.3,
-    magDmg: 1.3,
-    physDmgDef: 1.1,
-    magDmgDef: 1.1,
+    physDmg: 1.5,
+    magDmg: 1.5,
+    physDmgDef: 1.0,
+    magDmgDef: 1.0,
     monsterDmg: 1.2,
     monsterDmgDef: 1.0,
-    bossDmg: 1.4,
-    bossDmgDef: 1.1
+    bossDmg: 2.0,
+    bossDmgDef: 1.5
   };
   
   let scoreTotal = 0;
