@@ -1424,7 +1424,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, deleteDoc, onSnapshot, getDocs, query, orderBy, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, deleteDoc, onSnapshot, getDocs, query, orderBy, where, writeBatch, setDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* === Firebase === */
 initializeApp({
@@ -1442,6 +1442,7 @@ let membersReceived = new Set();
 let uploadImages = [];
 let currentUserRole = "Miembro";
 let tesseractWorker = null;
+let currentRoundDocId = null;
 
 // Variables para controlar quiénes participaron
 let membersParticipatedInRound = new Set();
@@ -1479,6 +1480,121 @@ function updateOCRProgress(percent) {
 }
 
 /* === FUNCIONES PARA LA RULETA DE ITEMS === */
+
+// Función para cargar el estado actual de la ruleta desde Firestore
+async function loadTrashRouletteState() {
+  try {
+    console.log("Cargando estado de la ruleta desde Firestore...");
+    
+    // Cargar items de la ruleta actual
+    const trashItemsRef = collection(db, "trashRouletteItems");
+    const itemsSnapshot = await getDocs(trashItemsRef);
+    
+    trashItems = [];
+    if (!itemsSnapshot.empty) {
+      itemsSnapshot.forEach(doc => {
+        const data = doc.data();
+        trashItems.push({
+          id: doc.id,
+          name: data.name,
+          quantity: data.quantity
+        });
+      });
+      console.log(`✅ Cargados ${trashItems.length} items desde Firestore`);
+    } else {
+      console.log("✅ No hay items en la ruleta actual");
+    }
+    
+    // Cargar estado de la ronda actual
+    const roundStateRef = doc(db, "trashRouletteState", "currentRound");
+    const roundStateSnap = await getDoc(roundStateRef);
+    
+    if (roundStateSnap.exists()) {
+      const roundData = roundStateSnap.data();
+      distributionRound = roundData.round || 1;
+      membersReceived = new Set(roundData.membersReceived || []);
+      currentRoundStartedAt = roundData.startedAt?.toDate()?.getTime() || Date.now();
+      currentRoundDocId = roundStateSnap.id;
+      
+      console.log(`✅ Estado cargado: Ronda ${distributionRound}, ${membersReceived.size} miembros ya recibieron`);
+    } else {
+      // Crear estado inicial
+      await setDoc(roundStateRef, {
+        round: 1,
+        membersReceived: [],
+        startedAt: new Date(),
+        lastUpdated: new Date()
+      });
+      distributionRound = 1;
+      membersReceived = new Set();
+      currentRoundStartedAt = Date.now();
+      currentRoundDocId = "currentRound";
+      console.log("✅ Estado inicial creado");
+    }
+    
+    // Renderizar items
+    renderTrashItems();
+    updateDistributionStatus();
+    
+    return true;
+  } catch (error) {
+    console.error("❌ Error cargando estado de la ruleta:", error);
+    return false;
+  }
+}
+
+// Función para guardar items en Firestore
+async function saveTrashItems() {
+  try {
+    // Primero, eliminar todos los items existentes
+    const itemsRef = collection(db, "trashRouletteItems");
+    const itemsSnapshot = await getDocs(itemsRef);
+    
+    const batch = writeBatch(db);
+    itemsSnapshot.forEach(docSnap => {
+      batch.delete(docSnap.ref);
+    });
+    
+    // Luego, agregar los nuevos items
+    trashItems.forEach(item => {
+      const newItemRef = doc(itemsRef);
+      batch.set(newItemRef, {
+        name: item.name,
+        quantity: item.quantity,
+        addedAt: new Date(),
+        addedBy: auth.currentUser?.uid || "system",
+        addedByRole: currentUserRole
+      });
+    });
+    
+    await batch.commit();
+    console.log(`✅ ${trashItems.length} items guardados en Firestore`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error guardando items:", error);
+    return false;
+  }
+}
+
+// Función para guardar el estado de la ronda
+async function saveRoundState() {
+  try {
+    const roundStateRef = doc(db, "trashRouletteState", "currentRound");
+    
+    await setDoc(roundStateRef, {
+      round: distributionRound,
+      membersReceived: Array.from(membersReceived),
+      startedAt: new Date(currentRoundStartedAt),
+      lastUpdated: new Date()
+    }, { merge: true });
+    
+    console.log(`✅ Estado de ronda ${distributionRound} guardado`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error guardando estado de ronda:", error);
+    return false;
+  }
+}
 
 // Función para verificar si un miembro es elegible para la ruleta
 async function isEligibleForTrashRoulette(memberId, memberData) {
@@ -1606,16 +1722,13 @@ async function loadEligibleMembers() {
       console.log(`${status} ${m.name}: ${m.puntosTotales}pts (${m.semanal} actual + ${m.puntosUsadosSubastas} usados) | Bosses: ${m.boss45 ? "✅" : "❌"}/${m.boss55 ? "✅" : "❌"} | Control: ${m.controlCompleto ? "✅" : "❌"}`);
     });
     
-    // Verificar si necesitamos resetear la participación
+    // Verificar si necesitamos resetear la participación (cada 7 días)
     const now = Date.now();
     const daysSinceRoundStart = (now - currentRoundStartedAt) / (1000 * 60 * 60 * 24);
     
     if (daysSinceRoundStart >= 7) {
-      membersParticipatedInRound.clear();
-      membersReceived.clear();
-      distributionRound = 1;
-      currentRoundStartedAt = now;
-      console.log("✅ Nueva semana - participación reiniciada");
+      await resetDistribution();
+      console.log("✅ Nueva semana - participación reiniciada automáticamente");
     }
     
     eligibleMembers = currentEligibleMembers;
@@ -1764,7 +1877,7 @@ function renderTrashItems() {
 }
 
 // Función para agregar item
-function addTrashItem() {
+async function addTrashItem() {
   const nameInput = document.getElementById('newTrashItem');
   const quantityInput = document.getElementById('newTrashQuantity');
   
@@ -1795,6 +1908,9 @@ function addTrashItem() {
     });
   }
   
+  // Guardar en Firestore
+  await saveTrashItems();
+  
   // Limpiar inputs
   nameInput.value = '';
   quantityInput.value = '1';
@@ -1810,13 +1926,38 @@ function addTrashItem() {
     const canDistribute = availableMembers.length > 0 && trashItems.length > 0;
     spinBtn.disabled = !canDistribute;
   }
+  
+  // Mostrar mensaje de éxito
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #4ecca3;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 1000;
+    animation: slideInRight 0.3s;
+  `;
+  toast.textContent = `✅ Item "${name}" agregado (${quantity})`;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.animation = 'slideOutRight 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
 }
 
 // Función para eliminar item
-function removeTrashItem(index) {
+async function removeTrashItem(index) {
   if (index >= 0 && index < trashItems.length) {
     if (confirm(`¿Eliminar "${trashItems[index].name}"?`)) {
-      trashItems.splice(index, 1);
+      const removedItem = trashItems.splice(index, 1)[0];
+      
+      // Guardar en Firestore
+      await saveTrashItems();
+      
       renderTrashItems();
       
       // Actualizar estado del botón de girar ruleta
@@ -1826,16 +1967,41 @@ function removeTrashItem(index) {
         const canDistribute = availableMembers.length > 0 && trashItems.length > 0;
         spinBtn.disabled = !canDistribute;
       }
+      
+      // Mostrar mensaje
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #ff6b6b;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 1000;
+        animation: slideInRight 0.3s;
+      `;
+      toast.textContent = `🗑️ Item "${removedItem.name}" eliminado`;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
     }
   }
 }
 
 // Función para limpiar todos los items
-function clearAllTrashItems() {
+async function clearAllTrashItems() {
   if (trashItems.length === 0) return;
   
   if (confirm('¿Estás seguro de que quieres eliminar todos los items?')) {
     trashItems = [];
+    
+    // Guardar en Firestore
+    await saveTrashItems();
+    
     renderTrashItems();
     
     // Actualizar estado del botón de girar ruleta
@@ -1843,6 +2009,27 @@ function clearAllTrashItems() {
       const spinBtn = document.getElementById('spinRouletteBtn');
       spinBtn.disabled = true;
     }
+    
+    // Mostrar mensaje
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ff9800;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      z-index: 1000;
+      animation: slideInRight 0.3s;
+    `;
+    toast.textContent = '🧹 Todos los items eliminados';
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.animation = 'slideOutRight 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
   }
 }
 
@@ -1866,12 +2053,8 @@ async function spinTrashRoulette() {
   if (membersWithoutItem.length === 0) {
     // Si todos ya recibieron en esta ronda, preguntar si empezar nueva ronda
     if (confirm(`✅ Todos los miembros elegibles ya recibieron un item en la ronda ${distributionRound}.\n\n¿Quieres empezar una nueva ronda?`)) {
-      membersReceived.clear();
-      distributionRound++;
-      currentRoundStartedAt = Date.now();
-      
+      await resetDistribution();
       alert(`🎉 Comenzando ronda ${distributionRound}. Todos los miembros pueden recibir nuevamente.`);
-      updateDistributionStatus();
       
       // Volver a intentar después de resetear
       setTimeout(() => spinTrashRoulette(), 500);
@@ -1949,8 +2132,12 @@ async function spinTrashRoulette() {
         }
       }
       
-      // Actualizar lista de items
+      // Actualizar lista de items en Firestore
       trashItems = itemsToDistribute.filter(item => item.quantity > 0);
+      await saveTrashItems();
+      
+      // Guardar estado de la ronda
+      await saveRoundState();
       
       // Mostrar resultados
       showRouletteResults(results);
@@ -2060,11 +2247,15 @@ function clearResults() {
 }
 
 // Función para reiniciar distribución
-function resetDistribution() {
+async function resetDistribution() {
   if (confirm('¿Estás seguro de que quieres reiniciar la distribución?\n\nEsto limpiará el registro de miembros que ya recibieron items, permitiendo que todos puedan recibir nuevamente en la próxima ronda.')) {
     membersReceived.clear();
-    distributionRound = 1;
+    distributionRound++;
     currentRoundStartedAt = Date.now();
+    
+    // Guardar en Firestore
+    await saveRoundState();
+    
     updateDistributionStatus();
     
     // Actualizar estado del botón de girar ruleta
@@ -2084,11 +2275,15 @@ function resetDistribution() {
 }
 
 // Función para forzar nueva ronda
-function startNewRound() {
+async function startNewRound() {
   if (confirm('¿Iniciar nueva ronda?\n\nEsto permitirá que todos los miembros reciban un item nuevamente, independientemente de si ya recibieron en esta ronda.')) {
     membersReceived.clear();
     distributionRound++;
     currentRoundStartedAt = Date.now();
+    
+    // Guardar en Firestore
+    await saveRoundState();
+    
     updateDistributionStatus();
     alert(`✅ Nueva ronda ${distributionRound} iniciada`);
     
@@ -2557,7 +2752,7 @@ function showManualAdjustmentModal(detectedItems, fullText) {
   });
   
   // Botón para guardar
-  document.getElementById('saveAdjustedItemsBtn').addEventListener('click', () => {
+  document.getElementById('saveAdjustedItemsBtn').addEventListener('click', async () => {
     const items = [];
     const nameInputs = document.querySelectorAll('.adjust-item-name');
     const quantityInputs = document.querySelectorAll('.adjust-item-quantity');
@@ -2590,6 +2785,9 @@ function showManualAdjustmentModal(detectedItems, fullText) {
         trashItems.push({ name: item.name, quantity: item.quantity });
       }
     });
+    
+    // Guardar en Firestore
+    await saveTrashItems();
     
     // Actualizar lista
     renderTrashItems();
@@ -2670,6 +2868,9 @@ async function addOCRResults() {
       trashItems.push({ name: item.name, quantity: item.quantity });
     }
   });
+  
+  // Guardar en Firestore
+  await saveTrashItems();
   
   // Actualizar lista
   renderTrashItems();
@@ -2830,7 +3031,10 @@ function escucharSolicitudesBadge(){
 }
 
 /* === Inicializar la ruleta === */
-function initializeTrashRoulette() {
+async function initializeTrashRoulette() {
+  // Cargar estado desde Firestore
+  await loadTrashRouletteState();
+  
   // Configurar el botón de detalles
   setupDetailsToggle();
   
@@ -2879,7 +3083,7 @@ function initializeTrashRoulette() {
   document.getElementById('clearResultsBtn').addEventListener('click', clearResults);
   
   // Cargar miembros elegibles al inicio y cada minuto
-  loadEligibleMembers();
+  await loadEligibleMembers();
   setInterval(loadEligibleMembers, 60000);
   
   // Cargar historial
@@ -2921,11 +3125,25 @@ onAuthStateChanged(auth, async user=>{
   }
   
   // Inicializar ruleta según el rol
-  initializeTrashRoulette();
+  await initializeTrashRoulette();
   
   // Escuchar solicitudes
   escucharSolicitudesBadge();
 });
+
+// Añadir animaciones CSS
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+`;
+document.head.appendChild(style);
 
 </script>
 
