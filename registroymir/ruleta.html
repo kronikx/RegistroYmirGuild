@@ -751,6 +751,76 @@
     width: 80px;
   }
 
+  /* Estilos para detalles de miembros */
+  .toggle-details-btn {
+    background: rgba(78, 204, 163, 0.2);
+    color: #4ecca3;
+    border: 1px solid #4ecca3;
+    border-radius: 6px;
+    padding: 8px 15px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  .toggle-details-btn:hover {
+    background: rgba(78, 204, 163, 0.4);
+  }
+
+  .members-details {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .member-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    font-size: 11px;
+  }
+
+  .member-name {
+    flex: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .member-points {
+    flex: 1;
+    text-align: center;
+    color: #ffc107;
+    font-weight: bold;
+  }
+
+  .member-status {
+    flex: 1;
+    text-align: right;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .member-pending {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+  }
+
+  .member-received {
+    background: rgba(78, 204, 163, 0.2);
+    color: #4ecca3;
+  }
+
   /* Responsive */
   @media (max-width: 768px) {
     .trash-roulette-content {
@@ -1186,6 +1256,9 @@
           <button id="resetDistributionBtn" class="btn-reset-dist">
             🔄 Reiniciar distribución
           </button>
+          <button id="newRoundBtn" class="btn-reset-dist" style="display: none;">
+            🆕 Nueva Ronda
+          </button>
         </div>
         
         <!-- Sección para subir capturas (SOLO LIDER/OFICIAL) -->
@@ -1262,7 +1335,7 @@
           <h3 class="requirements-title">✅ Requisitos para participar</h3>
           <ul class="requirements-list">
             <li><span class="requirement-icon">✓</span> Bosses 45 y 55 completados</li>
-            <li><span class="requirement-icon">✓</span> Contribución semanal ≥ 8000 puntos</li> <!-- CAMBIADO DE 5000 A 8000 -->
+            <li><span class="requirement-icon">✓</span> Contribución semanal ≥ 8000 puntos</li>
             <li><span class="requirement-icon">✓</span> Control semanal completo</li>
             <li><span class="requirement-icon">✓</span> Miembro activo (no baneado)</li>
           </ul>
@@ -1278,12 +1351,22 @@
           <div class="distribution-info" id="distributionInfo">
             Sistema de rondas: 1 item por miembro por ronda
           </div>
+          
+          <!-- SECCIÓN DE DETALLES -->
+          <button id="toggleDetailsBtn" class="toggle-details-btn">
+            📋 Mostrar detalles
+          </button>
+          
+          <div class="members-details" id="membersDetails" style="display: none;">
+            <div style="text-align: center; padding: 10px; color: #999; font-size: 10px;">
+              Haz clic en "Mostrar detalles" para ver información de los miembros
+            </div>
+          </div>
         </div>
         
-        <!-- Botón para girar ruleta (SOLO LIDER/OFICIAL) -->
+        <!-- Botón de girar ruleta (SOLO LIDER/OFICIAL) -->
         <button id="spinRouletteBtn" class="spin-roulette-btn" disabled style="display: none;">
-          <span>🎰</span>
-          Girar Ruleta
+          <span>🎰</span> Girar Ruleta
         </button>
         
         <!-- Mensaje para miembros -->
@@ -1352,19 +1435,21 @@ initializeApp({
 const auth = getAuth();
 const db = getFirestore();
 
-let trashItems = []; // Array para almacenar items
-let eligibleMembers = []; // Array para miembros elegibles
-let distributionRound = 1; // Ronda actual de distribución
-let membersReceived = new Set(); // Miembros que ya han recibido en esta ronda
-let uploadImages = []; // Array para almacenar imágenes subidas
-let currentUserRole = "Miembro"; // Rol del usuario actual
-let tesseractWorker = null; // Worker de Tesseract
+let trashItems = [];
+let eligibleMembers = [];
+let distributionRound = 1;
+let membersReceived = new Set();
+let uploadImages = [];
+let currentUserRole = "Miembro";
+let tesseractWorker = null;
 
+// Variables para controlar quiénes participaron
+let membersParticipatedInRound = new Set();
+let currentRoundStartedAt = Date.now();
 
 /* === INICIALIZAR TESSERACT OCR === */
 async function initializeTesseract() {
   try {
-    // Crear worker de Tesseract
     tesseractWorker = await Tesseract.createWorker('eng', 1, {
       logger: (m) => {
         if (m.status === 'recognizing text') {
@@ -1406,14 +1491,50 @@ async function isEligibleForTrashRoulette(memberId, memberData) {
   const boss55 = !!memberData.boss55;
   if (!(boss45 && boss55)) return false;
   
-  // Verificar contribución semanal ≥ 8000 (CAMBIADO DE 5000 A 8000)
-  const semanal = memberData.semanal ?? 0;
-  if (semanal < 8000) return false;
+  // Calcular puntos totales semanales = puntos actuales + puntos usados en subastas activas
+  let puntosSemanalesTotales = memberData.semanal || 0;
+  
+  try {
+    // Buscar en subastas activas (no finalizadas)
+    const subastasQuery = query(
+      collection(db, "subastas"),
+      where("finalizada", "==", false)
+    );
+    const subastasSnap = await getDocs(subastasQuery);
+    
+    subastasSnap.forEach(docSubasta => {
+      const subasta = docSubasta.data();
+      const historial = subasta.historial || [];
+      
+      historial.forEach(puja => {
+        if (puja.uid === memberId) {
+          // Solo sumar si la subasta está activa
+          const fin = subasta.fin || Date.now();
+          const restante = Math.max(0, Math.floor((fin - Date.now()) / 1000));
+          if (restante > 0) {
+            puntosSemanalesTotales += (puja.deSemanal || 0);
+          }
+        }
+      });
+    });
+  } catch (error) {
+    console.error("Error calculando puntos de subastas:", error);
+  }
+  
+  // Verificar si alcanza el mínimo de 8000 puntos
+  if (puntosSemanalesTotales < 8000) {
+    console.log(`${memberData.name || memberId}: NO califica - solo ${puntosSemanalesTotales} puntos`);
+    return false;
+  }
   
   // Verificar control completo
   const completo = await controlCompleto(memberId);
-  if (!completo) return false;
+  if (!completo) {
+    console.log(`${memberData.name || memberId}: NO califica - control incompleto`);
+    return false;
+  }
   
+  console.log(`${memberData.name || memberId}: ✅ CALIFICA con ${puntosSemanalesTotales} puntos`);
   return true;
 }
 
@@ -1421,29 +1542,118 @@ async function isEligibleForTrashRoulette(memberId, memberData) {
 async function loadEligibleMembers() {
   try {
     const membersSnapshot = await getDocs(collection(db, "members"));
-    eligibleMembers = [];
+    const currentEligibleMembers = [];
+    const allMembersInfo = [];
     
     for (const memberDoc of membersSnapshot.docs) {
       const memberId = memberDoc.id;
       const memberData = memberDoc.data();
       
-      if (await isEligibleForTrashRoulette(memberId, memberData)) {
-        eligibleMembers.push({
+      // Calcular puntos totales semanales
+      const semanalActual = memberData.semanal ?? 0;
+      let puntosSemanalesTotales = semanalActual;
+      let puntosUsadosSubastas = 0;
+      
+      // Calcular puntos usados en subastas
+      try {
+        const subastasSnap = await getDocs(collection(db, "subastas"));
+        subastasSnap.forEach(docSubasta => {
+          const subasta = docSubasta.data();
+          const historial = subasta.historial || [];
+          
+          historial.forEach(puja => {
+            if (puja.uid === memberId) {
+              puntosUsadosSubastas += (puja.deSemanal || 0);
+            }
+          });
+        });
+        
+        puntosSemanalesTotales = semanalActual + puntosUsadosSubastas;
+      } catch (error) {
+        console.error("Error calculando puntos:", error);
+      }
+      
+      const elegible = await isEligibleForTrashRoulette(memberId, memberData);
+      
+      // Guardar información para mostrar
+      allMembersInfo.push({
+        name: memberData.name || "Sin nombre",
+        elegible: elegible,
+        semanal: semanalActual,
+        puntosUsadosSubastas: puntosUsadosSubastas,
+        puntosTotales: puntosSemanalesTotales,
+        boss45: !!memberData.boss45,
+        boss55: !!memberData.boss55,
+        controlCompleto: await controlCompleto(memberId)
+      });
+      
+      if (elegible) {
+        currentEligibleMembers.push({
           id: memberId,
           name: memberData.name || "Sin nombre",
-          email: memberData.email || ""
+          email: memberData.email || "",
+          semanal: puntosSemanalesTotales,
+          puntosActuales: semanalActual,
+          puntosUsados: puntosUsadosSubastas
         });
       }
     }
     
-    // Actualizar contador y estado
+    // Mostrar información detallada en consola (para debugging)
+    console.log("=== MIEMBROS ELEGIBLES PARA RULETA ===");
+    allMembersInfo.forEach(m => {
+      const status = m.elegible ? "✅" : "❌";
+      console.log(`${status} ${m.name}: ${m.puntosTotales}pts (${m.semanal} actual + ${m.puntosUsadosSubastas} usados) | Bosses: ${m.boss45 ? "✅" : "❌"}/${m.boss55 ? "✅" : "❌"} | Control: ${m.controlCompleto ? "✅" : "❌"}`);
+    });
+    
+    // Verificar si necesitamos resetear la participación
+    const now = Date.now();
+    const daysSinceRoundStart = (now - currentRoundStartedAt) / (1000 * 60 * 60 * 24);
+    
+    if (daysSinceRoundStart >= 7) {
+      membersParticipatedInRound.clear();
+      membersReceived.clear();
+      distributionRound = 1;
+      currentRoundStartedAt = now;
+      console.log("✅ Nueva semana - participación reiniciada");
+    }
+    
+    eligibleMembers = currentEligibleMembers;
+    
+    // Actualizar contador y estado CON MÁS INFORMACIÓN
     document.getElementById('eligibleMembersCount').textContent = eligibleMembers.length;
+    
+    // Actualizar información detallada
+    const statusElement = document.getElementById('distributionStatus');
+    if (eligibleMembers.length > 0) {
+      const infoExtra = eligibleMembers.map(m => 
+        `${m.name}: ${m.puntosTotales}pts (${m.puntosActuales}+${m.puntosUsados})`
+      ).join(', ');
+      
+      statusElement.innerHTML = `${eligibleMembers.length} miembros elegibles<br>
+        <small style="color:#aaa; font-size:11px;">
+          Puntos totales: ${infoExtra.substring(0, 80)}${infoExtra.length > 80 ? '...' : ''}
+        </small>`;
+    } else {
+      statusElement.textContent = "0 miembros cumplen los requisitos";
+    }
+    
     updateDistributionStatus();
     
-    // Habilitar/deshabilitar botón de girar ruleta solo para líderes/oficiales
+    // Habilitar/deshabilitar botón de girar ruleta
     if (currentUserRole === "Líder" || currentUserRole === "Oficial") {
       const spinBtn = document.getElementById('spinRouletteBtn');
-      spinBtn.disabled = eligibleMembers.length === 0 || trashItems.length === 0 || membersReceived.size >= eligibleMembers.length;
+      
+      // Calcular miembros que pueden recibir
+      const availableMembers = eligibleMembers.filter(m => !membersReceived.has(m.id));
+      const canDistribute = availableMembers.length > 0 && trashItems.length > 0;
+      
+      spinBtn.disabled = !canDistribute;
+      spinBtn.title = canDistribute ? 
+        `Repartir ${Math.min(availableMembers.length, trashItems.length)} items a ${availableMembers.length} miembros` : 
+        (eligibleMembers.length === 0 ? "No hay miembros elegibles" : 
+         trashItems.length === 0 ? "No hay items para repartir" : 
+         "Todos ya recibieron en esta ronda");
     }
     
     return eligibleMembers;
@@ -1460,23 +1670,29 @@ function updateDistributionStatus() {
   const distributionInfoElement = document.getElementById('distributionInfo');
   
   if (eligibleMembers.length === 0) {
-    statusElement.textContent = "miembros cumplen los requisitos";
+    statusElement.textContent = "0 miembros cumplen los requisitos";
     distributionInfoElement.textContent = "Esperando miembros elegibles";
+    roundInfoElement.textContent = "Ronda: 1";
     return;
   }
   
-  const membersWithoutItem = eligibleMembers.length - membersReceived.size;
-  const roundText = membersReceived.size === 0 ? `Ronda: ${distributionRound}` : 
-                    membersReceived.size >= eligibleMembers.length ? `Ronda ${distributionRound} completada` : 
-                    `Ronda: ${distributionRound} (${membersReceived.size}/${eligibleMembers.length})`;
+  const membersWithoutItem = eligibleMembers.filter(m => !membersReceived.has(m.id)).length;
+  const membersWithItem = membersReceived.size;
+  const totalMembers = eligibleMembers.length;
   
-  statusElement.textContent = `${eligibleMembers.length} miembros elegibles`;
+  const roundText = membersWithItem === 0 ? `Ronda: ${distributionRound}` : 
+                    membersWithItem >= totalMembers ? `Ronda ${distributionRound} completada` : 
+                    `Ronda: ${distributionRound} (${membersWithItem}/${totalMembers})`;
+  
+  statusElement.textContent = `${totalMembers} miembros elegibles`;
   roundInfoElement.textContent = roundText;
   
-  if (membersReceived.size >= eligibleMembers.length) {
+  if (membersWithItem >= totalMembers) {
     distributionInfoElement.textContent = `✅ Ronda ${distributionRound} completada. Todos recibieron un item.`;
+    distributionInfoElement.style.color = "#4ecca3";
   } else {
     distributionInfoElement.textContent = `${membersWithoutItem} miembros aún no han recibido en esta ronda`;
+    distributionInfoElement.style.color = membersWithoutItem > 0 ? "#ffc107" : "#aaa";
   }
 }
 
@@ -1514,7 +1730,7 @@ function renderTrashItems() {
       itemElement.innerHTML = `
         <div class="trash-item-name">${item.name}</div>
         <div class="trash-item-quantity">${item.quantity}</div>
-        <div style="width: 28px;"></div> <!-- Espacio para alinear -->
+        <div style="width: 28px;"></div>
       `;
     }
     
@@ -1590,7 +1806,9 @@ function addTrashItem() {
   // Actualizar estado del botón de girar ruleta (solo líderes/oficiales)
   if (currentUserRole === "Líder" || currentUserRole === "Oficial") {
     const spinBtn = document.getElementById('spinRouletteBtn');
-    spinBtn.disabled = eligibleMembers.length === 0 || trashItems.length === 0 || membersReceived.size >= eligibleMembers.length;
+    const availableMembers = eligibleMembers.filter(m => !membersReceived.has(m.id));
+    const canDistribute = availableMembers.length > 0 && trashItems.length > 0;
+    spinBtn.disabled = !canDistribute;
   }
 }
 
@@ -1604,7 +1822,9 @@ function removeTrashItem(index) {
       // Actualizar estado del botón de girar ruleta
       if (currentUserRole === "Líder" || currentUserRole === "Oficial") {
         const spinBtn = document.getElementById('spinRouletteBtn');
-        spinBtn.disabled = eligibleMembers.length === 0 || trashItems.length === 0 || membersReceived.size >= eligibleMembers.length;
+        const availableMembers = eligibleMembers.filter(m => !membersReceived.has(m.id));
+        const canDistribute = availableMembers.length > 0 && trashItems.length > 0;
+        spinBtn.disabled = !canDistribute;
       }
     }
   }
@@ -1638,22 +1858,24 @@ async function spinTrashRoulette() {
     return;
   }
   
-  // Verificar si todos ya recibieron en esta ronda
-  if (membersReceived.size >= eligibleMembers.length) {
-    if (confirm(`✅ Todos los miembros ya recibieron un item en la ronda ${distributionRound}.\n\n¿Quieres empezar una nueva ronda?`)) {
+  // Obtener miembros que aún no han recibido EN ESTA RONDA ESPECÍFICA
+  const membersWithoutItem = eligibleMembers.filter(member => 
+    !membersReceived.has(member.id)
+  );
+  
+  if (membersWithoutItem.length === 0) {
+    // Si todos ya recibieron en esta ronda, preguntar si empezar nueva ronda
+    if (confirm(`✅ Todos los miembros elegibles ya recibieron un item en la ronda ${distributionRound}.\n\n¿Quieres empezar una nueva ronda?`)) {
       membersReceived.clear();
       distributionRound++;
+      currentRoundStartedAt = Date.now();
+      
       alert(`🎉 Comenzando ronda ${distributionRound}. Todos los miembros pueden recibir nuevamente.`);
       updateDistributionStatus();
-    } else {
-      return;
+      
+      // Volver a intentar después de resetear
+      setTimeout(() => spinTrashRoulette(), 500);
     }
-  }
-  
-  // Obtener miembros que aún no han recibido
-  const membersWithoutItem = eligibleMembers.filter(member => !membersReceived.has(member.id));
-  if (membersWithoutItem.length === 0) {
-    alert('Todos los miembros ya han recibido un item en esta ronda');
     return;
   }
   
@@ -1665,11 +1887,16 @@ async function spinTrashRoulette() {
   // Simular proceso de reparto
   setTimeout(async () => {
     try {
-      // Crear copia de los items para no modificar el original
+      // Crear copia de los items
       const itemsToDistribute = [...trashItems];
       
       // Mezclar aleatoriamente los miembros que no han recibido
       const shuffledMembers = membersWithoutItem.sort(() => Math.random() - 0.5);
+      
+      // Registrar participación de TODOS los miembros elegibles
+      shuffledMembers.forEach(member => {
+        membersParticipatedInRound.add(member.id);
+      });
       
       // Repartir items (máximo 1 por miembro en esta ronda)
       const results = [];
@@ -1692,7 +1919,7 @@ async function spinTrashRoulette() {
             round: distributionRound
           });
           
-          // Registrar el reparto en Firestore (historial)
+          // Registrar el reparto en Firestore
           await addDoc(collection(db, "trashDistributions"), {
             memberId: member.id,
             memberName: member.name,
@@ -1702,28 +1929,27 @@ async function spinTrashRoulette() {
             distributedByRole: currentUserRole,
             distributedAt: new Date(),
             type: "ruleta_items",
-            round: distributionRound
+            round: distributionRound,
+            memberPoints: member.semanal || 0
           });
           
-          // Marcar miembro como que ya recibió
+          // Marcar miembro como que ya recibió EN ESTA RONDA
           membersReceived.add(member.id);
           
           // Actualizar cantidad del item
           if (item.quantity > quantityToGive) {
             item.quantity -= quantityToGive;
           } else {
-            // Si se agotó el item, pasamos al siguiente
             itemIndex++;
           }
           
-          // Pasamos al siguiente miembro
           memberIndex++;
         } else {
           itemIndex++;
         }
       }
       
-      // Actualizar lista de items (eliminar los que se agotaron)
+      // Actualizar lista de items
       trashItems = itemsToDistribute.filter(item => item.quantity > 0);
       
       // Mostrar resultados
@@ -1735,9 +1961,17 @@ async function spinTrashRoulette() {
       // Cargar historial actualizado
       loadDistributionHistory();
       
+      // Mostrar resumen
+      const itemsGiven = results.length;
+      const membersGiven = new Set(results.map(r => r.memberId)).size;
+      
+      if (itemsGiven > 0) {
+        alert(`✅ Reparto completado:\n• ${itemsGiven} item(s) repartido(s)\n• ${membersGiven} miembro(s) beneficiado(s)\n• Ronda: ${distributionRound}`);
+      }
+      
       // Verificar si se completó la ronda
       if (membersReceived.size >= eligibleMembers.length) {
-        alert(`✅ Ronda ${distributionRound} completada. Todos los miembros recibieron un item.`);
+        alert(`🎊 Ronda ${distributionRound} completada. Todos los miembros elegibles recibieron un item.`);
       }
       
     } catch (error) {
@@ -1747,11 +1981,13 @@ async function spinTrashRoulette() {
       // Restaurar botón
       spinBtn.classList.remove('spinning');
       if (currentUserRole === "Líder" || currentUserRole === "Oficial") {
-        spinBtn.disabled = eligibleMembers.length === 0 || trashItems.length === 0 || membersReceived.size >= eligibleMembers.length;
+        const availableMembers = eligibleMembers.filter(m => !membersReceived.has(m.id));
+        const canDistribute = availableMembers.length > 0 && trashItems.length > 0;
+        spinBtn.disabled = !canDistribute;
       }
       spinBtn.innerHTML = '<span>🎰</span> Girar Ruleta';
     }
-  }, 2000); // Simular proceso de 2 segundos
+  }, 2000);
 }
 
 // Función para mostrar resultados del reparto
@@ -1828,12 +2064,15 @@ function resetDistribution() {
   if (confirm('¿Estás seguro de que quieres reiniciar la distribución?\n\nEsto limpiará el registro de miembros que ya recibieron items, permitiendo que todos puedan recibir nuevamente en la próxima ronda.')) {
     membersReceived.clear();
     distributionRound = 1;
+    currentRoundStartedAt = Date.now();
     updateDistributionStatus();
     
     // Actualizar estado del botón de girar ruleta
     if (currentUserRole === "Líder" || currentUserRole === "Oficial") {
       const spinBtn = document.getElementById('spinRouletteBtn');
-      spinBtn.disabled = eligibleMembers.length === 0 || trashItems.length === 0;
+      const availableMembers = eligibleMembers.filter(m => !membersReceived.has(m.id));
+      const canDistribute = availableMembers.length > 0 && trashItems.length > 0;
+      spinBtn.disabled = !canDistribute;
     }
     
     // Limpiar resultados mostrados
@@ -1842,6 +2081,114 @@ function resetDistribution() {
     
     alert('✅ Distribución reiniciada. Todos los miembros pueden recibir items nuevamente.');
   }
+}
+
+// Función para forzar nueva ronda
+function startNewRound() {
+  if (confirm('¿Iniciar nueva ronda?\n\nEsto permitirá que todos los miembros reciban un item nuevamente, independientemente de si ya recibieron en esta ronda.')) {
+    membersReceived.clear();
+    distributionRound++;
+    currentRoundStartedAt = Date.now();
+    updateDistributionStatus();
+    alert(`✅ Nueva ronda ${distributionRound} iniciada`);
+    
+    // Actualizar botón de girar ruleta
+    if (currentUserRole === "Líder" || currentUserRole === "Oficial") {
+      const spinBtn = document.getElementById('spinRouletteBtn');
+      const availableMembers = eligibleMembers.filter(m => !membersReceived.has(m.id));
+      const canDistribute = availableMembers.length > 0 && trashItems.length > 0;
+      spinBtn.disabled = !canDistribute;
+    }
+  }
+}
+
+/* === FUNCIONES PARA DETALLES DE MIEMBROS === */
+
+// Función para actualizar detalles de miembros
+function updateMembersDetails() {
+  const detailsDiv = document.getElementById('membersDetails');
+  const toggleBtn = document.getElementById('toggleDetailsBtn');
+  
+  if (!detailsDiv || !toggleBtn) return;
+  
+  if (detailsDiv.style.display === 'block') {
+    // Si ya está mostrando detalles, actualizarlos
+    let detailsHTML = '';
+    
+    if (eligibleMembers.length === 0) {
+      detailsHTML = `
+        <div style="text-align: center; padding: 15px; color: #ff6b6b;">
+          <div style="font-size: 20px; margin-bottom: 5px;">😔</div>
+          No hay miembros elegibles
+          <div style="font-size: 9px; color: #aaa; margin-top: 5px;">
+            Verifica que cumplan todos los requisitos
+          </div>
+        </div>
+      `;
+    } else {
+      // Mostrar cada miembro con su información
+      eligibleMembers.forEach(member => {
+        const yaRecibio = membersReceived.has(member.id);
+        const statusClass = yaRecibio ? 'member-received' : 'member-pending';
+        const statusText = yaRecibio ? '✅ Recibió' : '⏳ Pendiente';
+        
+        // Mostrar puntos claramente
+        const puntosActuales = member.puntosActuales || 0;
+        const puntosUsados = member.puntosUsados || 0;
+        const puntosTotales = member.semanal || (puntosActuales + puntosUsados);
+        
+        detailsHTML += `
+          <div class="member-detail-item">
+            <div class="member-name" title="${member.name}">
+              ${member.name}
+            </div>
+            <div class="member-points" title="Puntos: ${puntosActuales} actuales + ${puntosUsados} en pujas = ${puntosTotales} total">
+              ${puntosTotales} pts
+            </div>
+            <div class="member-status ${statusClass}">
+              ${statusText}
+            </div>
+          </div>
+        `;
+      });
+      
+      // Añadir resumen
+      const recibieron = eligibleMembers.filter(m => membersReceived.has(m.id)).length;
+      const pendientes = eligibleMembers.length - recibieron;
+      
+      detailsHTML += `
+        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 9px; color: #aaa;">
+          <div style="display: flex; justify-content: space-between;">
+            <span>Recibieron: <span style="color: #4ecca3;">${recibieron}</span></span>
+            <span>Pendientes: <span style="color: #ff9800;">${pendientes}</span></span>
+          </div>
+        </div>
+      `;
+    }
+    
+    detailsDiv.innerHTML = detailsHTML;
+  }
+}
+
+// Función para alternar visibilidad de detalles
+function setupDetailsToggle() {
+  const toggleBtn = document.getElementById('toggleDetailsBtn');
+  const detailsDiv = document.getElementById('membersDetails');
+  
+  if (!toggleBtn || !detailsDiv) return;
+  
+  toggleBtn.addEventListener('click', function() {
+    if (detailsDiv.style.display === 'none' || detailsDiv.style.display === '') {
+      // Mostrar detalles
+      detailsDiv.style.display = 'block';
+      toggleBtn.innerHTML = '📋 Ocultar detalles';
+      updateMembersDetails();
+    } else {
+      // Ocultar detalles
+      detailsDiv.style.display = 'none';
+      toggleBtn.innerHTML = '📋 Mostrar detalles';
+    }
+  });
 }
 
 /* === FUNCIONES PARA PROCESAR CAPTURAS DE PANTALLA CON OCR SIMPLIFICADO === */
@@ -2020,7 +2367,7 @@ async function processImagesWithOCR() {
             
             allDetectedItems.push({
               name: cleanedLine,
-              quantity: 1 // Por defecto 1
+              quantity: 1
             });
           }
         });
@@ -2193,9 +2540,6 @@ function showManualAdjustmentModal(detectedItems, fullText) {
     });
   }
   
-  // Variables para devolver los datos
-  let adjustedItems = null;
-  
   // Botón para agregar otro item
   document.getElementById('addNewItemBtn').addEventListener('click', () => {
     addItemField();
@@ -2235,8 +2579,6 @@ function showManualAdjustmentModal(detectedItems, fullText) {
       return;
     }
     
-    adjustedItems = items;
-    
     // Agregar items a la lista principal
     items.forEach(item => {
       const existingIndex = trashItems.findIndex(t => 
@@ -2268,7 +2610,9 @@ function showManualAdjustmentModal(detectedItems, fullText) {
     // Actualizar estado del botón de girar ruleta
     if (currentUserRole === "Líder" || currentUserRole === "Oficial") {
       const spinBtn = document.getElementById('spinRouletteBtn');
-      spinBtn.disabled = eligibleMembers.length === 0 || trashItems.length === 0 || membersReceived.size >= eligibleMembers.length;
+      const availableMembers = eligibleMembers.filter(m => !membersReceived.has(m.id));
+      const canDistribute = availableMembers.length > 0 && trashItems.length > 0;
+      spinBtn.disabled = !canDistribute;
     }
   });
   
@@ -2289,8 +2633,6 @@ function showManualAdjustmentModal(detectedItems, fullText) {
 
 // Agregar items detectados por OCR a la lista
 async function addOCRResults() {
-  // Esta función ya no se usa directamente, se maneja desde el modal
-  // Pero la mantenemos por compatibilidad
   const ocrResults = document.getElementById('ocrResults');
   let items = [];
   
@@ -2489,11 +2831,15 @@ function escucharSolicitudesBadge(){
 
 /* === Inicializar la ruleta === */
 function initializeTrashRoulette() {
+  // Configurar el botón de detalles
+  setupDetailsToggle();
+  
   // Configurar event listeners según el rol
   if (currentUserRole === "Líder" || currentUserRole === "Oficial") {
     document.getElementById('addTrashItemBtn').addEventListener('click', addTrashItem);
     document.getElementById('clearTrashItemsBtn').addEventListener('click', clearAllTrashItems);
     document.getElementById('resetDistributionBtn').addEventListener('click', resetDistribution);
+    document.getElementById('newRoundBtn').addEventListener('click', startNewRound);
     document.getElementById('spinRouletteBtn').addEventListener('click', spinTrashRoulette);
     document.getElementById('clearHistoryBtn').addEventListener('click', clearAllHistory);
     
@@ -2518,6 +2864,7 @@ function initializeTrashRoulette() {
     document.getElementById('spinRouletteBtn').style.display = 'block';
     document.getElementById('memberSpinMessage').style.display = 'none';
     document.getElementById('memberInfo').style.display = 'none';
+    document.getElementById('newRoundBtn').style.display = 'block';
   } else {
     // Ocultar controles para miembros
     document.getElementById('addItemForm').style.display = 'none';
@@ -2526,6 +2873,7 @@ function initializeTrashRoulette() {
     document.getElementById('spinRouletteBtn').style.display = 'none';
     document.getElementById('memberSpinMessage').style.display = 'block';
     document.getElementById('clearHistoryBtn').style.display = 'none';
+    document.getElementById('newRoundBtn').style.display = 'none';
   }
   
   document.getElementById('clearResultsBtn').addEventListener('click', clearResults);
