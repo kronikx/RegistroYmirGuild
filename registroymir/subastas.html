@@ -262,6 +262,7 @@
 </head>
 <body>
 <!-- === PROTECCIÓN NUCLEAR - BLOQUEO TOTAL === -->
+<!--
 <script>
 (function() {
   'use strict';
@@ -604,6 +605,7 @@
   console.info('🛡️ SISTEMA DE PROTECCIÓN NUCLEAR ACTIVADO - Ctrl+U BLOQUEADO');
 })();
 </script>
+-->
 <!-- === FIN PROTECCIÓN NUCLEAR === -->
 
 <!-- Sección superior: Hora y URL (ESTRUCTURA ORIGINAL) -->
@@ -805,7 +807,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* === Firebase === */
 initializeApp({
@@ -1122,6 +1124,46 @@ function cargarSubastas(){
       return (b.data.fin || 0) - (a.data.fin || 0);
     });
 
+    // Verificar si el usuario ya pujó en ALGÚN item rojo
+    let yaPujoEnAlgunItemRojo = false;
+    let yaPujoEnAlgunT2 = false;
+    let yaPujoEnAlgunT3 = false;
+
+    // Calcular puntos semanales para validación (incluyendo pujas activas)
+let puntosSemanalesParaValidar = miSemanal;
+
+subastasArray.forEach(item => {
+  const s = item.data;
+  const historial = s.historial || [];
+  const pujoEnEsta = historial.some(h => h.uid === user.uid);
+  
+  if (pujoEnEsta) {
+    // Si la subasta está activa, sumar de vuelta puntos semanales
+    const restante = Math.max(0, Math.floor((s.fin - Date.now()) / 1000));
+    const finalizada = !!s.finalizada;
+    
+    if (restante > 0 && !finalizada) {
+      const miPuja = historial.find(h => h.uid === user.uid);
+      if (miPuja && miPuja.deSemanal) {
+        puntosSemanalesParaValidar += miPuja.deSemanal;
+      }
+    }
+  }
+});
+    subastasArray.forEach(item => {
+      const s = item.data;
+      const esRojo = !!s.esItemRojo;
+      const tier = s.tierItem || "Libre";
+      const historial = s.historial || [];
+      const pujoEnEsta = historial.some(h => h.uid === user.uid);
+      
+      if (pujoEnEsta) {
+        if (esRojo) yaPujoEnAlgunItemRojo = true;
+        else if (tier === "T2") yaPujoEnAlgunT2 = true;
+        else if (tier === "T3") yaPujoEnAlgunT3 = true;
+      }
+    });
+
     subastasArray.forEach(item => {
       const d = item;
       const s = d.data;
@@ -1140,53 +1182,87 @@ function cargarSubastas(){
         ? s.historial.map(h=>`${h.jugador} → ${h.cantidad} (T:${h.deTotal||0}/S:${h.deSemanal||0})`).join("<br>")
         : "-";
 
-      const yaPuje = (s.historial || []).some(h => h.uid === user.uid);
+      const yaPujeEnEsta = (s.historial || []).some(h => h.uid === user.uid);
       const claseOk = (claseItem==="Neutral" || claseItem===miClase);
       let tierOk = true;
       
-      // Para items rojos, aplicar reglas especiales
+// Para items rojos, aplicar reglas especiales
+if (esItemRojo) {
+  if(!yaPujoEnAlgunItemRojo && !yaPujeEnEsta){
+    // PRIMERA puja en CUALQUIER item rojo: requiere 8400+ pts semanales
+    const puntosValidacion = Math.max(miSemanal, puntosSemanalesParaValidar);
+    tierOk = (puntosValidacion >= 8400) && bossesOk && completo;
+  } else {
+    // Si YA PUJÓ en algún item rojo: NO puede pujar en OTRO item rojo
+    // Solo puede seguir pujando en el MISMO item rojo donde ya pujó
+    tierOk = yaPujeEnEsta && bossesOk && completo;
+  }
+} else if (tierItem === "T2") {
+  if(!yaPujoEnAlgunT2 && !yaPujeEnEsta){
+    // PRIMERA puja en CUALQUIER T2: requiere 8000+ pts semanales
+    const puntosValidacion = Math.max(miSemanal, puntosSemanalesParaValidar);
+    tierOk = (puntosValidacion >= 8000) && bossesOk && completo;
+  } else {
+    // Si YA PUJÓ en algún T2 o en este mismo: solo bosses + control
+    // Puede pujar en múltiples T2
+    tierOk = bossesOk && completo;
+  }
+} else if (tierItem === "T3") {
+  if(!yaPujoEnAlgunT3 && !yaPujeEnEsta){
+    // PRIMERA puja en CUALQUIER T3: requiere 8400+ pts semanales
+    const puntosValidacion = Math.max(miSemanal, puntosSemanalesParaValidar);
+    tierOk = (puntosValidacion >= 8400) && bossesOk && completo;
+  } else {
+    // Si YA PUJÓ en algún T3: NO puede pujar en OTRO T3
+    // Solo puede seguir pujando en el MISMO T3 donde ya pujó
+    tierOk = yaPujeEnEsta && bossesOk && completo;
+  }
+}
+
+     // Para "Libre" no hay requisito de semanal
+
+let celdaPuja;
+if(restante > 0 && !finalizada){
+  if(claseOk && tierOk && bossesOk && completo){
+    const pujaMinima = Math.max(pujaActual + 1, precioBase + 1);
+    celdaPuja = `
+      <div style="display: flex; gap: 5px; align-items: center;">
+        <input type="number" id="puja_${d.id}" placeholder="Cantidad" 
+               style="width: 80px; padding: 6px; border-radius: 4px; border: 1px solid #5a189a; background: rgba(255,255,255,0.1); color: white; font-size: 12px;"
+               min="${pujaMinima}">
+        <button class="btn-bid" onclick="window.pujar && window.pujar('${d.id}')" style="padding: 6px 12px; font-size: 12px;">Pujar</button>
+      </div>
+    `;
+  }else{
+    let motivo = "";
+    if (!completo) motivo = "Control";
+    else if (!bossesOk) motivo = "Bosses";
+    else if (!tierOk) {
       if (esItemRojo) {
-        if(!yaPuje){
-          // Items rojos requieren SEMANAL ≥ 8400, bosses completos, control completo y clase
-          tierOk = (miSemanal >= 8400) && bossesOk && completo;
+        if (yaPujoEnAlgunItemRojo && !yaPujeEnEsta) {
+          motivo = "Solo 1 item rojo por persona";
+        } else {
+          motivo = "Items Rojos: requiere 8400+ pts semanales";
+        }
+      } else if (tierItem === "T2") {
+        motivo = "T2: requiere 8000+ pts semanales";
+      } else if (tierItem === "T3") {
+        if (yaPujoEnAlgunT3 && !yaPujeEnEsta) {
+          motivo = "Solo 1 item T3 por persona";
+        } else {
+          motivo = "T3: requiere 8400+ pts semanales";
         }
       } else {
-        if(!yaPuje){
-          if(tierItem==="T2"){ tierOk = (miSemanal >= 8000 && miSemanal <= 8399); }
-          else if(tierItem==="T3"){ tierOk = (miSemanal >= 8400); }
-        }
+        motivo = "Tier";
       }
-
-      let celdaPuja;
-      if(restante > 0 && !finalizada){
-        if(claseOk && tierOk && bossesOk && completo){
-          const pujaMinima = Math.max(pujaActual + 1, precioBase + 1);
-          celdaPuja = `
-            <div style="display: flex; gap: 5px; align-items: center;">
-              <input type="number" id="puja_${d.id}" placeholder="Cantidad" 
-                     style="width: 80px; padding: 6px; border-radius: 4px; border: 1px solid #5a189a; background: rgba(255,255,255,0.1); color: white; font-size: 12px;"
-                     min="${pujaMinima}">
-              <button class="btn-bid" onclick="pujar('${d.id}')" style="padding: 6px 12px; font-size: 12px;">Pujar</button>
-            </div>
-          `;
-        }else{
-          let motivo = "";
-          if (!completo) motivo = "Control";
-          else if (!bossesOk) motivo = "Bosses";
-          else if (!tierOk) {
-            if (esItemRojo) {
-              motivo = "Items Rojos: requiere 8400+ pts semanales";
-            } else {
-              motivo = "Tier";
-            }
-          }
-          else if (!claseOk) motivo = "Clase";
-          
-          celdaPuja = `<span style="color: #ff6b6b; font-size: 11px;">No disponible (${motivo})</span>`;
-        }
-      }else{
-        celdaPuja = `<span style="color: #c77dff; font-weight: bold; font-size: 12px;">Finalizada</span>`;
-      }
+    }
+    else if (!claseOk) motivo = "Clase";
+    
+    celdaPuja = `<span style="color: #ff6b6b; font-size: 11px;">No disponible (${motivo})</span>`;
+  }
+}else{
+  celdaPuja = `<span style="color: #c77dff; font-weight: bold; font-size: 12px;">Finalizada</span>`;
+}
 
       // Determinar color del tiempo
       let timeColor = "#c77dff";
@@ -1298,7 +1374,7 @@ window.pujar = async (id)=>{
   const esItemRojo = !!sub.esItemRojo;
   const boss45 = !!me.boss45;
   const boss55 = !!me.boss55;
-  const yaPuje = (sub.historial || []).some(h => h.uid === user.uid);
+  const yaPujeEnEsta = (sub.historial || []).some(h => h.uid === user.uid);
 
   if(!(claseItem==="Neutral" || claseItem===miClase)){
     alert(`Este item es solo para ${claseItem}`);
@@ -1309,24 +1385,79 @@ window.pujar = async (id)=>{
     return;
   }
   
-  // Validación especial para Items Rojos
-  if (esItemRojo && !yaPuje) {
-    if (miSemanal < 8400) {
-      alert("❌ Items Rojos: requieres al menos 8400 puntos semanales para pujar");
+  // Verificar si ya pujó en ALGÚN item del mismo tier
+  const subastasSnap = await getDocs(collection(db, "subastas"));
+  let yaPujoEnAlgunItemRojo = false;
+  let yaPujoEnAlgunT2 = false;
+  let yaPujoEnAlgunT3 = false;
+  
+  subastasSnap.forEach(docItem => {
+    const data = docItem.data();
+    const esRojo = !!data.esItemRojo;
+    const tier = data.tierItem || "Libre";
+    const historial = data.historial || [];
+    const pujoEnEsta = historial.some(h => h.uid === user.uid);
+    
+    if (pujoEnEsta) {
+      if (esRojo) yaPujoEnAlgunItemRojo = true;
+      else if (tier === "T2") yaPujoEnAlgunT2 = true;
+      else if (tier === "T3") yaPujoEnAlgunT3 = true;
+    }
+  });
+
+  // Calcular puntos con pujas activas
+  let puntosConPujasActivas = miSemanal;
+
+  subastasSnap.forEach(docItem => {
+    const data = docItem.data();
+    const historial = data.historial || [];
+    const pujoEnEsta = historial.some(h => h.uid === user.uid);
+    
+    if (pujoEnEsta) {
+      // Si la subasta está activa, sumar de vuelta puntos semanales
+      const restante = Math.max(0, Math.floor((data.fin - Date.now()) / 1000));
+      const finalizada = !!data.finalizada;
+      
+      if (restante > 0 && !finalizada) {
+        const miPuja = historial.find(h => h.uid === user.uid);
+        if (miPuja && miPuja.deSemanal) {
+          puntosConPujasActivas += miPuja.deSemanal;
+        }
+      }
+    }
+  });
+
+  // Validación de requisitos de puntos semanales (solo para primera puja en cada tier)
+  if (esItemRojo) {
+    if(!yaPujoEnAlgunItemRojo && !yaPujeEnEsta){
+      const puntosValidacion = Math.max(miSemanal, puntosConPujasActivas);
+      if (puntosValidacion < 8400) {
+        alert("❌ Items Rojos: requieres al menos 8400 puntos semanales para pujar");
+        return;
+      }
+    } else if (yaPujoEnAlgunItemRojo && !yaPujeEnEsta) {
+      // Si ya pujó en algún item rojo y NO es el mismo, NO puede pujar
+      alert("❌ Solo puedes pujar en UN item rojo por subasta");
       return;
     }
-    if (!completo) {
-      alert("❌ Items Rojos: debes completar tu Control (sin vacíos ni 0/0%)");
-      return;
+  } else if (tierItem === "T2") {
+    if(!yaPujoEnAlgunT2 && !yaPujeEnEsta){
+      const puntosValidacion = Math.max(miSemanal, puntosConPujasActivas);
+      if (puntosValidacion < 8000) {
+        alert("❌ T2: requieres al menos 8000 puntos semanales para pujar");
+        return;
+      }
     }
-  } else if (!yaPuje) {
-    // Validación normal para otros tiers
-    if(tierItem==="T2" && !(miSemanal >= 8000 && miSemanal <= 8399)){
-      alert("Solo jugadores con semanal entre 8000 y 8399 pueden pujar por T2");
-      return;
-    }
-    if(tierItem==="T3" && miSemanal < 8400){
-      alert("Solo jugadores con semanal ≥ 8400 pueden pujar por T3");
+  } else if (tierItem === "T3") {
+    if(!yaPujoEnAlgunT3 && !yaPujeEnEsta){
+      const puntosValidacion = Math.max(miSemanal, puntosConPujasActivas);
+      if (puntosValidacion < 8400) {
+        alert("❌ T3: requieres al menos 8400 puntos semanales para pujar");
+        return;
+      }
+    } else if (yaPujoEnAlgunT3 && !yaPujeEnEsta) {
+      // Si ya pujó en algún T3 y NO es el mismo, NO puede pujar
+      alert("❌ Solo puedes pujar en UN item T3 por subasta");
       return;
     }
   }
@@ -1346,37 +1477,95 @@ window.pujar = async (id)=>{
     return;
   }
 
-  let deTotal = 0;
-  let deSemanal = 0;
-  let nuevoTotal = totalActual;
-  let nuevoSemanal = semanalActual;
+let deTotal = 0;
+let deSemanal = 0;
+let nuevoTotal = totalActual;
+let nuevoSemanal = semanalActual;
 
-  if(nuevoTotal >= cantidad){
-    nuevoTotal -= cantidad;
-    deTotal = cantidad;
-  }else{
-    deTotal = nuevoTotal;
-    const resto = cantidad - nuevoTotal;
-    nuevoTotal = 0;
-    nuevoSemanal -= resto;
-    deSemanal = resto;
+// LÓGICA CORREGIDA: Descontar puntos semanales INMEDIATAMENTE cuando se usan
+if(nuevoTotal >= cantidad){
+  // Usar solo puntos totales
+  nuevoTotal -= cantidad;
+  deTotal = cantidad;
+  deSemanal = 0;
+} else {
+  // Usar primero todos los puntos totales, luego puntos semanales
+  deTotal = nuevoTotal;
+  const resto = cantidad - nuevoTotal;
+  nuevoTotal = 0;
+  
+  if (nuevoSemanal < resto) {
+    alert("No tienes puntos suficientes (incluyendo semanales)");
+    return;
   }
+  
+  // DESCONTAR puntos semanales INMEDIATAMENTE
+  nuevoSemanal -= resto;
+  deSemanal = resto;
+}
 
-  await updateDoc(meRef, { totalContribution: nuevoTotal, semanal: nuevoSemanal });
+// ===== REEMBOLSO INMEDIATO AL PERDEDOR =====
+const historialActual = sub.historial || [];
+const ganadorAnteriorUid = sub.ganadorUid;
+const ganadorAnteriorNombre = sub.ganador || "";
 
-  const base = sub.pujaActual ?? sub.precioBase ?? 0;
-  const nueva = cantidad;
-  const nuevoHistorial = [...(sub.historial || []), {
+// Si hay un ganador anterior Y no soy yo, reembolsarle COMPLETAMENTE
+if (ganadorAnteriorUid && ganadorAnteriorUid !== user.uid) {
+  const pujasPerdedor = historialActual.filter(h => h.uid === ganadorAnteriorUid);
+  const ultimaPujaPerdedor = pujasPerdedor[pujasPerdedor.length - 1];
+  
+  if (ultimaPujaPerdedor) {
+    const perdedorRef = doc(db, "members", ganadorAnteriorUid);
+    
+    // Reembolsar TODO: puntos TOTALES + SEMANALES
+    const puntosTotales = ultimaPujaPerdedor.deTotal || 0;
+    const puntosSemanales = ultimaPujaPerdedor.deSemanal || 0;
+    
+    const updates = {};
+    if (puntosTotales > 0) {
+      updates.totalContribution = increment(puntosTotales);
+    }
+    if (puntosSemanales > 0) {
+      updates.semanal = increment(puntosSemanales);
+    }
+    
+    if (Object.keys(updates).length > 0) {
+      await updateDoc(perdedorRef, updates);
+      
+      const totalReembolso = puntosTotales + puntosSemanales;
+      console.log(`💰 ${ganadorAnteriorNombre} reembolsado con ${totalReembolso} puntos (inmediato)`);
+      alert(`🔄 ${ganadorAnteriorNombre} reembolsado con ${totalReembolso} puntos`);
+    }
+  }
+}
+
+
+
+  // Crear nueva entrada en el historial
+  const nuevaEntradaHistorial = {
     uid: user.uid,
     jugador: me.name,
     cantidad,
     deTotal,
     deSemanal,
     timestamp: new Date()
-  }];
+  };
 
+  // Mantener solo la última puja de cada usuario
+  const nuevoHistorial = [
+    ...historialActual.filter(h => h.uid !== user.uid), // Quitar mis pujas anteriores
+    nuevaEntradaHistorial // Añadir mi nueva puja
+  ];
+
+  // Actualizar MIS puntos (restar lo que acabo de pujar)
+await updateDoc(meRef, { 
+  totalContribution: nuevoTotal,
+  semanal: nuevoSemanal  // ← ¡IMPORTANTE! Actualizar puntos semanales también
+});
+
+  // Actualizar la subasta
   await updateDoc(subRef, {
-    pujaActual: nueva,
+    pujaActual: cantidad,
     ganador: me.name,
     ganadorUid: user.uid,
     historial: nuevoHistorial,
@@ -1400,25 +1589,47 @@ window.eliminarSubasta = async (id)=>{
   const user = auth.currentUser;
   if(!user){ alert("No autenticado"); return; }
   
-  if(!confirm("¿Estás seguro de eliminar esta subasta?\nSe reembolsarán todas las pujas realizadas.")) return;
+  if(!confirm("¿Estás seguro de eliminar esta subasta?\nSe reembolsará SOLO al actual ganador.")) return;
 
   const subRef = doc(db,"subastas",id);
   const subSnap = await getDoc(subRef);
   const sub = subSnap.data();
   if(!sub){ alert("Subasta no encontrada"); return; }
 
-  if(!sub.finalizada){
-    for(const h of sub.historial || []){
-      const jugadorRef = doc(db,"members",h.uid);
-      const jugadorSnap = await getDoc(jugadorRef);
-      const jugadorData = jugadorSnap.data() || {};
-      const nuevoTotal = (jugadorData.totalContribution ?? 0) + (h.deTotal ?? 0);
-      const nuevoSemanal = (jugadorData.semanal ?? 0) + (h.deSemanal ?? 0);
-      await updateDoc(jugadorRef, { totalContribution: nuevoTotal, semanal: nuevoSemanal });
+  // Solo reembolsar al ACTUAL GANADOR
+  // Los perdedores YA fueron reembolsados cuando fueron superados
+  if(sub.ganadorUid){
+    const ganadorRef = doc(db,"members",sub.ganadorUid);
+    const ganadorSnap = await getDoc(ganadorRef);
+    
+    if (ganadorSnap.exists()) {
+      // Buscar la puja del ganador
+      const historial = sub.historial || [];
+      const pujaGanadora = historial.find(h => h.uid === sub.ganadorUid);
+      
+      if (pujaGanadora) {
+        // Reembolsar TOTALES + SEMANALES al ganador
+        const puntosTotales = pujaGanadora.deTotal || 0;
+        const puntosSemanales = pujaGanadora.deSemanal || 0;
+        
+        const updates = {};
+        if (puntosTotales > 0) {
+          updates.totalContribution = increment(puntosTotales);
+        }
+        if (puntosSemanales > 0) {
+          updates.semanal = increment(puntosSemanales);
+        }
+        
+        if (Object.keys(updates).length > 0) {
+          await updateDoc(ganadorRef, updates);
+          console.log(`💰 ${sub.ganador} reembolsado con ${puntosTotales + puntosSemanales} puntos`);
+        }
+      }
     }
   }
+
   await deleteDoc(subRef);
-  alert("✅ Subasta eliminada correctamente");
+  alert("✅ Subasta eliminada y ganador reembolsado");
 };
 
 /* === Finalizar subasta === */
@@ -1426,32 +1637,55 @@ async function finalizarSubastaSiAplica(sub, id){
   if(sub.finalizada) return;
   const subRef = doc(db,"subastas",id);
 
+  // Caso 1: No hay ganador - reembolsar TODO a todos
   if(!sub.ganadorUid){
     for(const h of sub.historial || []){
       const jugadorRef = doc(db,"members",h.uid);
-      const jugadorSnap = await getDoc(jugadorRef);
-      const jugadorData = jugadorSnap.data() || {};
-      const nuevoTotal = (jugadorData.totalContribution ?? 0) + (h.deTotal ?? 0);
-      const nuevoSemanal = (jugadorData.semanal ?? 0) + (h.deSemanal ?? 0);
-      await updateDoc(jugadorRef, { totalContribution: nuevoTotal, semanal: nuevoSemanal });
+      
+      // Reembolsar TOTALES + SEMANALES
+      const updates = {};
+      if (h.deTotal > 0) {
+        updates.totalContribution = increment(h.deTotal);
+      }
+      if (h.deSemanal > 0) {
+        updates.semanal = increment(h.deSemanal);
+      }
+      
+      if (Object.keys(updates).length > 0) {
+        await updateDoc(jugadorRef, updates);
+      }
     }
     await updateDoc(subRef,{ finalizada: true });
     return;
   }
 
-  for(const h of sub.historial || []){
-    if(h.uid !== sub.ganadorUid){
-      const jugadorRef = doc(db,"members",h.uid);
-      const jugadorSnap = await getDoc(jugadorRef);
-      const jugadorData = jugadorSnap.data() || {};
-      const nuevoTotal = (jugadorData.totalContribution ?? 0) + (h.deTotal ?? 0);
-      const nuevoSemanal = (jugadorData.semanal ?? 0) + (h.deSemanal ?? 0);
-      await updateDoc(jugadorRef, { totalContribution: nuevoTotal, semanal: nuevoSemanal });
+  // Caso 2: Hay ganador
+  // El ganador PIERDE TODOS sus puntos (totales + semanales)
+  // Los perdedores YA fueron reembolsados cuando fueron superados
+  const historial = sub.historial || [];
+  const pujaGanadora = historial.find(h => h.uid === sub.ganadorUid);
+  
+  if (pujaGanadora) {
+    const ganadorRef = doc(db,"members",sub.ganadorUid);
+    const ganadorSnap = await getDoc(ganadorRef);
+    
+    if (ganadorSnap.exists()) {
+      // El ganador ya perdió sus puntos TOTALES cuando pujó
+      // Solo necesita perder sus puntos SEMANALES ahora
+      const puntosSemanales = pujaGanadora.deSemanal || 0;
+      
+      if (puntosSemanales > 0) {
+        await updateDoc(ganadorRef, { 
+          semanal: increment(-puntosSemanales) 
+        });
+        console.log(`📉 Ganador ${sub.ganador} pierde ${puntosSemanales} puntos semanales`);
+      }
     }
   }
 
   await updateDoc(subRef,{ finalizada: true });
 }
+
 
 /* === Contador en vivo mejorado === */
 function iniciarContadoresVivos(){
