@@ -3480,13 +3480,14 @@ window.mostrarCapturas = function(id) {
     capturasContainer.innerHTML = `
       <div class="capturas-title">📸 Adjuntar Capturas (4 REQUERIDAS)</div>
       
-      <div class="upload-area" onclick="document.getElementById('fileInput_${id}').click()">
-        <div class="upload-text">📁 Arrastra o haz clic para subir</div>
-        <div class="upload-hint">Se requieren <strong>EXACTAMENTE 4 capturas</strong> (JPG, PNG, GIF - máx. 5MB cada una)</div>
-        <div class="upload-hint" id="contador_${id}" style="margin-top: 5px; color: ${capturasTemporales[id] && capturasTemporales[id].length === 4 ? '#4CAF50' : '#ff9800'}">
-          ${capturasTemporales[id] ? `${capturasTemporales[id].length}/4` : '0/4'} capturas subidas
-        </div>
-      </div>
+     <div class="upload-area" onclick="document.getElementById('fileInput_${id}').click()">
+    <div class="upload-text">📁 Arrastra o haz clic para subir</div>
+    <!-- LÍNEA MODIFICADA: Cambiado de 5MB a 15MB -->
+    <div class="upload-hint">Se requieren <strong>EXACTAMENTE 4 capturas</strong> (JPG, PNG, GIF - máx. 15MB cada una)</div>
+    <div class="upload-hint" id="contador_${id}" style="margin-top: 5px; color: ${capturasTemporales[id] && capturasTemporales[id].length === 4 ? '#4CAF50' : '#ff9800'}">
+        ${capturasTemporales[id] ? `${capturasTemporales[id].length}/4` : '0/4'} capturas subidas
+    </div>
+</div>
       
       <input type="file" id="fileInput_${id}" 
              style="display: none;" 
@@ -3542,8 +3543,8 @@ window.manejarSubidaArchivos = function(id, files) {
   
   filesArray.forEach(file => {
     // Validar tamaño (5MB máximo)
-    if (file.size > 5 * 1024 * 1024) {
-      alert(`El archivo ${file.name} es demasiado grande (máximo 5MB)`);
+    if (file.size > 15 * 1024 * 1024) {
+      alert(`El archivo ${file.name} es demasiado grande (máximo 15MB)`);
       return;
     }
     
