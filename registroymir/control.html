@@ -3644,33 +3644,137 @@ function cargarCapturasExistentes(memberId) {
   actualizarVistaCapturas(memberId);
 }
 
-// Enviar capturas a Discord
+/* === FUNCIÓN DE COMPRESIÓN DE IMÁGENES === */
+async function comprimirImagenParaDiscord(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    
+    reader.onload = function(event) {
+      img.src = event.target.result;
+      
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Tamaño máximo para Discord
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 600;
+        
+        let width = img.width;
+        let height = img.height;
+        
+        // Redimensionar manteniendo proporción
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+        
+        // Configurar canvas
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Dibujar imagen redimensionada
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convertir a JPG con buena calidad
+        canvas.toBlob(
+          (blob) => {
+            const nuevoNombre = file.name.replace(/\.[^/.]+$/, "") + '_compressed.jpg';
+            const archivoComprimido = new File([blob], nuevoNombre, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            resolve(archivoComprimido);
+          },
+          'image/jpeg',
+          0.8 // 80% calidad
+        );
+      };
+      
+      img.onerror = function() {
+        console.warn('No se pudo comprimir, usando original');
+        resolve(file);
+      };
+    };
+    
+    reader.onerror = function() {
+      reject(new Error('Error al leer la imagen'));
+    };
+  });
+}
+
+/* === ENVIAR CAPTURAS A DISCORD CON COMPRESIÓN === */
 window.enviarCapturasADiscord = async function(memberId) {
+  // Verificar que hay capturas
   if (!capturasTemporales[memberId]) {
     alert('No hay capturas para enviar');
     return;
   }
   
+  // Verificar que sean exactamente 4
   const count = capturasTemporales[memberId].length;
   if (count !== 4) {
     alert(`❌ Se requieren EXACTAMENTE 4 capturas. Tienes ${count}/4.`);
     return;
   }
   
-  // Verificar que la URL del webhook esté configurada
+  // Verificar webhook de Discord
   if (!CONFIG.discordWebhook) {
     alert('❌ Error: El webhook de Discord no está configurado.\n\nPor favor, configura la URL del webhook en Configuración.');
     return;
   }
   
+  // Obtener botón y cambiar estado
   const btnEnviar = document.getElementById(`btnEnviar_${memberId}`);
   if (btnEnviar) {
     btnEnviar.disabled = true;
-    btnEnviar.innerHTML = '⏳ Enviando 4 capturas...';
+    btnEnviar.innerHTML = '⏳ Comprimiendo imágenes...';
   }
   
   try {
-    // Obtener información del miembro
+    // ========== PASO 1: COMPRIMIR IMÁGENES ==========
+    const archivosComprimidos = [];
+    const capturasOriginales = capturasTemporales[memberId];
+    
+    // Mostrar progreso
+    for (let i = 0; i < capturasOriginales.length; i++) {
+      if (btnEnviar) {
+        btnEnviar.innerHTML = `⏳ Comprimiendo ${i + 1}/4...`;
+      }
+      
+      try {
+        const archivoComprimido = await comprimirImagenParaDiscord(capturasOriginales[i].file);
+        archivosComprimidos.push(archivoComprimido);
+      } catch (error) {
+        console.warn('Error comprimiendo, usando original:', error);
+        archivosComprimidos.push(capturasOriginales[i].file);
+      }
+    }
+    
+    // ========== PASO 2: VERIFICAR TAMAÑO TOTAL ==========
+    const tamañoTotal = archivosComprimidos.reduce((total, archivo) => total + archivo.size, 0);
+    const limiteDiscord = 8 * 1024 * 1024; // 8MB límite de Discord
+    
+    if (tamañoTotal > limiteDiscord) {
+      const tamañoMB = (tamañoTotal / (1024 * 1024)).toFixed(2);
+      alert(`❌ Las imágenes son demasiado grandes incluso después de comprimir:\n\n${tamañoMB}MB (límite Discord: 8MB)\n\nPor favor, usa imágenes más pequeñas.`);
+      throw new Error(`Tamaño total excedido: ${tamañoMB}MB`);
+    }
+    
+    // ========== PASO 3: OBTENER INFO DEL MIEMBRO ==========
+    if (btnEnviar) {
+      btnEnviar.innerHTML = '⏳ Preparando envío...';
+    }
+    
     const memberDoc = await getDoc(doc(db, "members", memberId));
     const memberData = memberDoc.exists() ? memberDoc.data() : {};
     const memberName = memberData.name || 'Miembro desconocido';
@@ -3678,64 +3782,91 @@ window.enviarCapturasADiscord = async function(memberId) {
     const memberNivel = memberData.nivel || '?';
     const memberPoder = memberData.poder || '?';
     
-    // Crear FormData para enviar múltiples archivos
-    const discordFormData = new FormData();
-    
-    // Crear payload del mensaje con información detallada
+    // ========== PASO 4: CREAR MENSAJE PARA DISCORD ==========
     const payload = {
-      content: `📸 **PACK DE 4 CAPTURAS**\n👤 **${memberName}** (${memberClase})\n📊 Nivel: ${memberNivel} | Poder: ${memberPoder}\n📅 ${new Date().toLocaleString('es-ES')}\n🔍 Stats verificados en Control Semanal\n━━━━━━━━━━━━━━━━━━━━━━`,
-      username: 'YMIR Guild Bot',
+      content: `📸 **PACK DE 4 CAPTURAS - YMIR GUILD**\n\n👤 **${memberName}**\n⚔️ ${memberClase} | Nivel ${memberNivel}\n💪 Poder: ${memberPoder}\n📅 ${new Date().toLocaleString('es-ES')}\n━━━━━━━━━━━━━━━━━━━━━━`,
+      username: '🏆 YMIR Control',
       avatar_url: CONFIG.urlLogoGuild
     };
     
-    discordFormData.append('payload_json', JSON.stringify(payload));
-    
-    // Añadir las 4 capturas al FormData
-    capturasTemporales[memberId].forEach((captura, index) => {
-      discordFormData.append(`file${index + 1}`, captura.file, `captura_${index + 1}_${captura.name}`);
-    });
-    
-    // Enviar al webhook de Discord
-    const response = await fetch(CONFIG.discordWebhook, {
-      method: 'POST',
-      body: discordFormData
-    });
-    
-    if (response.ok) {
-      // Registrar en el historial
-      await addDoc(collection(db, "historial"), {
-        usuario: memberId,
-        rol: MI_ROL,
-        accion: "Envío de pack de 4 capturas a Discord",
-        cambio: `4 capturas enviadas por ${memberName} (${memberClase})`,
-        fecha: Date.now()
-      });
-      
-      // Limpiar capturas temporales
-      capturasTemporales[memberId].forEach(captura => {
-        URL.revokeObjectURL(captura.preview);
-      });
-      capturasTemporales[memberId] = [];
-      
-      // Actualizar vista
-      actualizarVistaCapturas(memberId);
-      
-      // Cerrar el panel de capturas
-      const container = document.querySelector(`#fila_${memberId} + .capturas-container`);
-      if (container) {
-        container.remove();
-      }
-      
-      alert(`✅ Pack de 4 capturas enviado a Discord correctamente`);
-    } else {
-      const errorText = await response.text();
-      throw new Error(`Discord respondió con ${response.status}: ${errorText}`);
+    // ========== PASO 5: CREAR FORMULARIO CON ARCHIVOS ==========
+    if (btnEnviar) {
+      btnEnviar.innerHTML = '⏳ Enviando a Discord...';
     }
     
+    const discordFormData = new FormData();
+    discordFormData.append('payload_json', JSON.stringify(payload));
+    
+    // Añadir cada archivo comprimido
+    archivosComprimidos.forEach((archivo, index) => {
+      const nombreSeguro = `captura_${index + 1}_${memberName.replace(/[^a-z0-9]/gi, '_')}.jpg`;
+      discordFormData.append(`file${index}`, archivo, nombreSeguro);
+    });
+    
+    // ========== PASO 6: ENVIAR A DISCORD ==========
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 segundos timeout
+    
+    const response = await fetch(CONFIG.discordWebhook, {
+      method: 'POST',
+      body: discordFormData,
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    // ========== PASO 7: VERIFICAR RESPUESTA ==========
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Discord API: ${response.status} - ${errorText.substring(0, 100)}`);
+    }
+    
+    // ========== PASO 8: ÉXITO - LIMPIAR Y REGISTRAR ==========
+    // Limpiar capturas temporales
+    capturasTemporales[memberId].forEach(captura => {
+      URL.revokeObjectURL(captura.preview);
+    });
+    capturasTemporales[memberId] = [];
+    
+    // Registrar en historial
+    await addDoc(collection(db, "historial"), {
+      usuario: memberId,
+      rol: MI_ROL,
+      accion: "Envío de pack de 4 capturas a Discord",
+      cambio: `4 capturas comprimidas enviadas por ${memberName} (${memberClase})`,
+      fecha: Date.now(),
+      detalles: `Compresión aplicada - Total: ${(tamañoTotal / 1024).toFixed(0)}KB`
+    });
+    
+    // Actualizar vista y cerrar panel
+    actualizarVistaCapturas(memberId);
+    const container = document.querySelector(`#fila_${memberId} + .capturas-container`);
+    if (container) container.remove();
+    
+    // Mostrar mensaje de éxito
+    const tamañoFinal = (tamañoTotal / 1024).toFixed(0);
+    alert(`✅ ¡Capturas enviadas correctamente!\n\n📁 Tamaño total: ${tamañoFinal}KB\n👤 Miembro: ${memberName}\n📅 ${new Date().toLocaleTimeString('es-ES')}`);
+    
   } catch (error) {
-    console.error('Error al enviar a Discord:', error);
-    alert(`❌ Error al enviar capturas: ${error.message}`);
+    console.error('❌ Error completo:', error);
+    
+    // Mensajes de error específicos
+    let mensajeUsuario = '❌ Error al enviar capturas: ';
+    
+    if (error.name === 'AbortError') {
+      mensajeUsuario = '⏱️ Tiempo de espera agotado. Las imágenes podrían ser muy grandes.\n\nSugerencias:\n1. Captura solo la parte de los stats\n2. Usa formato JPG\n3. Reduce el tamaño de pantalla';
+    } else if (error.message.includes('413')) {
+      mensajeUsuario = '📁 Las imágenes son demasiado grandes para Discord.\n\nLímite de Discord: 8MB por mensaje';
+    } else if (error.message.includes('429')) {
+      mensajeUsuario = '🚫 Demasiados envíos seguidos.\n\nEspera 1-2 minutos antes de intentar de nuevo.';
+    } else {
+      mensajeUsuario += `\n\n${error.message.substring(0, 150)}`;
+    }
+    
+    alert(mensajeUsuario);
+    
   } finally {
+    // Restaurar botón
     if (btnEnviar) {
       btnEnviar.disabled = false;
       btnEnviar.innerHTML = '🚀 Enviar 4 Capturas a Discord';
@@ -3743,6 +3874,28 @@ window.enviarCapturasADiscord = async function(memberId) {
   }
 };
 
+/* === Función principal: Iniciar reinicio con backup automático === */
+window.iniciarReinicioConBackup = async () => {
+  if(!esLiderOficial){
+    alert("❌ Solo Líderes y Oficiales pueden reiniciar los stats.");
+    return;
+  }
+  
+  const respuesta = confirm("🔄 ¿REINICIAR TODOS LOS STATS?\n\n📊 Se crearÁ UN BACKUP automático antes del reinicio.\n\n¿Quieres proceder?");
+  
+  if(!respuesta) return;
+  
+  await crearBackupAutomatico();
+  
+  const confirmacionFinal = confirm("✅ Backup creado exitosamente.\n\n¿Estás SEGURO de reiniciar TODOS los stats?\n\n📊 Se resetearán SOLO los stats (ATK, DEF, DMG, etc.)\n\n⚠️ NO se modificarán:\n• Nombre, Clase, Nivel, Poder\n• Contribución Semanal / Total\n• Bosses 45/55\n• Roles");
+  
+  if(!confirmacionFinal) {
+    alert("❌ Reinicio cancelado. El backup ya está guardado.");
+    return;
+  }
+  
+  await reinicioStats();
+};
 /* === Función principal: Iniciar reinicio con backup automático === */
 window.iniciarReinicioConBackup = async () => {
   if(!esLiderOficial){
