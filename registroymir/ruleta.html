@@ -1842,6 +1842,7 @@ async function loadEligibleMembers() {
     allMembersInfo.forEach(m => {
       const status = m.elegible ? "✅" : "❌";
       console.log(`${status} ${m.name}: ${m.puntosTotales}pts (${m.semanal} actual + ${m.puntosUsadosSubastas} usados) | Bosses: ${m.boss45 ? "✅" : "❌"}/${m.boss55 ? "✅" : "❌"} | Control: ${m.controlCompleto ? "✅" : "❌"} | ControlSemanal: ${m.controlSemanalCompletado ? "✅" : "❌"}`);
+    });
     
     // Verificar si necesitamos resetear la participación (cada 7 días)
     const now = Date.now();
@@ -2894,7 +2895,7 @@ async function clearAllHistory() {
       alert('✅ El historial ya está vacío.');
       return;
     }
-    
+  
     // Usar un batch para eliminar todos los documentos
     const batch = writeBatch(db);
     snapshot.docs.forEach(docSnapshot => {
@@ -2999,14 +3000,37 @@ function showToast(message, type = "info") {
 
 /* === Inicializar la ruleta === */
 async function initializeTrashRoulette() {
+  console.log("🔄 Inicializando ruleta...");
+  
   // Cargar estado desde Firestore
   await loadTrashRouletteState();
   
   // Configurar el botón de detalles
   setupDetailsToggle();
   
-  // Configurar event listeners según el rol
-  if (currentUserRole === "Líder" || currentUserRole === "Oficial") {
+  // ⭐⭐⭐ USAR EXACTAMENTE LA MISMA LÓGICA QUE panel.html ⭐⭐⭐
+  const rolLower = currentUserRole.trim().toLowerCase();
+  const esAdmin = (rolLower === "líder" || rolLower === "lider" || rolLower === "oficial");
+  
+  console.log("👑 Es administrador?", esAdmin, "Rol:", currentUserRole, "Rol en minúsculas:", rolLower);
+  
+  // CONFIGURAR VISIBILIDAD
+  if (esAdmin) {
+    console.log("✅ Mostrando controles de administrador");
+    
+    // MOSTRAR elementos para administradores
+    document.getElementById('addItemForm').style.display = 'block';
+    document.getElementById('actionButtons').style.display = 'flex';
+    document.getElementById('uploadSection').style.display = 'block';
+    document.getElementById('spinRouletteBtn').style.display = 'block';
+    document.getElementById('clearHistoryBtn').style.display = 'block';
+    document.getElementById('newRoundBtn').style.display = 'block';
+    
+    // OCULTAR elementos para miembros
+    document.getElementById('memberSpinMessage').style.display = 'none';
+    document.getElementById('memberInfo').style.display = 'none';
+    
+    // CONFIGURAR EVENT LISTENERS PARA ADMINISTRADORES
     document.getElementById('addTrashItemBtn').addEventListener('click', addTrashItem);
     document.getElementById('clearTrashItemsBtn').addEventListener('click', clearAllTrashItems);
     document.getElementById('resetDistributionBtn').addEventListener('click', resetDistribution);
@@ -3019,82 +3043,136 @@ async function initializeTrashRoulette() {
     document.getElementById('processOCRBtn').addEventListener('click', processImagesWithOCR);
     
     // Permitir agregar con Enter
-    document.getElementById('newTrashItem').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') addTrashItem();
-    });
+    const nombreInput = document.getElementById('newTrashItem');
+    const cantidadInput = document.getElementById('newTrashQuantity');
     
-    document.getElementById('newTrashQuantity').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') addTrashItem();
-    });
+    if (nombreInput) {
+      nombreInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') addTrashItem();
+      });
+    }
     
-    // Mostrar controles de líder/oficial
-    document.getElementById('addItemForm').style.display = 'block';
-    document.getElementById('actionButtons').style.display = 'flex';
-    document.getElementById('uploadSection').style.display = 'block';
-    document.getElementById('spinRouletteBtn').style.display = 'block';
-    document.getElementById('memberSpinMessage').style.display = 'none';
-    document.getElementById('memberInfo').style.display = 'none';
-    document.getElementById('newRoundBtn').style.display = 'block';
+    if (cantidadInput) {
+      cantidadInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') addTrashItem();
+      });
+    }
+    
   } else {
-    // Ocultar controles para miembros
+    console.log("👤 Mostrando vista de miembro");
+    
+    // OCULTAR elementos de administración
     document.getElementById('addItemForm').style.display = 'none';
     document.getElementById('actionButtons').style.display = 'none';
     document.getElementById('uploadSection').style.display = 'none';
     document.getElementById('spinRouletteBtn').style.display = 'none';
-    document.getElementById('memberSpinMessage').style.display = 'block';
     document.getElementById('clearHistoryBtn').style.display = 'none';
     document.getElementById('newRoundBtn').style.display = 'none';
+    
+    // MOSTRAR elementos para miembros
+    document.getElementById('memberSpinMessage').style.display = 'block';
+    document.getElementById('memberInfo').style.display = 'block';
   }
   
-  document.getElementById('clearResultsBtn').addEventListener('click', clearResults);
+  // Configurar botones comunes (para todos)
+  const clearResultsBtn = document.getElementById('clearResultsBtn');
+  if (clearResultsBtn) {
+    clearResultsBtn.addEventListener('click', clearResults);
+  }
   
-  // Cargar miembros elegibles al inicio y cada minuto
+  // Cargar miembros elegibles
   await loadEligibleMembers();
+  
+  // Configurar actualización periódica
   setInterval(loadEligibleMembers, 60000);
   
   // Cargar historial
   loadDistributionHistory();
   
-  // Inicializar Tesseract OCR
+  // Inicializar OCR
   initializeTesseract().then(success => {
     if (success) {
-      console.log("OCR listo para usar");
+      console.log("✅ OCR listo");
     } else {
-      console.warn("OCR no disponible, se usará modo manual");
+      console.warn("⚠️ OCR no disponible");
     }
   });
+  
+  console.log("✅ Ruleta inicializada correctamente");
 }
 
 /* === Auth y visibilidad === */
-onAuthStateChanged(auth, async user=>{
-  if(!user){ location.href = "index.html"; return; }
+onAuthStateChanged(auth, async user => {
+  console.log("🔍 PASO 1: onAuthStateChanged iniciado en ruleta.html");
+  
+  if (!user) { 
+    console.log("❌ No hay usuario, redirigiendo a index.html");
+    location.href = "index.html"; 
+    return; 
+  }
+  
+  console.log("✅ Usuario autenticado:", user.email);
+  console.log("✅ UID:", user.uid);
   
   // === BLOQUEO SI ESTÁ BANEADO ===
+  console.log("🔍 PASO 2: Verificando si está baneado...");
   const banSnap = await getDoc(doc(db, "baneados", user.uid));
   if (banSnap.exists()) {
+    console.log("❌ Usuario baneado, redirigiendo");
     alert("Acceso denegado: estás baneado.");
     await auth.signOut();
     location.href = "index.html";
     return;
   }
+  console.log("✅ No está baneado");
   
-  const meSnap = await getDoc(doc(db,"members",user.uid));
-  const meData = meSnap.data() || {};
-  currentUserRole = meData.role || "Miembro";
+  console.log("🔍 PASO 3: Obteniendo datos de Firestore...");
+  const meSnap = await getDoc(doc(db, "members", user.uid));
   
-  // Mostrar enlace a baneados en menú si es Líder/Oficial
-  if(currentUserRole === "Líder" || currentUserRole === "Oficial"){
-    const baneadosMenuItem = document.getElementById("baneadosMenuItem");
-    if (baneadosMenuItem) {
-      baneadosMenuItem.style.display = "list-item";
-    }
+  if (!meSnap.exists()) {
+    console.log("❌ No existe documento en 'members' para este UID");
+    alert("Error: No estás registrado como miembro.");
+    return;
   }
   
+  const meData = meSnap.data() || {};
+  console.log("✅ Datos obtenidos de Firestore");
+  
+  // ⭐⭐⭐ MISMÍSIMA LÓGICA QUE panel.html ⭐⭐⭐
+  // Obtener rol EXACTAMENTE igual que en panel.html
+  const rawRole = meData.role || meData.rol || meData.proofImages?.role || "Miembro";
+  currentUserRole = rawRole.trim();
+  
+  // ⭐⭐⭐ CÓDIGO EXACTO QUE FUNCIONA EN panel.html ⭐⭐⭐
+  const rolLower = currentUserRole.toLowerCase();
+  const esAdmin = (rolLower === "líder" || rolLower === "lider" || rolLower === "oficial");
+  
+  console.log("🎰 DEBUG - MISMA LÓGICA QUE PANEL:");
+  console.log("• Rol crudo:", rawRole);
+  console.log("• Rol procesado:", currentUserRole);
+  console.log("• Rol en minúsculas:", rolLower);
+  console.log("• ¿Es administrador?", esAdmin);
+  console.log("• Comparaciones:");
+  console.log("  - rolLower === 'líder':", rolLower === "líder");
+  console.log("  - rolLower === 'lider':", rolLower === "lider");
+  console.log("  - rolLower === 'oficial':", rolLower === "oficial");
+  
+  // Mostrar enlace a baneados en menú si es Líder/Oficial
+  const baneadosMenuItem = document.getElementById("baneadosMenuItem");
+  if (esAdmin && baneadosMenuItem) {
+    console.log("   • Mostrando enlace a baneados en menú");
+    baneadosMenuItem.style.display = "list-item";
+  }
+  
+  console.log("🚀 PASO 4: Inicializando ruleta...");
   // Inicializar ruleta según el rol
   await initializeTrashRoulette();
   
+  console.log("🔔 PASO 5: Escuchando solicitudes...");
   // Escuchar solicitudes
   escucharSolicitudesBadge();
+  
+  console.log("🎉 AUTENTICACIÓN COMPLETADA EN RULETA");
 });
 
 // Añadir animaciones CSS
@@ -3112,6 +3190,5 @@ style.textContent = `
 document.head.appendChild(style);
 
 </script>
-
 </body>
 </html>
