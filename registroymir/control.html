@@ -2397,32 +2397,42 @@ async function verificarYEnviarNotificaciones() {
   }
 }
 
-/* === Función SIMPLIFICADA y CORRECTA === */
+/* === Función CORREGIDA para obtener día y hora del servidor === */
 function obtenerDiaYHoraServidor() {
   const ahora = new Date();
   
-  // Obtener hora UTC REAL (sin DST)
-  const utcHora = ahora.getUTCHours();
-  const utcMinutos = ahora.getUTCMinutes();
+  // Obtener valores UTC reales
+  const horaUTC = ahora.getUTCHours();
+  const minutosUTC = ahora.getUTCMinutes();
+  const segundosUTC = ahora.getUTCSeconds();
+  const diaUTC = ahora.getUTCDay(); // 0=Domingo, 1=Lunes, etc.
   
-  // Calcular hora servidor: UTC + diferencia
-  let horaServidor = utcHora + CONFIG.diferenciaHoraria;
+  // Calcular hora servidor: UTC + diferencia configurada
+  let horaServidor = horaUTC + CONFIG.diferenciaHoraria;
+  let diaServidor = diaUTC;
   
-  // Ajustar si pasa de medianoche
-  if (horaServidor < 0) horaServidor += 24;
-  if (horaServidor >= 24) horaServidor -= 24;
+  // AJUSTAR DÍA si la hora pasa de medianoche
+  if (horaServidor >= 24) {
+    horaServidor -= 24;
+    diaServidor = (diaUTC + 1) % 7; // Avanzar un día
+  } else if (horaServidor < 0) {
+    horaServidor += 24;
+    diaServidor = (diaUTC - 1 + 7) % 7; // Retroceder un día
+  }
   
-  console.log('🕐 CÁLCULO EXACTO:');
-  console.log(`   LOCAL: ${ahora.getHours()}:${ahora.getMinutes()}`);
-  console.log(`   UTC: ${utcHora}:${utcMinutos}`);
-  console.log(`   Diferencia: ${CONFIG.diferenciaHoraria}`);
-  console.log(`   SERVIDOR REAL: ${horaServidor}:${utcMinutos}`);
+  // DEBUG detallado (puedes quitar esto después)
+  console.log('🕐 CALCULO DÍA/HORA SERVIDOR:');
+  console.log(`   FECHA LOCAL: ${ahora.toLocaleString('es-ES')}`);
+  console.log(`   UTC: ${horaUTC}:${minutosUTC.toString().padStart(2, '0')} - Día ${diaUTC} (${obtenerNombreDiaPorNumero(diaUTC)})`);
+  console.log(`   DIFERENCIA: ${CONFIG.diferenciaHoraria} horas`);
+  console.log(`   RESULTADO: ${horaServidor}:${minutosUTC.toString().padStart(2, '0')} - Día ${diaServidor} (${obtenerNombreDiaPorNumero(diaServidor)})`);
+  console.log(`   DIFERENCIA APLICADA: UTC(${horaUTC}) + ${CONFIG.diferenciaHoraria} = ${horaServidor}`);
   
   return {
-    diaSemana: ahora.getDay(), // Mismo día local
+    diaSemana: diaServidor, // Día AJUSTADO por diferencia horaria ← ¡ESTO ES LO QUE CAMBIA!
     hora: horaServidor,
-    minutos: utcMinutos,
-    segundos: ahora.getSeconds(),
+    minutos: minutosUTC,
+    segundos: segundosUTC,
     fechaCompleta: ahora
   };
 }
@@ -2714,19 +2724,21 @@ async function enviarNotificacionUrgente() {
 }
 
 /* === FUNCIONES PARA VERIFICAR DÍAS DE CAPTURAS === */
-function obtenerDiaSemana() {
-  const ahora = new Date();
-  return ahora.getDay();
-}
-
 function esDiaDeCapturas() {
-  const diaSemana = obtenerDiaSemana();
+  const { diaSemana } = obtenerDiaYHoraServidor(); // Usa la MISMA función que las notificaciones
+  
+  console.log('📅 VERIFICANDO DÍA CAPTURAS:');
+  console.log(`   Día calculado: ${diaSemana} (${obtenerNombreDiaPorNumero(diaSemana)})`);
+  console.log(`   Días permitidos: ${CONFIG.diasCapturas.map(d => obtenerNombreDiaPorNumero(d)).join(', ')}`);
+  console.log(`   ¿Incluye? ${CONFIG.diasCapturas.includes(diaSemana) ? '✅ SÍ' : '❌ NO'}`);
+  
   return CONFIG.diasCapturas.includes(diaSemana);
 }
 
 function obtenerNombreDia() {
+  const { diaSemana } = obtenerDiaYHoraServidor(); // Usa día ajustado
   const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-  return dias[obtenerDiaSemana()];
+  return dias[diaSemana] || "Desconocido";
 }
 
 function obtenerNombreDiaPorNumero(numeroDia) {
@@ -2734,40 +2746,81 @@ function obtenerNombreDiaPorNumero(numeroDia) {
   return dias[numeroDia] || "Desconocido";
 }
 
-/* === ACTUALIZAR INDICADOR DE DÍAS === */
+/* === ACTUALIZAR INDICADOR DE DÍAS CON HORA SERVIDOR === */
 function actualizarIndicadorDias() {
   const nombreDiaElement = document.getElementById('nombreDiaActual');
   const estadoElement = document.getElementById('estadoCapturas');
   
   if (nombreDiaElement && estadoElement) {
-    const nombreDia = obtenerNombreDia();
+    // Obtener día y hora ACTUAL del servidor
+    const { diaSemana, hora, minutos } = obtenerDiaYHoraServidor();
+    const nombreDia = obtenerNombreDiaPorNumero(diaSemana);
     const esValido = esDiaDeCapturas();
     const diasHabilitados = CONFIG.diasCapturas.map(d => obtenerNombreDiaPorNumero(d)).join(', ');
     
-    nombreDiaElement.textContent = nombreDia;
+    // Formatear hora actual
+    const horaActual = `${hora.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
+    
+    nombreDiaElement.textContent = `${nombreDia} ${horaActual}`;
     
     if (esValido) {
-      estadoElement.innerHTML = `<span style="color:#4CAF50">✅ Capturas HABILITADAS hoy (Días permitidos: ${diasHabilitados})</span>`;
+      estadoElement.innerHTML = `
+        <span style="color:#4CAF50">✅ Capturas HABILITADAS</span><br>
+        <small style="color:#888; font-size:11px;">Días permitidos: ${diasHabilitados}</small>
+      `;
       document.getElementById('diasCapturasInfo').style.borderLeftColor = '#4CAF50';
     } else {
-      estadoElement.innerHTML = `<span style="color:#ff9800">❌ Capturas NO disponibles hoy (Días permitidos: ${diasHabilitados})</span>`;
+      estadoElement.innerHTML = `
+        <span style="color:#ff9800">❌ Capturas NO disponibles</span><br>
+        <small style="color:#888; font-size:11px;">Días permitidos: ${diasHabilitados}</small>
+      `;
       document.getElementById('diasCapturasInfo').style.borderLeftColor = '#ff9800';
     }
   }
 }
 
-/* === Actualizar relojes superiores === */
+/* === Actualizar relojes superiores CON LA MISMA DIFERENCIA HORARIA === */
 function updateTopClocks() {
   const now = new Date();
   
+  // Hora local (del navegador)
   const localTime = now.toLocaleTimeString('es-ES', { hour12: false });
   document.getElementById('localTime').textContent = localTime;
   
-  const serverTime = new Date(now.getTime() + (CONFIG.diferenciaHoraria * 3600 * 1000));
-  const serverTimeStr = serverTime.toISOString().substr(11, 8);
+  // Hora del servidor (usando la MISMA diferencia horaria que Discord)
+  // Esto es CRÍTICO: usar exactamente el mismo cálculo
+  const horaUTC = now.getUTCHours();
+  const minutosUTC = now.getUTCMinutes();
+  const segundosUTC = now.getUTCSeconds();
+  
+  let horaServidor = horaUTC + CONFIG.diferenciaHoraria;
+  
+  // Ajustar si pasa de medianoche
+  if (horaServidor >= 24) {
+    horaServidor -= 24;
+  } else if (horaServidor < 0) {
+    horaServidor += 24;
+  }
+  
+  // Formatear como HH:MM:SS
+  const horaStr = horaServidor.toString().padStart(2, '0');
+  const minutosStr = minutosUTC.toString().padStart(2, '0');
+  const segundosStr = segundosUTC.toString().padStart(2, '0');
+  
+  const serverTimeStr = `${horaStr}:${minutosStr}:${segundosStr}`;
   document.getElementById('serverTime').textContent = serverTimeStr;
   
+  // También actualizar el indicador de días
   actualizarIndicadorDias();
+  
+  // DEBUG: Mostrar en consola para verificar
+  console.log('🕐 RELOJES ACTUALIZADOS:', {
+    local: localTime,
+    server: serverTimeStr,
+    diferencia: CONFIG.diferenciaHoraria,
+    horaUTC: `${horaUTC}:${minutosUTC}`,
+    horaCalculada: horaServidor
+  });
 }
 
 setInterval(updateTopClocks, 1000);
