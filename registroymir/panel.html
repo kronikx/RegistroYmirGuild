@@ -734,15 +734,16 @@ function cargarMiembros() {
             <option>Líder</option>
           </select>
         </th>
-        <th>
-          <select>
-            <option value="">Todas</option>
-            <option>Arquero</option>
-            <option>Mago</option>
-            <option>Tanque</option>
-            <option>Healer</option>
-          </select>
-        </th>
+       <th>
+  <select>
+    <option value="">Todas</option>
+    <option>Arquero</option>
+    <option>Mago</option>
+    <option>Tanque</option>
+    <option>Healer</option>
+    <option>Lancero</option>
+  </select>
+</th>
         <th><input type="number" placeholder="Mín nivel"></th>
         <th><input type="number" placeholder="Mín poder"></th>
         <th><input type="number" placeholder="Mín contrib"></th>
@@ -1580,6 +1581,39 @@ function escucharSolicitudesBadge(){
     badge.style.display = snap.size > 0 ? "block" : "none";
   });
 }
+/* === Lista completa de clases disponibles === */
+const CLASES_DISPONIBLES = [
+  "Arquero", "Mago", "Tanque", "Healer", "Lancero",
+  "Espadachín", "Mercenario", "Bárbaro", "Místico"
+];
+
+/* === Función para actualizar filtro de clases dinámicamente === */
+function actualizarFiltroClases() {
+  const filtrosClase = document.querySelectorAll('.filtros th:nth-child(3) select');
+  
+  filtrosClase.forEach(select => {
+    // Guardar valor actual seleccionado
+    const valorActual = select.value;
+    
+    // Limpiar opciones
+    select.innerHTML = '<option value="">Todas</option>';
+    
+    // Agregar todas las clases
+    CLASES_DISPONIBLES.forEach(clase => {
+      const option = document.createElement('option');
+      option.value = clase;
+      option.textContent = clase;
+      if (valorActual === clase) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+  });
+}
+
+// Llamar esta función después de cargar la tabla
+// Agrega esto dentro de tu función cargarMiembros() después de crear el HTML de la tabla:
+setTimeout(actualizarFiltroClases, 100);
 </script>
 <script>
     // Evento para el botón de bosses - REDIRIGE A bosses.html EN NUEVA PESTAÑA
