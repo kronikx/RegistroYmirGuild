@@ -86,6 +86,65 @@
   .baneados-table tr:hover td {
     background: rgba(255, 107, 107, 0.1) !important;
   }
+  
+  /* Estilos para el botón de guardar todo */
+  .guardar-todo-container {
+    background: rgba(90, 24, 154, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+    border: 1px solid rgba(90, 24, 154, 0.3);
+  }
+  
+  #guardarTodoBtn {
+    padding: 12px 24px;
+    font-size: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+  }
+  
+  #guardarTodoBtn:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Flechas para indicar ordenamiento */
+  th {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+  }
+  
+  th:hover {
+    background-color: rgba(90, 24, 154, 0.1);
+  }
+  
+  th::after {
+    content: '⬍';
+    margin-left: 5px;
+    font-size: 12px;
+    opacity: 0.5;
+  }
+  
+  th.sorted-asc::after {
+    content: '⬆';
+    opacity: 1;
+  }
+  
+  th.sorted-desc::after {
+    content: '⬇';
+    opacity: 1;
+  }
 </style>
 </head>
 <body>
@@ -524,6 +583,16 @@
     <button id="reinicioBtn" onclick="reinicioSemanal()">🔄 Reinicio Semanal</button>
   </div>
 
+  <!-- CONTENEDOR DEL BOTÓN GUARDAR TODO (arriba de la tabla) -->
+  <div id="guardarTodoContainer" style="display: none;" class="guardar-todo-container">
+    <button id="guardarTodoBtn" onclick="guardarTodosLosCambios()">
+      💾 GUARDAR TODOS LOS CAMBIOS
+    </button>
+    <p style="margin-top: 10px; font-size: 12px; color: #666;">
+      <strong>⚠️ ATENCIÓN:</strong> Los cambios realizados en la tabla se guardarán todos a la vez.
+    </p>
+  </div>
+
   <!-- TABLA DE MIEMBROS -->
   <div class="card">
     <div class="table-scroll">
@@ -706,6 +775,12 @@ function cargarMiembros() {
         </tr>
       `;
       return;
+    }
+    
+    // Mostrar/ocultar botón de guardar todo
+    const guardarTodoContainer = document.getElementById("guardarTodoContainer");
+    if (guardarTodoContainer) {
+      guardarTodoContainer.style.display = esLiderOficial && snap.size > 0 ? "block" : "none";
     }
     
     // Crear encabezado de la tabla
@@ -914,23 +989,7 @@ function cargarMiembros() {
       }
     });
     
-    // Si es Líder/Oficial, añadir botón de guardar todo
-    if (esLiderOficial && snap.size > 0) {
-      html += `
-        <tr id="filaGuardarTodo" style="background: rgba(90, 24, 154, 0.1);">
-          <td colspan="11" style="text-align: center; padding: 15px;">
-            <button id="guardarTodoBtn" class="btn" 
-                    onclick="guardarTodosLosCambios()"
-                    style="padding: 10px 20px; font-size: 16px; background: #4CAF50;">
-              💾 GUARDAR TODOS LOS CAMBIOS
-            </button>
-            <p style="margin-top: 10px; font-size: 12px; color: #666;">
-              <strong>⚠️ ATENCIÓN:</strong> Todos los campos son editables. Revisa los cambios antes de guardar.
-            </p>
-          </td>
-        </tr>
-      `;
-    }
+    // NOTA: Ya no añadimos el botón aquí, está en un contenedor separado arriba de la tabla
     
     tabla.innerHTML = html;
     
@@ -1023,7 +1082,7 @@ window.guardarTodosLosCambios = async () => {
       cambios[id] = updateData;
       miembrosConCambios.push({
         id: id,
-        nombre: nombreInput?.value || datosOriginales.name,
+        nombre: datosOriginales.name,
         cambios: Object.keys(updateData).length
       });
       totalCambios += Object.keys(updateData).length;
@@ -1462,7 +1521,51 @@ window.reinicioSemanal = async ()=>{
   alert(mensajeFinal);
 };
 
-/* ===== FILTRADO MEJORADO (busca por inicio del texto, insensible a acentos) ===== */
+/* === Función auxiliar para obtener valor de celda === */
+function obtenerValorCelda(celda) {
+  if (!celda) return "";
+  
+  // Si la celda tiene un input
+  const input = celda.querySelector('input');
+  if (input) {
+    return input.value;
+  }
+  
+  // Si la celda tiene un select
+  const select = celda.querySelector('select');
+  if (select) {
+    return select.value;
+  }
+  
+  // Si la celda tiene un badge de rol
+  const roleBadge = celda.querySelector('.role-badge');
+  if (roleBadge) {
+    return roleBadge.textContent.trim();
+  }
+  
+  // Si la celda tiene contribución total
+  const totalContribution = celda.querySelector('.total-contribution');
+  if (totalContribution) {
+    return totalContribution.textContent.trim();
+  }
+  
+  // Si la celda tiene nombre editable
+  const nameDisplay = celda.querySelector('.name-display');
+  if (nameDisplay) {
+    return nameDisplay.textContent.trim();
+  }
+  
+  // Si la celda tiene clase editable
+  const classDisplay = celda.querySelector('.class-display');
+  if (classDisplay) {
+    return classDisplay.textContent.trim();
+  }
+  
+  // Si no hay elementos especiales, obtener el texto normal
+  return celda.textContent.trim();
+}
+
+/* ===== FILTRADO MEJORADO ===== */
 function filtrarTabla() {
   const tabla = document.getElementById("tablaMiembros");
   const filtros = tabla.querySelectorAll(".filtros th");
@@ -1476,26 +1579,8 @@ function filtrarTabla() {
       const input = filtro.querySelector("input, select");
       if (!input || !input.value) return;
 
-      let valorCelda = "";
-      
-      // Obtener el valor de la celda dependiendo de su contenido
-      const celda = celdas[i];
-      
-      // Si la celda contiene un input, select, o texto
-      if (celda.querySelector('input')) {
-        valorCelda = celda.querySelector('input').value;
-      } else if (celda.querySelector('select')) {
-        valorCelda = celda.querySelector('select').value;
-      } else if (celda.querySelector('.role-badge')) {
-        valorCelda = celda.querySelector('.role-badge').textContent.trim();
-      } else if (celda.querySelector('.total-contribution')) {
-        valorCelda = celda.querySelector('.total-contribution').textContent.trim();
-      } else {
-        valorCelda = celda.textContent.trim();
-      }
-
+      let valorCelda = obtenerValorCelda(celdas[i]);
       const valorFiltro = input.value.trim();
-      valorCelda = valorCelda.toString();
 
       // Para filtros numéricos (inputs de tipo number)
       if (input.type === 'number' && valorFiltro !== "") {
@@ -1509,7 +1594,7 @@ function filtrarTabla() {
       // Para filtros de texto y selects
       else if (valorFiltro !== "") {
         // Normalizar texto (quitar acentos, convertir a minúsculas)
-        const textoNormalizado = normalizarTexto(valorCelda);
+        const textoNormalizado = normalizarTexto(valorCelda.toString());
         const filtroNormalizado = normalizarTexto(valorFiltro);
         
         // Si es un select, comparar exactamente
@@ -1551,21 +1636,34 @@ window.ordenarTabla = (col) => {
   ordenCol = col;
 
   filas.sort((a, b) => {
-    let A = a.children[col].textContent.trim();
-    let B = b.children[col].textContent.trim();
+    let A = obtenerValorCelda(a.children[col]);
+    let B = obtenerValorCelda(b.children[col]);
 
+    // Para valores Sí/No
     if (A === "Sí" || A === "No") {
       A = A === "Sí" ? 1 : 0;
       B = B === "Sí" ? 1 : 0;
     }
 
-    if (!isNaN(A) && !isNaN(B)) {
-      return ordenAsc ? A - B : B - A;
+    // Intentar convertir a número si es posible
+    const numA = parseFloat(A);
+    const numB = parseFloat(B);
+    
+    if (!isNaN(numA) && !isNaN(numB)) {
+      // Si ambos son números, ordenar numéricamente
+      return ordenAsc ? numA - numB : numB - numA;
+    } else if (!isNaN(numA) && isNaN(numB)) {
+      // A es número, B no -> números primero
+      return ordenAsc ? -1 : 1;
+    } else if (isNaN(numA) && !isNaN(numB)) {
+      // B es número, A no -> números primero
+      return ordenAsc ? 1 : -1;
+    } else {
+      // Ambos son texto, ordenar alfabéticamente
+      return ordenAsc
+        ? A.toString().localeCompare(B.toString(), "es", { sensitivity: "base" })
+        : B.toString().localeCompare(A.toString(), "es", { sensitivity: "base" });
     }
-
-    return ordenAsc
-      ? A.localeCompare(B, "es", { sensitivity: "base" })
-      : B.localeCompare(A, "es", { sensitivity: "base" });
   });
 
   filas.forEach(f => tabla.appendChild(f));
