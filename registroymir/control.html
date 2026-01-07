@@ -2001,13 +2001,13 @@ function obtenerDiaYHoraServidor() {
   };
 }
 
-/* === FUNCIÓN PARA VERIFICAR SI EL CONTROL ESTÁ ABIERTO (CORREGIDA) === */
+/* === FUNCIÓN CORREGIDA DEFINITIVA: CONTROL ESTÁ ABIERTO === */
 function controlEstaAbierto() {
   // Obtener día y hora del SERVIDOR (con diferencia horaria aplicada)
   const { diaSemana, hora, minutos } = obtenerDiaYHoraServidor();
   
-  // Convertir hora servidor a minutos
-  const minutosServidor = hora * 60 + minutos;
+  // Convertir hora servidor a minutos totales
+  const minutosActuales = hora * 60 + minutos;
   
   // Convertir horas configuradas a minutos
   const horaApertura = parsearHoraConfigurada(CONFIG.horaApertura);
@@ -2016,33 +2016,80 @@ function controlEstaAbierto() {
   const horaCierre = parsearHoraConfigurada(CONFIG.horaCierre);
   const minutosCierre = horaCierre.horas * 60 + horaCierre.minutos;
   
-  // 1. Si estamos en día de apertura
-  if (diaSemana === CONFIG.diaApertura) {
-    // Solo contar desde la hora de apertura
-    return minutosServidor >= minutosApertura;
-  }
+  // DEBUG: Mostrar información
+  console.log('🔍 VERIFICACIÓN CONTROL (VERSIÓN FINAL):');
+  console.log(`   Día actual: ${diaSemana} (${obtenerNombreDiaPorNumero(diaSemana)})`);
+  console.log(`   Hora actual: ${hora}:${minutos < 10 ? '0' : ''}${minutos} (${minutosActuales}min)`);
+  console.log(`   Apertura: Día ${CONFIG.diaApertura} (${obtenerNombreDiaPorNumero(CONFIG.diaApertura)}) ${CONFIG.horaApertura} (${minutosApertura}min)`);
+  console.log(`   Cierre: Día ${CONFIG.diaCierre} (${obtenerNombreDiaPorNumero(CONFIG.diaCierre)}) ${CONFIG.horaCierre} (${minutosCierre}min)`);
   
-  // 2. Si estamos en día de cierre
-  if (diaSemana === CONFIG.diaCierre) {
-    // Solo contar hasta la hora de cierre
-    return minutosServidor < minutosCierre;
-  }
-  
-  // 3. Si estamos entre los días de apertura y cierre
-  let diaActual = diaSemana;
-  let diaAperturaTemp = CONFIG.diaApertura;
-  let diaCierreTemp = CONFIG.diaCierre;
-  
-  // Ajustar para casos donde cierre es menor (ej: Sábado 6 → Lunes 1)
-  if (diaCierreTemp < diaAperturaTemp) {
-    diaCierreTemp += 7;
-    if (diaActual < diaAperturaTemp) {
-      diaActual += 7;
+  // === CASO 1: MISMO DÍA (ej: Miércoles 12:51 → Miércoles 12:52) ===
+  if (CONFIG.diaApertura === CONFIG.diaCierre) {
+    // Verificar si estamos en el día correcto
+    if (diaSemana !== CONFIG.diaApertura) {
+      console.log('   ❌ No es el día correcto');
+      return false;
+    }
+    
+    // Verificar si cierre es MAYOR que apertura (ej: 12:52 > 12:51)
+    if (minutosCierre > minutosApertura) {
+      // Control abierto si: minutosActuales >= apertura Y minutosActuales < cierre
+      const dentroHorario = (minutosActuales >= minutosApertura && minutosActuales < minutosCierre);
+      console.log(`   🔄 MISMO DÍA, CIERRE > APERTURA: ${dentroHorario ? '✅ DENTRO' : '❌ FUERA'} (${minutosActuales}min entre ${minutosApertura}-${minutosCierre}min)`);
+      return dentroHorario;
+    }
+    // Si cierre es MENOR que apertura (ej: 23:00 → 01:00, pasa de medianoche)
+    else if (minutosCierre < minutosApertura) {
+      // Control abierto si: minutosActuales >= apertura O minutosActuales < cierre
+      const dentroHorario = (minutosActuales >= minutosApertura || minutosActuales < minutosCierre);
+      console.log(`   🔄 MISMO DÍA, CIERRE < APERTURA (pasa medianoche): ${dentroHorario ? '✅ DENTRO' : '❌ FUERA'}`);
+      return dentroHorario;
+    }
+    // Si cierre es IGUAL a apertura (período de 0 minutos - raro pero posible)
+    else {
+      console.log('   ⚠️ MISMO DÍA, CIERRE = APERTURA (período de 0 minutos)');
+      return false; // Nunca está abierto
     }
   }
   
-  // Verificar si estamos entre los días
-  return diaActual > diaAperturaTemp && diaActual < diaCierreTemp;
+  // === CASO 2: DÍAS DIFERENTES (ej: Jueves 18:00 → Sábado 22:00) ===
+  
+  // Convertir todo a una escala lineal para manejar paso de semana
+  let diaActualLineal = diaSemana;
+  let diaAperturaLineal = CONFIG.diaApertura;
+  let diaCierreLineal = CONFIG.diaCierre;
+  
+  // Ajustar si el cierre es en un día menor (ej: Sábado 6 → Lunes 1)
+  if (diaCierreLineal < diaAperturaLineal) {
+    diaCierreLineal += 7;
+    if (diaActualLineal < diaAperturaLineal) {
+      diaActualLineal += 7;
+    }
+  }
+  
+  // Ahora podemos comparar linealmente
+  
+  // Si estamos EXACTAMENTE en el día de apertura
+  if (diaActualLineal === diaAperturaLineal) {
+    // Solo contamos desde la hora de apertura
+    const despuesDeApertura = (minutosActuales >= minutosApertura);
+    console.log(`   📅 DÍA APERTURA: ✅, Después apertura: ${despuesDeApertura ? '✅' : '❌'} (${minutosActuales}min >= ${minutosApertura}min)`);
+    return despuesDeApertura;
+  }
+  
+  // Si estamos EXACTAMENTE en el día de cierre
+  if (diaActualLineal === diaCierreLineal) {
+    // Solo contamos hasta la hora de cierre
+    const antesDeCierre = (minutosActuales < minutosCierre);
+    console.log(`   📅 DÍA CIERRE: ✅, Antes cierre: ${antesDeCierre ? '✅' : '❌'} (${minutosActuales}min < ${minutosCierre}min)`);
+    return antesDeCierre;
+  }
+  
+  // Si estamos ENTRE los días de apertura y cierre
+  const entreDias = (diaActualLineal > diaAperturaLineal && diaActualLineal < diaCierreLineal);
+  console.log(`   📅 ENTRE DÍAS: ${entreDias ? '✅' : '❌'}`);
+  
+  return entreDias;
 }
 
 /* === FUNCIÓN PARA VERIFICAR DÍAS DE CAPTURAS (SIMPLIFICADA) === */
