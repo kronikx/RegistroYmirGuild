@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>YMIR Guild - Panel</title>
 <link rel="stylesheet" href="style.css">
+<!-- Font Awesome para íconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   .edit-input, .edit-select {
     width: 90px;
@@ -378,6 +380,182 @@
     margin-top: 20px;
     border-left: 4px solid #ffc107;
   }
+  
+  /* === NUEVOS ESTILOS PARA LA CONFIGURACIÓN MEJORADA === */
+  
+  /* Tabs de configuración */
+  .config-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid rgba(90, 24, 154, 0.3);
+    flex-wrap: wrap;
+    padding: 0 5px;
+  }
+  
+  .config-tab {
+    padding: 12px 20px;
+    background: rgba(90, 24, 154, 0.15);
+    border: none;
+    border-radius: 8px 8px 0 0;
+    color: #9d4edd;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    position: relative;
+  }
+  
+  .config-tab:hover {
+    background: rgba(90, 24, 154, 0.25);
+    color: #c77dff;
+    transform: translateY(-2px);
+  }
+  
+  .config-tab.active {
+    background: rgba(90, 24, 154, 0.3);
+    color: white;
+    border-bottom: 3px solid #9d4edd;
+  }
+  
+  /* Listas gestionables */
+  .lista-gestionable {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid rgba(90, 24, 154, 0.3);
+    margin: 15px 0;
+  }
+  
+  .item-lista {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border-left: 4px solid #9d4edd;
+    transition: all 0.3s;
+  }
+  
+  .item-lista:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+  }
+  
+  .item-lista .nombre {
+    font-weight: bold;
+    color: #e0e0e0;
+  }
+  
+  .item-lista .acciones {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .btn-eliminar {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .btn-eliminar:hover {
+    background: #c82333;
+  }
+  
+  .btn-eliminar:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  
+  .item-lista.primero {
+    border-left-color: #ffc107;
+    background: rgba(255, 193, 7, 0.1);
+  }
+  
+  .item-lista.primero .nombre::after {
+    content: " (Predeterminado)";
+    color: #ffc107;
+    font-size: 12px;
+    font-style: italic;
+    margin-left: 5px;
+  }
+  
+  /* Estilos para inputs de agregar */
+  .agregar-item {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .agregar-item input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #5a189a;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  .lista-vacia {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+    font-size: 14px;
+  }
+  
+  /* Botón para mover roles */
+  .btn-mover {
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .btn-mover:hover {
+    background: #5c636a;
+  }
+  
+  /* Info roles */
+  .info-roles {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(90, 24, 154, 0.1);
+    border-radius: 6px;
+    border-left: 4px solid #9d4edd;
+    font-size: 14px;
+  }
+  
+  .info-roles ul {
+    margin: 10px 0 0 20px;
+    padding: 0;
+    font-size: 13px;
+  }
+  
+  .info-roles li {
+    margin-bottom: 5px;
+  }
 </style>
 </head>
 <body>
@@ -726,127 +904,361 @@
 </script>
 <!-- === FIN PROTECCIÓN NUCLEAR === -->
 
-<!-- === MODAL DE CONFIGURACIÓN === -->
+<!-- === MODAL DE CONFIGURACIÓN MEJORADO === -->
 <div id="configModal" class="modal">
   <div class="modal-content">
     <h2 style="color: #9d4edd; margin-top: 0; display: flex; align-items: center; gap: 10px;">
       <span>⚙️</span> Configuración del Sistema
     </h2>
     
-    <div class="config-section">
-      <h3><span>💰</span> Sistema de Descuentos</h3>
-      <div class="form-group">
-        <label>Descuento por Boss 45 NO completado:</label>
-        <input type="number" id="descuentoBoss45" min="0" step="100" value="1000">
-        <span class="help-text">Puntos a descontar de la contribución total cuando NO se hace Boss 45</span>
-      </div>
-      <div class="form-group">
-        <label>Descuento por Boss 55 NO completado:</label>
-        <input type="number" id="descuentoBoss55" min="0" step="100" value="2000">
-        <span class="help-text">Puntos a descontar de la contribución total cuando NO se hace Boss 55</span>
-      </div>
+    <!-- TABS para separar las secciones -->
+    <div class="config-tabs" style="display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid rgba(90, 24, 154, 0.3);">
+      <button class="config-tab active" data-tab="descuentos"><span>💰</span> Descuentos</button>
+      <button class="config-tab" data-tab="contribucion"><span>📊</span> Contribución</button>
+      <button class="config-tab" data-tab="clases"><span>👥</span> Clases</button>
+      <button class="config-tab" data-tab="roles"><span>👑</span> Roles</button>
+      <button class="config-tab" data-tab="control"><span>📋</span> Control Semanal</button>
+      <button class="config-tab" data-tab="reinicio"><span>🔄</span> Reinicio</button>
     </div>
     
-    <div class="config-section">
-      <h3><span>📊</span> Sistema de Contribución</h3>
-      <div class="form-group">
-        <div class="checkbox-group">
-          <label class="toggle-switch">
-            <input type="checkbox" id="permitirNegativos">
-            <span class="toggle-slider"></span>
-          </label>
-          <label for="permitirNegativos" style="margin-bottom: 0; cursor: pointer;">
-            Permitir contribución total negativa
-          </label>
-        </div>
-        <span class="help-text">Si está desactivado, la contribución mínima será 0. Si está activado, se permiten valores negativos.</span>
-      </div>
-    </div>
-    
-    <div class="config-section">
-      <h3><span>👥</span> Clases Disponibles</h3>
-      <div class="form-group">
-        <label>Lista de clases (separadas por comas):</label>
-        <textarea id="clasesDisponibles" rows="4" placeholder="Arquero, Mago, Tanque, Healer, Lancero">Arquero, Mago, Tanque, Healer, Lancero</textarea>
-        <span class="help-text">Separa cada clase con una coma. Estas clases aparecerán en los filtros y formularios.</span>
-      </div>
-    </div>
-    
-    <div class="config-section">
-      <h3><span>👑</span> Roles del Sistema</h3>
-      <div class="form-group">
-        <label>Lista de roles (separados por comas):</label>
-        <textarea id="rolesDisponibles" rows="3" placeholder="Miembro, Oficial, Líder">Miembro, Oficial, Líder</textarea>
-        <span class="help-text">El primer rol es el predeterminado para nuevos miembros. Orden recomendado: básico a avanzado.</span>
-      </div>
-    </div>
-    
-    <div class="config-section">
-      <h3><span>📋</span> Control Semanal</h3>
-      <div class="form-group">
-        <div class="checkbox-group">
-          <label class="toggle-switch">
-            <input type="checkbox" id="controlSemanalResta">
-            <span class="toggle-slider"></span>
-          </label>
-          <label for="controlSemanalResta" style="margin-bottom: 0; cursor: pointer;">
-            Control semanal NO completado resta puntos
-          </label>
-        </div>
-        <span class="help-text">Si está activado, los miembros que NO completen el control semanal sufrirán un descuento.</span>
-      </div>
-      <div class="form-group" id="descuentoControlSemanalGroup" style="display: none;">
-        <label>Descuento por Control Semanal NO completado:</label>
-        <input type="number" id="descuentoControlSemanal" min="0" step="100" value="500">
-        <span class="help-text">Puntos a descontar cuando NO se completa el control semanal</span>
-      </div>
-    </div>
-    
-    <div class="config-section">
-      <h3><span>🔄</span> Reinicio Automático</h3>
-      <div class="form-group">
-        <div class="checkbox-group">
-          <label class="toggle-switch">
-            <input type="checkbox" id="reinicioAutomatico">
-            <span class="toggle-slider"></span>
-          </label>
-          <label for="reinicioAutomatico" style="margin-bottom: 0; cursor: pointer;">
-            Activar reinicio semanal automático
-          </label>
-        </div>
-        <span class="help-text">Si está activado, el sistema realizará el reinicio semanal automáticamente en la fecha y hora configurada.</span>
-      </div>
+    <!-- Contenedor de secciones -->
+    <div id="configSections">
       
-      <div id="reinicioConfigGroup" style="margin-top: 15px; padding: 15px; background: rgba(90, 24, 154, 0.05); border-radius: 6px; display: none;">
+      <!-- Sección: Sistema de Descuentos -->
+      <div class="config-section" id="section-descuentos">
+        <h3><span>💰</span> Sistema de Descuentos</h3>
         <div class="form-row">
           <div class="form-group">
-            <label>Día de la semana:</label>
-            <select id="diaReinicio">
-              <option value="0">Domingo</option>
-              <option value="1">Lunes</option>
-              <option value="2">Martes</option>
-              <option value="3">Miércoles</option>
-              <option value="4">Jueves</option>
-              <option value="5">Viernes</option>
-              <option value="6">Sábado</option>
-            </select>
+            <label>Descuento por Boss 45 NO completado:</label>
+            <input type="number" id="descuentoBoss45" min="0" step="100" value="1000">
+            <span class="help-text">Puntos a descontar cuando NO se hace Boss 45</span>
           </div>
           <div class="form-group">
-            <label>Hora (24h):</label>
-            <input type="time" id="horaReinicio" value="00:00">
+            <label>Descuento por Boss 55 NO completado:</label>
+            <input type="number" id="descuentoBoss55" min="0" step="100" value="2000">
+            <span class="help-text">Puntos a descontar cuando NO se hace Boss 55</span>
           </div>
         </div>
+      </div>
+      
+      <!-- Sección: Sistema de Contribución -->
+      <div class="config-section" id="section-contribucion" style="display: none;">
+        <h3><span>📊</span> Sistema de Contribución</h3>
         <div class="form-group">
-          <label>Zona horaria:</label>
-          <input type="text" id="zonaHoraria" value="UTC-4" readonly>
-          <span class="help-text">Hora del servidor (se detecta automáticamente)</span>
-        </div>
-        <div class="form-group">
-          <label>Próximo reinicio:</label>
-          <input type="text" id="proximoReinicio" readonly style="background: rgba(255, 255, 255, 0.05);">
-          <span class="help-text">Calculado basado en la configuración actual</span>
+          <div class="checkbox-group">
+            <label class="toggle-switch">
+              <input type="checkbox" id="permitirNegativos">
+              <span class="toggle-slider"></span>
+            </label>
+            <label for="permitirNegativos" style="margin-bottom: 0; cursor: pointer;">
+              Permitir contribución total negativa
+            </label>
+          </div>
+          <span class="help-text">Si está desactivado, la contribución mínima será 0. Si está activado, se permiten valores negativos.</span>
         </div>
       </div>
+      
+      <!-- Sección: Clases Disponibles - NUEVO DISEÑO -->
+      <div class="config-section" id="section-clases" style="display: none;">
+        <h3><span>👥</span> Clases Disponibles</h3>
+        <div class="form-group">
+          <label>Gestionar clases del sistema:</label>
+          <div class="lista-gestionable" id="listaClasesContainer" style="margin: 15px 0;">
+            <!-- Las clases se mostrarán aquí dinámicamente -->
+            <div class="lista-vacia" id="clasesVacia" style="text-align: center; padding: 20px; color: #666; font-style: italic;">
+              No hay clases configuradas. Añade la primera clase.
+            </div>
+            <ul id="listaClases" style="list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto;"></ul>
+          </div>
+          
+          <div class="agregar-item" style="display: flex; gap: 10px; margin-top: 15px;">
+            <input type="text" id="nuevaClase" placeholder="Nombre de la nueva clase (ej: Arquero)" 
+                   style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #5a189a; background: rgba(255,255,255,0.1); color: white;">
+            <button onclick="agregarClase()" class="btn" style="background: #4CAF50;">
+              <span>➕</span> Agregar
+            </button>
+          </div>
+          <span class="help-text">Las clases aparecerán en los filtros y formularios de todo el sistema</span>
+        </div>
+      </div>
+      
+      <!-- Sección: Roles del Sistema - CON SISTEMA DE PERMISOS -->
+      <div class="config-section" id="section-roles" style="display: none;">
+        <h3><span>👑</span> Roles del Sistema</h3>
+        <div class="form-group">
+          <label>Gestionar roles del sistema:</label>
+          <div class="lista-gestionable" id="listaRolesContainer" style="margin: 15px 0;">
+            <!-- Los roles se mostrarán aquí dinámicamente -->
+            <div class="lista-vacia" id="rolesVacio" style="text-align: center; padding: 20px; color: #666; font-style: italic;">
+              No hay roles configurados. Añade el primer rol.
+            </div>
+            <ul id="listaRoles" style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;"></ul>
+          </div>
+          
+          <div class="agregar-item" style="display: flex; gap: 10px; margin-top: 15px;">
+            <input type="text" id="nuevoRol" placeholder="Nombre del nuevo rol (ej: Miembro)" 
+                   style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #5a189a; background: rgba(255,255,255,0.1); color: white;">
+            <button onclick="agregarRol()" class="btn" style="background: #4CAF50;">
+              <span>➕</span> Agregar
+            </button>
+          </div>
+          
+          <!-- PANEL DE PERMISOS POR ROL -->
+          <div id="panelPermisos" style="margin-top: 25px; display: none;">
+            <h4 style="color: #9d4edd; border-bottom: 1px solid rgba(157, 78, 221, 0.3); padding-bottom: 8px; margin-bottom: 15px;">
+              <span>🔐</span> Permisos del Rol: <span id="nombreRolSeleccionado" style="color: #c77dff;"></span>
+            </h4>
+            
+            <div class="permisos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+              
+              <!-- Permisos de Panel -->
+              <div class="permiso-categoria" style="background: rgba(90, 24, 154, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #5a189a;">
+                <h5 style="color: #9d4edd; margin-top: 0; margin-bottom: 10px;">👥 Panel de Miembros</h5>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="panel_ver">
+                    <span>Ver panel de miembros</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="panel_editar_otros">
+                    <span>Editar datos de otros miembros</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="panel_ver_baneados">
+                    <span>Ver sección de baneados</span>
+                  </label>
+                </div>
+              </div>
+              
+              <!-- Permisos de Subastas -->
+              <div class="permiso-categoria" style="background: rgba(90, 24, 154, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #5a189a;">
+                <h5 style="color: #9d4edd; margin-top: 0; margin-bottom: 10px;">💰 Subastas</h5>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="subastas_ver">
+                    <span>Ver subastas</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="subastas_pujar">
+                    <span>Pujar en subastas</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="subastas_crear">
+                    <span>Crear subastas</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="subastas_administrar">
+                    <span>Administrar subastas</span>
+                  </label>
+                </div>
+              </div>
+              
+              <!-- Permisos de Sistema -->
+              <div class="permiso-categoria" style="background: rgba(90, 24, 154, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #5a189a;">
+                <h5 style="color: #9d4edd; margin-top: 0; margin-bottom: 10px;">⚙️ Sistema</h5>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="configuracion_ver">
+                    <span>Ver configuración</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="configuracion_editar">
+                    <span>Editar configuración</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="reinicio_ejecutar">
+                    <span>Ejecutar reinicio semanal</span>
+                  </label>
+                </div>
+              </div>
+              
+              <!-- Permisos de Moderación -->
+              <div class="permiso-categoria" style="background: rgba(90, 24, 154, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #5a189a;">
+                <h5 style="color: #9d4edd; margin-top: 0; margin-bottom: 10px;">🛡️ Moderación</h5>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="solicitudes_ver">
+                    <span>Ver solicitudes</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="solicitudes_aprobar">
+                    <span>Aprobar/rechazar solicitudes</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="baneos_administrar">
+                    <span>Administrar baneos</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="miembros_eliminar">
+                    <span>Eliminar miembros</span>
+                  </label>
+                </div>
+              </div>
+              
+              <!-- Permisos de Control Semanal -->
+              <div class="permiso-categoria" style="background: rgba(90, 24, 154, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #5a189a;">
+                <h5 style="color: #9d4edd; margin-top: 0; margin-bottom: 10px;">📋 Control Semanal</h5>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="control_ver">
+                    <span>Ver control semanal</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="control_editar_propio">
+                    <span>Editar control propio</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="control_editar_todos">
+                    <span>Editar control de todos</span>
+                  </label>
+                </div>
+              </div>
+              
+              <!-- Permisos de Historial -->
+              <div class="permiso-categoria" style="background: rgba(90, 24, 154, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #5a189a;">
+                <h5 style="color: #9d4edd; margin-top: 0; margin-bottom: 10px;">📊 Historial</h5>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="historial_ver">
+                    <span>Ver historial</span>
+                  </label>
+                </div>
+                <div class="permiso-item">
+                  <label class="checkbox-group" style="margin-bottom: 8px;">
+                    <input type="checkbox" class="permiso" data-codigo="historial_limpiar">
+                    <span>Limpiar historial</span>
+                  </label>
+                </div>
+              </div>
+              
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(157, 78, 221, 0.3);">
+              <div>
+                <button onclick="seleccionarTodosPermisos()" class="btn" style="background: #6c757d; font-size: 12px;">
+                  <span>✓</span> Seleccionar todos
+                </button>
+                <button onclick="deseleccionarTodosPermisos()" class="btn" style="background: #6c757d; font-size: 12px; margin-left: 5px;">
+                  <span>✗</span> Deseleccionar todos
+                </button>
+              </div>
+              <div>
+                <button onclick="guardarPermisosRol()" class="btn" style="background: #4CAF50;">
+                  <span>💾</span> Guardar permisos
+                </button>
+                <button onclick="cancelarEdicionPermisos()" class="btn" style="background: #6c757d; margin-left: 5px;">
+                  <span>❌</span> Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-roles" style="margin-top: 20px; padding: 15px; background: rgba(90, 24, 154, 0.1); border-radius: 6px; border-left: 4px solid #9d4edd;">
+            <strong>💡 Información sobre permisos:</strong>
+            <ul style="margin: 10px 0 0 20px; padding: 0; font-size: 13px;">
+              <li><strong>Miembro:</strong> Solo puede ver y editar su propia información</li>
+              <li><strong>Oficial:</strong> Puede ver todo, editar datos y moderar</li>
+              <li><strong>Líder:</strong> Acceso completo a todas las funciones</li>
+              <li>Haz clic en un rol para ver y editar sus permisos específicos</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sección: Control Semanal -->
+      <div class="config-section" id="section-control" style="display: none;">
+        <h3><span>📋</span> Control Semanal</h3>
+        <div class="form-group">
+          <div class="checkbox-group">
+            <label class="toggle-switch">
+              <input type="checkbox" id="controlSemanalResta">
+              <span class="toggle-slider"></span>
+            </label>
+            <label for="controlSemanalResta" style="margin-bottom: 0; cursor: pointer;">
+              Control semanal NO completado resta puntos
+            </label>
+          </div>
+          <span class="help-text">Si está activado, los miembros que NO completen el control semanal sufrirán un descuento.</span>
+        </div>
+        <div class="form-group" id="descuentoControlSemanalGroup" style="display: none;">
+          <label>Descuento por Control Semanal NO completado:</label>
+          <input type="number" id="descuentoControlSemanal" min="0" step="100" value="500">
+          <span class="help-text">Puntos a descontar cuando NO se completa el control semanal</span>
+        </div>
+      </div>
+      
+      <!-- Sección: Reinicio Automático -->
+      <div class="config-section" id="section-reinicio" style="display: none;">
+        <h3><span>🔄</span> Reinicio Automático</h3>
+        <div class="form-group">
+          <div class="checkbox-group">
+            <label class="toggle-switch">
+              <input type="checkbox" id="reinicioAutomatico">
+              <span class="toggle-slider"></span>
+            </label>
+            <label for="reinicioAutomatico" style="margin-bottom: 0; cursor: pointer;">
+              Activar reinicio semanal automático
+            </label>
+          </div>
+          <span class="help-text">Si está activado, el sistema realizará el reinicio semanal automáticamente en la fecha y hora configurada.</span>
+        </div>
+        
+        <div id="reinicioConfigGroup" style="margin-top: 15px; padding: 15px; background: rgba(90, 24, 154, 0.05); border-radius: 6px; display: none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Día de la semana:</label>
+              <select id="diaReinicio">
+                <option value="0">Domingo</option>
+                <option value="1">Lunes</option>
+                <option value="2">Martes</option>
+                <option value="3">Miércoles</option>
+                <option value="4">Jueves</option>
+                <option value="5">Viernes</option>
+                <option value="6">Sábado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Hora (24h):</label>
+              <input type="time" id="horaReinicio" value="00:00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Zona horaria:</label>
+            <input type="text" id="zonaHoraria" value="UTC-4" readonly>
+            <span class="help-text">Hora del servidor (se detecta automáticamente)</span>
+          </div>
+          <div class="form-group">
+            <label>Próximo reinicio:</label>
+            <input type="text" id="proximoReinicio" readonly style="background: rgba(255, 255, 255, 0.05);">
+            <span class="help-text">Calculado basado en la configuración actual</span>
+          </div>
+        </div>
+      </div>
+      
     </div>
     
     <div class="emergencia-section">
@@ -870,6 +1282,722 @@
     </div>
   </div>
 </div>
+
+<!-- === Añadir estilos para el sistema de permisos === -->
+<style>
+  /* Estilos para el panel de permisos */
+  .permisos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .permiso-categoria {
+    background: rgba(90, 24, 154, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #5a189a;
+    transition: all 0.3s;
+  }
+  
+  .permiso-categoria:hover {
+    background: rgba(90, 24, 154, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .permiso-categoria h5 {
+    color: #9d4edd;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .permiso-item {
+    margin-bottom: 8px;
+  }
+  
+  .permiso-item label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #e0e0e0;
+  }
+  
+  .permiso-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+  
+  .permiso-item span {
+    flex: 1;
+  }
+  
+  /* Estilos para la lista de roles con permisos */
+  .item-lista-con-permisos {
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .item-lista-con-permisos:hover {
+    background: rgba(90, 24, 154, 0.2) !important;
+  }
+  
+  .item-lista-con-permisos.seleccionado {
+    background: rgba(90, 24, 154, 0.3) !important;
+    border-left-color: #ffc107;
+  }
+  
+  .badge-permisos {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(157, 78, 221, 0.2);
+    color: #c77dff;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 5px;
+  }
+</style>
+
+<script>
+// Variables para gestión de permisos
+let rolSeleccionadoIndex = -1;
+let permisosTemporales = {};
+
+/* === Modificar la función cargarRolesEnInterfaz para incluir permisos === */
+function cargarRolesEnInterfaz() {
+  const listaRoles = document.getElementById('listaRoles');
+  const rolesVacio = document.getElementById('rolesVacio');
+  const panelPermisos = document.getElementById('panelPermisos');
+  
+  if (!listaRoles) return;
+  
+  // Limpiar lista
+  listaRoles.innerHTML = '';
+  
+  if (rolesTemporales.length === 0) {
+    if (rolesVacio) rolesVacio.style.display = 'block';
+    if (panelPermisos) panelPermisos.style.display = 'none';
+    return;
+  }
+  
+  if (rolesVacio) rolesVacio.style.display = 'none';
+  
+  // Agregar cada rol a la lista
+  rolesTemporales.forEach((rol, index) => {
+    const li = document.createElement('li');
+    li.className = 'item-lista item-lista-con-permisos' + (index === 0 ? ' primero' : '') + 
+                   (index === rolSeleccionadoIndex ? ' seleccionado' : '');
+    
+    // Contar permisos activos
+    const permisosRol = permisosTemporales[rol] || {};
+    const permisosActivos = Object.values(permisosRol).filter(p => p === true).length;
+    const totalPermisos = Object.keys(permisosRol).length;
+    
+    li.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        <div>
+          <span class="nombre">${rol}</span>
+          ${permisosActivos > 0 ? `
+            <span class="badge-permisos" title="${permisosActivos} de ${totalPermisos} permisos activos">
+              <span>🔐</span> ${permisosActivos}
+            </span>
+          ` : ''}
+        </div>
+        <div class="acciones">
+          ${index > 0 ? `
+            <button class="btn-mover" onclick="event.stopPropagation(); moverRolArriba(${index})" title="Mover arriba">
+              ⬆
+            </button>
+          ` : ''}
+          <button class="btn-eliminar" onclick="event.stopPropagation(); eliminarRol(${index})" 
+                  ${rolesTemporales.length <= 1 ? 'disabled style="opacity:0.5"' : ''}>
+            <span>🗑️</span> Eliminar
+          </button>
+        </div>
+      </div>
+    `;
+    
+    // Añadir evento para seleccionar rol y ver permisos
+    li.addEventListener('click', (e) => {
+      if (!e.target.closest('.acciones')) {
+        seleccionarRolParaPermisos(index);
+      }
+    });
+    
+    listaRoles.appendChild(li);
+  });
+  
+  // Mostrar/ocultar panel de permisos
+  if (panelPermisos) {
+    if (rolSeleccionadoIndex >= 0 && rolSeleccionadoIndex < rolesTemporales.length) {
+      panelPermisos.style.display = 'block';
+      mostrarPermisosRol(rolSeleccionadoIndex);
+    } else {
+      panelPermisos.style.display = 'none';
+    }
+  }
+}
+
+/* === Función para seleccionar un rol y mostrar sus permisos === */
+function seleccionarRolParaPermisos(index) {
+  rolSeleccionadoIndex = index;
+  cargarRolesEnInterfaz();
+  
+  if (index >= 0 && index < rolesTemporales.length) {
+    const rol = rolesTemporales[index];
+    document.getElementById('nombreRolSeleccionado').textContent = rol;
+    mostrarPermisosRol(index);
+  }
+}
+
+/* === Función para mostrar los permisos de un rol === */
+function mostrarPermisosRol(index) {
+  const rol = rolesTemporales[index];
+  const permisosRol = permisosTemporales[rol] || {};
+  
+  // Para roles predefinidos, asignar permisos por defecto si no existen
+  if (!permisosTemporales[rol]) {
+    permisosTemporales[rol] = obtenerPermisosPorDefecto(rol);
+  }
+  
+  // Actualizar todos los checkboxes
+  document.querySelectorAll('.permiso').forEach(checkbox => {
+    const codigo = checkbox.getAttribute('data-codigo');
+    checkbox.checked = permisosTemporales[rol][codigo] || false;
+  });
+}
+
+/* === Función para obtener permisos por defecto según el rol === */
+function obtenerPermisosPorDefecto(nombreRol) {
+  const rolLower = nombreRol.toLowerCase();
+  
+  // Permisos básicos para todos los roles
+  const permisosBase = {
+    panel_ver: true,
+    control_ver: true,
+    control_editar_propio: true,
+    subastas_ver: true,
+    subastas_pujar: true,
+    historial_ver: true
+  };
+  
+  // Permisos específicos por rol
+  if (rolLower === 'líder' || rolLower === 'lider') {
+    return {
+      ...permisosBase,
+      panel_editar_otros: true,
+      panel_ver_baneados: true,
+      subastas_crear: true,
+      subastas_administrar: true,
+      configuracion_ver: true,
+      configuracion_editar: true,
+      reinicio_ejecutar: true,
+      solicitudes_ver: true,
+      solicitudes_aprobar: true,
+      baneos_administrar: true,
+      miembros_eliminar: true,
+      control_editar_todos: true,
+      historial_limpiar: true
+    };
+  } else if (rolLower === 'oficial') {
+    return {
+      ...permisosBase,
+      panel_editar_otros: true,
+      panel_ver_baneados: true,
+      subastas_crear: true,
+      configuracion_ver: true,
+      solicitudes_ver: true,
+      solicitudes_aprobar: true,
+      baneos_administrar: true,
+      control_editar_todos: true
+    };
+  } else {
+    // Miembro (o rol personalizado) - solo permisos básicos
+    return permisosBase;
+  }
+}
+
+/* === Función para guardar los permisos del rol actual === */
+function guardarPermisosRol() {
+  if (rolSeleccionadoIndex < 0 || rolSeleccionadoIndex >= rolesTemporales.length) {
+    alert('❌ No hay ningún rol seleccionado.');
+    return;
+  }
+  
+  const rol = rolesTemporales[rolSeleccionadoIndex];
+  const nuevosPermisos = {};
+  
+  // Recopilar todos los permisos seleccionados
+  document.querySelectorAll('.permiso').forEach(checkbox => {
+    const codigo = checkbox.getAttribute('data-codigo');
+    nuevosPermisos[codigo] = checkbox.checked;
+  });
+  
+  // Guardar permisos temporales
+  permisosTemporales[rol] = nuevosPermisos;
+  
+  // Actualizar interfaz
+  cargarRolesEnInterfaz();
+  
+  alert(`✅ Permisos guardados para el rol "${rol}"`);
+}
+
+/* === Función para cancelar la edición de permisos === */
+function cancelarEdicionPermisos() {
+  rolSeleccionadoIndex = -1;
+  cargarRolesEnInterfaz();
+}
+
+/* === Funciones para seleccionar/deseleccionar todos los permisos === */
+function seleccionarTodosPermisos() {
+  document.querySelectorAll('.permiso').forEach(checkbox => {
+    checkbox.checked = true;
+  });
+}
+
+function deseleccionarTodosPermisos() {
+  document.querySelectorAll('.permiso').forEach(checkbox => {
+    checkbox.checked = false;
+  });
+}
+
+/* === Modificar agregarRol para incluir permisos por defecto === */
+window.agregarRol = function() {
+  const input = document.getElementById('nuevoRol');
+  if (!input) return;
+  
+  const nombre = input.value.trim();
+  
+  if (!nombre) {
+    alert('Por favor, ingresa un nombre para el rol');
+    return;
+  }
+  
+  // Validar que no exista ya
+  if (rolesTemporales.some(r => r.toLowerCase() === nombre.toLowerCase())) {
+    alert('Este rol ya existe');
+    input.value = '';
+    return;
+  }
+  
+  // Agregar a la lista temporal
+  rolesTemporales.push(nombre);
+  
+  // Asignar permisos por defecto
+  permisosTemporales[nombre] = obtenerPermisosPorDefecto(nombre);
+  
+  // Seleccionar automáticamente el nuevo rol
+  rolSeleccionadoIndex = rolesTemporales.length - 1;
+  
+  // Actualizar interfaz
+  cargarRolesEnInterfaz();
+  
+  // Limpiar input
+  input.value = '';
+  input.focus();
+};
+
+/* === Modificar eliminarRol para eliminar también sus permisos === */
+window.eliminarRol = function(index) {
+  if (rolesTemporales.length <= 1) {
+    alert('Debe haber al menos un rol en el sistema');
+    return;
+  }
+  
+  const rolAEliminar = rolesTemporales[index];
+  
+  if (!confirm(`¿Seguro que quieres eliminar el rol "${rolAEliminar}"?\n\nSe perderán todos sus permisos configurados.`)) {
+    return;
+  }
+  
+  // Eliminar de la lista
+  rolesTemporales.splice(index, 1);
+  
+  // Eliminar sus permisos
+  delete permisosTemporales[rolAEliminar];
+  
+  // Ajustar índice seleccionado
+  if (rolSeleccionadoIndex === index) {
+    rolSeleccionadoIndex = -1;
+  } else if (rolSeleccionadoIndex > index) {
+    rolSeleccionadoIndex--;
+  }
+  
+  // Actualizar interfaz
+  cargarRolesEnInterfaz();
+};
+
+/* === Modificar moverRolArriba para actualizar permisos también === */
+window.moverRolArriba = function(index) {
+  if (index <= 0) return;
+  
+  // Intercambiar posiciones
+  const temp = rolesTemporales[index];
+  rolesTemporales[index] = rolesTemporales[index - 1];
+  rolesTemporales[index - 1] = temp;
+  
+  // Ajustar índice seleccionado
+  if (rolSeleccionadoIndex === index) {
+    rolSeleccionadoIndex = index - 1;
+  } else if (rolSeleccionadoIndex === index - 1) {
+    rolSeleccionadoIndex = index;
+  }
+  
+  // Actualizar interfaz
+  cargarRolesEnInterfaz();
+};
+
+/* === Modificar abrirConfiguracion para cargar permisos también === */
+window.abrirConfiguracion = async () => {
+  if (!esLiderOficial) {
+    alert("❌ Solo Líderes y Oficiales pueden acceder a la configuración.");
+    return;
+  }
+  
+  // Cargar configuración actual en el formulario
+  document.getElementById("descuentoBoss45").value = CONFIG.descuentoBoss45;
+  document.getElementById("descuentoBoss55").value = CONFIG.descuentoBoss55;
+  document.getElementById("permitirNegativos").checked = CONFIG.permitirNegativos;
+  document.getElementById("controlSemanalResta").checked = CONFIG.controlSemanalResta;
+  document.getElementById("descuentoControlSemanal").value = CONFIG.descuentoControlSemanal;
+  document.getElementById("reinicioAutomatico").checked = CONFIG.reinicioAutomatico;
+  document.getElementById("diaReinicio").value = CONFIG.diaReinicio;
+  document.getElementById("horaReinicio").value = CONFIG.horaReinicio;
+  document.getElementById("zonaHoraria").value = CONFIG.zonaHoraria || 'UTC-4';
+  
+  // Cargar clases y roles en las listas temporales
+  clasesTemporales = [...CONFIG.clasesDisponibles];
+  rolesTemporales = [...CONFIG.rolesDisponibles];
+  
+  // Cargar permisos desde la configuración global
+  permisosTemporales = CONFIG.permisosPorRol || {};
+  
+  // Asegurar que cada rol tenga permisos asignados
+  rolesTemporales.forEach(rol => {
+    if (!permisosTemporales[rol]) {
+      permisosTemporales[rol] = obtenerPermisosPorDefecto(rol);
+    }
+  });
+  
+  // Reiniciar selección
+  rolSeleccionadoIndex = -1;
+  
+  // Actualizar interfaces
+  cargarClasesEnInterfaz();
+  cargarRolesEnInterfaz();
+  
+  // Configurar eventos para los toggles
+  document.getElementById('reinicioAutomatico').addEventListener('change', toggleReinicioControls);
+  document.getElementById('controlSemanalResta').addEventListener('change', toggleControlSemanalControls);
+  
+  // Inicializar pestañas
+  inicializarTabsConfig();
+  
+  // Actualizar controles según estado actual
+  toggleReinicioControls();
+  toggleControlSemanalControls();
+  
+  // Calcular próximo reinicio si está activado
+  if (CONFIG.reinicioAutomatico && CONFIG.proximoReinicio) {
+    const proximo = new Date(CONFIG.proximoReinicio);
+    const fechaStr = proximo.toLocaleDateString('es-ES', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    document.getElementById('proximoReinicio').value = fechaStr;
+  }
+  
+  // Mostrar modal
+  document.getElementById("configModal").style.display = "flex";
+  
+  // Enfocar primera pestaña
+  setTimeout(() => {
+    const primeraTab = document.querySelector('.config-tab');
+    if (primeraTab) primeraTab.focus();
+  }, 100);
+};
+
+/* === Modificar guardarConfiguracion para incluir permisos === */
+window.guardarConfiguracion = async () => {
+  if (!esLiderOficial) {
+    alert("❌ No tienes permisos para guardar configuración.");
+    return;
+  }
+  
+  // Validar que haya al menos una clase y un rol
+  if (clasesTemporales.length === 0) {
+    alert("❌ Debes agregar al menos una clase.");
+    mostrarSeccionConfig('clases');
+    document.getElementById('nuevaClase').focus();
+    return;
+  }
+  
+  if (rolesTemporales.length === 0) {
+    alert("❌ Debes agregar al menos un rol.");
+    mostrarSeccionConfig('roles');
+    document.getElementById('nuevoRol').focus();
+    return;
+  }
+  
+  // Mostrar mensaje de procesamiento
+  const procesando = document.createElement('div');
+  procesando.id = 'procesandoConfig';
+  procesando.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    z-index: 999999;
+    text-align: center;
+    border: 2px solid #5a189a;
+  `;
+  procesando.innerHTML = `
+    <h3 style="color: #9d4edd; margin-bottom: 20px;">💾 Guardando configuración...</h3>
+    <div class="spinner"></div>
+  `;
+  document.body.appendChild(procesando);
+  
+  try {
+    // Recopilar datos del formulario INCLUYENDO PERMISOS
+    const nuevaConfig = {
+      descuentoBoss45: parseInt(document.getElementById("descuentoBoss45").value) || 1000,
+      descuentoBoss55: parseInt(document.getElementById("descuentoBoss55").value) || 2000,
+      permitirNegativos: document.getElementById("permitirNegativos").checked,
+      clasesDisponibles: clasesTemporales,
+      rolesDisponibles: rolesTemporales,
+      permisosPorRol: permisosTemporales, // <-- NUEVO: Guardar permisos
+      controlSemanalResta: document.getElementById("controlSemanalResta").checked,
+      descuentoControlSemanal: parseInt(document.getElementById("descuentoControlSemanal").value) || 500,
+      reinicioAutomatico: document.getElementById("reinicioAutomatico").checked,
+      diaReinicio: parseInt(document.getElementById("diaReinicio").value) || 0,
+      horaReinicio: document.getElementById("horaReinicio").value || "00:00"
+    };
+    
+    // Validaciones adicionales
+    if (nuevaConfig.descuentoBoss45 < 0 || nuevaConfig.descuentoBoss55 < 0 || 
+        (nuevaConfig.controlSemanalResta && nuevaConfig.descuentoControlSemanal < 0)) {
+      alert("❌ Los descuentos no pueden ser negativos.");
+      procesando.remove();
+      return;
+    }
+    
+    // Calcular próximo reinicio si está activado
+    if (nuevaConfig.reinicioAutomatico) {
+      const proximo = calcularProximoReinicio();
+      nuevaConfig.proximoReinicio = proximo ? proximo.getTime() : null;
+    } else {
+      nuevaConfig.proximoReinicio = null;
+    }
+    
+    // Guardar en Firestore
+    const guardado = await guardarConfiguracionEnFirestore(nuevaConfig);
+    
+    if (guardado) {
+      // Actualizar configuración global
+      CONFIG = { ...CONFIG, ...nuevaConfig };
+      
+      // Registrar en historial
+      await addDoc(collection(db, "historial"), {
+        usuario: MI_UID,
+        rol: MI_ROL,
+        accion: "Configuración actualizada",
+        cambio: "Se modificó la configuración del sistema incluyendo permisos",
+        fecha: Date.now(),
+        detalles: JSON.stringify({
+          descuentoBoss45: nuevaConfig.descuentoBoss45,
+          descuentoBoss55: nuevaConfig.descuentoBoss55,
+          roles: nuevaConfig.rolesDisponibles,
+          permisos: "Sistema de permisos actualizado"
+        }, null, 2)
+      });
+      
+      // Cerrar modal y mostrar confirmación
+      cerrarConfiguracion();
+      procesando.remove();
+      alert("✅ Configuración guardada exitosamente\n\n📋 Se han guardado los permisos de cada rol.");
+      
+      // Actualizar filtros de clases y roles
+      actualizarFiltroClases();
+      actualizarFiltroRoles();
+      
+      // Reiniciar verificador de reinicio automático
+      if (CONFIG.reinicioAutomatico) {
+        iniciarVerificadorReinicio();
+      }
+    } else {
+      procesando.remove();
+      alert("❌ Error al guardar la configuración. Usa el botón de EMERGENCIA.");
+    }
+    
+  } catch (error) {
+    procesando.remove();
+    console.error("Error completo:", error);
+    alert(`❌ Error al guardar configuración: ${error.message}\n\nUsa el botón de EMERGENCIA.`);
+  }
+};
+
+/* === Modificar guardarConfiguracionEmergencia también === */
+window.guardarConfiguracionEmergencia = async () => {
+  if (!esLiderOficial) {
+    alert("❌ No tienes permisos para guardar configuración.");
+    return;
+  }
+  
+  const confirmacion = confirm("⚠️ ¿Usar método de emergencia?\n\nEste método usa una técnica diferente que siempre funciona.");
+  if (!confirmacion) return;
+  
+  // Validar que haya al menos una clase y un rol
+  if (clasesTemporales.length === 0) {
+    alert("❌ Debes agregar al menos una clase.");
+    mostrarSeccionConfig('clases');
+    return;
+  }
+  
+  if (rolesTemporales.length === 0) {
+    alert("❌ Debes agregar al menos un rol.");
+    mostrarSeccionConfig('roles');
+    return;
+  }
+  
+  // Mostrar mensaje de procesamiento
+  const procesando = document.createElement('div');
+  procesando.id = 'procesandoConfigEmergencia';
+  procesando.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    z-index: 999999;
+    text-align: center;
+    border: 2px solid #ffc107;
+  `;
+  procesando.innerHTML = `
+    <h3 style="color: #ffc107; margin-bottom: 20px;">🚨 Guardando configuración (emergencia)...</h3>
+    <div class="spinner" style="border-top: 5px solid #ffc107;"></div>
+  `;
+  document.body.appendChild(procesando);
+  
+  try {
+    // Recopilar datos del formulario usando las listas temporales
+    const configToSave = {
+      descuentoBoss45: parseInt(document.getElementById("descuentoBoss45").value) || 1000,
+      descuentoBoss55: parseInt(document.getElementById("descuentoBoss55").value) || 2000,
+      permitirNegativos: document.getElementById("permitirNegativos").checked,
+      clasesDisponibles: clasesTemporales,
+      rolesDisponibles: rolesTemporales,
+      permisosPorRol: permisosTemporales, // <-- NUEVO: Incluir permisos
+      controlSemanalResta: document.getElementById("controlSemanalResta").checked,
+      descuentoControlSemanal: parseInt(document.getElementById("descuentoControlSemanal").value) || 500,
+      reinicioAutomatico: document.getElementById("reinicioAutomatico").checked,
+      diaReinicio: parseInt(document.getElementById("diaReinicio").value) || 0,
+      horaReinicio: document.getElementById("horaReinicio").value || "00:00",
+      ultimaActualizacion: Date.now(),
+      actualizadoPor: MI_UID,
+      zonaHoraria: CONFIG.zonaHoraria || 'UTC-4'
+    };
+    
+    // Calcular próximo reinicio si está activado
+    if (configToSave.reinicioAutomatico) {
+      const proximo = calcularProximoReinicio();
+      configToSave.proximoReinicio = proximo ? proximo.getTime() : null;
+    } else {
+      configToSave.proximoReinicio = null;
+    }
+    
+    // Guardar directamente con setDoc
+    await setDoc(doc(db, "config", "sistema"), configToSave, { merge: true });
+    
+    // Actualizar configuración global
+    CONFIG = { ...CONFIG, ...configToSave };
+    
+    // Registrar en historial
+    await addDoc(collection(db, "historial"), {
+      usuario: MI_UID,
+      rol: MI_ROL,
+      accion: "Configuración actualizada (emergencia)",
+      cambio: "Se modificó la configuración del sistema usando método de emergencia",
+      fecha: Date.now(),
+      detalles: "Método de emergencia utilizado con sistema de permisos"
+    });
+    
+    // Cerrar modal y mostrar confirmación
+    cerrarConfiguracion();
+    procesando.remove();
+    alert("✅ Configuración guardada exitosamente con método de emergencia\n\n🔐 Permisos de roles incluidos.");
+    
+    // Actualizar filtros
+    actualizarFiltroClases();
+    actualizarFiltroRoles();
+    
+    // Reiniciar verificador de reinicio automático
+    if (CONFIG.reinicioAutomatico) {
+      iniciarVerificadorReinicio();
+    }
+    
+  } catch (error) {
+    procesando.remove();
+    console.error("Error en método de emergencia:", error);
+    alert(`❌ Error grave en método de emergencia: ${error.message}`);
+  }
+};
+
+/* === Modificar cargarConfiguracionDesdeFirestore para cargar permisos === */
+async function cargarConfiguracionDesdeFirestore() {
+  try {
+    const configDoc = await getDoc(doc(db, "config", "sistema"));
+    
+    if (configDoc.exists()) {
+      const configData = configDoc.data();
+      
+      // Actualizar configuración global con valores existentes
+      CONFIG = { 
+        ...CONFIG, // Valores por defecto
+        ...configData // Valores guardados
+      };
+      
+      // Asegurar que permisosPorRol existe
+      if (!CONFIG.permisosPorRol) {
+        CONFIG.permisosPorRol = {};
+      }
+      
+      // Asegurar que cada rol tenga permisos asignados
+      CONFIG.rolesDisponibles.forEach(rol => {
+        if (!CONFIG.permisosPorRol[rol]) {
+          CONFIG.permisosPorRol[rol] = obtenerPermisosPorDefecto(rol);
+        }
+      });
+      
+      console.log('✅ Configuración cargada:', CONFIG);
+    } else {
+      console.log('ℹ️ No existe configuración, usando valores por defecto');
+    }
+  } catch (error) {
+    console.error('❌ Error cargando configuración:', error);
+  }
+}
+</script>
 
 <!-- Sección superior: Hora y URL -->
 <div class="header-info">
@@ -1061,6 +2189,10 @@ let CONFIG = {
   zonaHoraria: 'UTC-4'
 };
 
+/* === Variables para gestión de clases y roles (nuevo sistema) === */
+let clasesTemporales = [];
+let rolesTemporales = [];
+
 /* === Actualizar relojes superiores === */
 function updateTopClocks() {
   const now = new Date();
@@ -1230,6 +2362,236 @@ function toggleControlSemanalControls() {
   }
 }
 
+/* === Función para mostrar una sección específica de configuración === */
+function mostrarSeccionConfig(seccionId) {
+  // Ocultar todas las secciones
+  document.querySelectorAll('.config-section').forEach(section => {
+    section.style.display = 'none';
+  });
+  
+  // Mostrar la sección solicitada
+  const seccion = document.getElementById('section-' + seccionId);
+  if (seccion) {
+    seccion.style.display = 'block';
+  }
+  
+  // Actualizar pestañas activas
+  document.querySelectorAll('.config-tab').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  const tabActiva = document.querySelector(`.config-tab[data-tab="${seccionId}"]`);
+  if (tabActiva) {
+    tabActiva.classList.add('active');
+  }
+}
+
+/* === Inicializar pestañas al abrir configuración === */
+function inicializarTabsConfig() {
+  // Añadir event listeners a las pestañas
+  document.querySelectorAll('.config-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      const seccionId = this.getAttribute('data-tab');
+      mostrarSeccionConfig(seccionId);
+    });
+  });
+  
+  // Mostrar la primera sección por defecto
+  mostrarSeccionConfig('descuentos');
+}
+
+/* === Función para cargar clases en la interfaz === */
+function cargarClasesEnInterfaz() {
+  const listaClases = document.getElementById('listaClases');
+  const clasesVacia = document.getElementById('clasesVacia');
+  
+  if (!listaClases) return;
+  
+  // Limpiar lista
+  listaClases.innerHTML = '';
+  
+  if (clasesTemporales.length === 0) {
+    if (clasesVacia) clasesVacia.style.display = 'block';
+    return;
+  }
+  
+  if (clasesVacia) clasesVacia.style.display = 'none';
+  
+  // Agregar cada clase a la lista
+  clasesTemporales.forEach((clase, index) => {
+    const li = document.createElement('li');
+    li.className = 'item-lista';
+    
+    li.innerHTML = `
+      <div>
+        <span class="nombre">${clase}</span>
+      </div>
+      <div class="acciones">
+        <button class="btn-eliminar" onclick="eliminarClase(${index})" ${clasesTemporales.length <= 1 ? 'disabled style="opacity:0.5"' : ''}>
+          <span>🗑️</span> Eliminar
+        </button>
+      </div>
+    `;
+    
+    listaClases.appendChild(li);
+  });
+}
+
+/* === Función para agregar una nueva clase === */
+window.agregarClase = function() {
+  const input = document.getElementById('nuevaClase');
+  if (!input) return;
+  
+  const nombre = input.value.trim();
+  
+  if (!nombre) {
+    alert('Por favor, ingresa un nombre para la clase');
+    return;
+  }
+  
+  // Validar que no exista ya
+  if (clasesTemporales.some(c => c.toLowerCase() === nombre.toLowerCase())) {
+    alert('Esta clase ya existe');
+    input.value = '';
+    return;
+  }
+  
+  // Agregar a la lista temporal
+  clasesTemporales.push(nombre);
+  
+  // Actualizar interfaz
+  cargarClasesEnInterfaz();
+  
+  // Limpiar input
+  input.value = '';
+  input.focus();
+}
+
+/* === Función para eliminar una clase === */
+window.eliminarClase = function(index) {
+  if (clasesTemporales.length <= 1) {
+    alert('Debe haber al menos una clase en el sistema');
+    return;
+  }
+  
+  const claseAEliminar = clasesTemporales[index];
+  
+  if (!confirm(`¿Seguro que quieres eliminar la clase "${claseAEliminar}"?\n\nEsta acción no se puede deshacer.`)) {
+    return;
+  }
+  
+  // Eliminar de la lista
+  clasesTemporales.splice(index, 1);
+  
+  // Actualizar interfaz
+  cargarClasesEnInterfaz();
+}
+
+/* === Función para cargar roles en la interfaz === */
+function cargarRolesEnInterfaz() {
+  const listaRoles = document.getElementById('listaRoles');
+  const rolesVacio = document.getElementById('rolesVacio');
+  
+  if (!listaRoles) return;
+  
+  // Limpiar lista
+  listaRoles.innerHTML = '';
+  
+  if (rolesTemporales.length === 0) {
+    if (rolesVacio) rolesVacio.style.display = 'block';
+    return;
+  }
+  
+  if (rolesVacio) rolesVacio.style.display = 'none';
+  
+  // Agregar cada rol a la lista
+  rolesTemporales.forEach((rol, index) => {
+    const li = document.createElement('li');
+    li.className = 'item-lista' + (index === 0 ? ' primero' : '');
+    
+    li.innerHTML = `
+      <div>
+        <span class="nombre">${rol}</span>
+      </div>
+      <div class="acciones">
+        ${index > 0 ? `
+          <button class="btn-mover" onclick="moverRolArriba(${index})" title="Mover arriba">
+            ⬆
+          </button>
+        ` : ''}
+        <button class="btn-eliminar" onclick="eliminarRol(${index})" ${rolesTemporales.length <= 1 ? 'disabled style="opacity:0.5"' : ''}>
+          <span>🗑️</span> Eliminar
+        </button>
+      </div>
+    `;
+    
+    listaRoles.appendChild(li);
+  });
+}
+
+/* === Función para agregar un nuevo rol === */
+window.agregarRol = function() {
+  const input = document.getElementById('nuevoRol');
+  if (!input) return;
+  
+  const nombre = input.value.trim();
+  
+  if (!nombre) {
+    alert('Por favor, ingresa un nombre para el rol');
+    return;
+  }
+  
+  // Validar que no exista ya
+  if (rolesTemporales.some(r => r.toLowerCase() === nombre.toLowerCase())) {
+    alert('Este rol ya existe');
+    input.value = '';
+    return;
+  }
+  
+  // Agregar a la lista temporal
+  rolesTemporales.push(nombre);
+  
+  // Actualizar interfaz
+  cargarRolesEnInterfaz();
+  
+  // Limpiar input
+  input.value = '';
+  input.focus();
+}
+
+/* === Función para eliminar un rol === */
+window.eliminarRol = function(index) {
+  if (rolesTemporales.length <= 1) {
+    alert('Debe haber al menos un rol en el sistema');
+    return;
+  }
+  
+  const rolAEliminar = rolesTemporales[index];
+  
+  if (!confirm(`¿Seguro que quieres eliminar el rol "${rolAEliminar}"?\n\nLos miembros con este rol quedarán sin rol asignado.`)) {
+    return;
+  }
+  
+  // Eliminar de la lista
+  rolesTemporales.splice(index, 1);
+  
+  // Actualizar interfaz
+  cargarRolesEnInterfaz();
+}
+
+/* === Función para mover un rol hacia arriba === */
+window.moverRolArriba = function(index) {
+  if (index <= 0) return;
+  
+  // Intercambiar posiciones
+  const temp = rolesTemporales[index];
+  rolesTemporales[index] = rolesTemporales[index - 1];
+  rolesTemporales[index - 1] = temp;
+  
+  // Actualizar interfaz
+  cargarRolesEnInterfaz();
+}
+
 /* === Auth y carga inicial === */
 onAuthStateChanged(auth, async user => {
   if (!user) { 
@@ -1358,8 +2720,6 @@ window.abrirConfiguracion = async () => {
   document.getElementById("descuentoBoss45").value = CONFIG.descuentoBoss45;
   document.getElementById("descuentoBoss55").value = CONFIG.descuentoBoss55;
   document.getElementById("permitirNegativos").checked = CONFIG.permitirNegativos;
-  document.getElementById("clasesDisponibles").value = CONFIG.clasesDisponibles.join(", ");
-  document.getElementById("rolesDisponibles").value = CONFIG.rolesDisponibles.join(", ");
   document.getElementById("controlSemanalResta").checked = CONFIG.controlSemanalResta;
   document.getElementById("descuentoControlSemanal").value = CONFIG.descuentoControlSemanal;
   document.getElementById("reinicioAutomatico").checked = CONFIG.reinicioAutomatico;
@@ -1367,9 +2727,20 @@ window.abrirConfiguracion = async () => {
   document.getElementById("horaReinicio").value = CONFIG.horaReinicio;
   document.getElementById("zonaHoraria").value = CONFIG.zonaHoraria || 'UTC-4';
   
+  // Cargar clases y roles en las listas temporales
+  clasesTemporales = [...CONFIG.clasesDisponibles];
+  rolesTemporales = [...CONFIG.rolesDisponibles];
+  
+  // Actualizar interfaces
+  cargarClasesEnInterfaz();
+  cargarRolesEnInterfaz();
+  
   // Configurar eventos para los toggles
   document.getElementById('reinicioAutomatico').addEventListener('change', toggleReinicioControls);
   document.getElementById('controlSemanalResta').addEventListener('change', toggleControlSemanalControls);
+  
+  // Inicializar pestañas
+  inicializarTabsConfig();
   
   // Actualizar controles según estado actual
   toggleReinicioControls();
@@ -1391,6 +2762,12 @@ window.abrirConfiguracion = async () => {
   
   // Mostrar modal
   document.getElementById("configModal").style.display = "flex";
+  
+  // Enfocar primera pestaña
+  setTimeout(() => {
+    const primeraTab = document.querySelector('.config-tab');
+    if (primeraTab) primeraTab.focus();
+  }, 100);
 };
 
 /* === Cerrar modal de configuración === */
@@ -1402,6 +2779,21 @@ window.cerrarConfiguracion = () => {
 window.guardarConfiguracion = async () => {
   if (!esLiderOficial) {
     alert("❌ No tienes permisos para guardar configuración.");
+    return;
+  }
+  
+  // Validar que haya al menos una clase y un rol
+  if (clasesTemporales.length === 0) {
+    alert("❌ Debes agregar al menos una clase.");
+    mostrarSeccionConfig('clases');
+    document.getElementById('nuevaClase').focus();
+    return;
+  }
+  
+  if (rolesTemporales.length === 0) {
+    alert("❌ Debes agregar al menos un rol.");
+    mostrarSeccionConfig('roles');
+    document.getElementById('nuevoRol').focus();
     return;
   }
   
@@ -1433,14 +2825,8 @@ window.guardarConfiguracion = async () => {
       descuentoBoss45: parseInt(document.getElementById("descuentoBoss45").value) || 1000,
       descuentoBoss55: parseInt(document.getElementById("descuentoBoss55").value) || 2000,
       permitirNegativos: document.getElementById("permitirNegativos").checked,
-      clasesDisponibles: document.getElementById("clasesDisponibles").value
-        .split(",")
-        .map(c => c.trim())
-        .filter(c => c.length > 0),
-      rolesDisponibles: document.getElementById("rolesDisponibles").value
-        .split(",")
-        .map(r => r.trim())
-        .filter(r => r.length > 0),
+      clasesDisponibles: clasesTemporales,
+      rolesDisponibles: rolesTemporales,
       controlSemanalResta: document.getElementById("controlSemanalResta").checked,
       descuentoControlSemanal: parseInt(document.getElementById("descuentoControlSemanal").value) || 500,
       reinicioAutomatico: document.getElementById("reinicioAutomatico").checked,
@@ -1448,19 +2834,7 @@ window.guardarConfiguracion = async () => {
       horaReinicio: document.getElementById("horaReinicio").value || "00:00"
     };
     
-    // Validaciones
-    if (nuevaConfig.clasesDisponibles.length === 0) {
-      alert("❌ Debes agregar al menos una clase.");
-      procesando.remove();
-      return;
-    }
-    
-    if (nuevaConfig.rolesDisponibles.length === 0) {
-      alert("❌ Debes agregar al menos un rol.");
-      procesando.remove();
-      return;
-    }
-    
+    // Validaciones adicionales
     if (nuevaConfig.descuentoBoss45 < 0 || nuevaConfig.descuentoBoss55 < 0 || 
         (nuevaConfig.controlSemanalResta && nuevaConfig.descuentoControlSemanal < 0)) {
       alert("❌ Los descuentos no pueden ser negativos.");
@@ -1494,6 +2868,8 @@ window.guardarConfiguracion = async () => {
           descuentoBoss45: nuevaConfig.descuentoBoss45,
           descuentoBoss55: nuevaConfig.descuentoBoss55,
           permitirNegativos: nuevaConfig.permitirNegativos,
+          clases: nuevaConfig.clasesDisponibles,
+          roles: nuevaConfig.rolesDisponibles,
           controlSemanalResta: nuevaConfig.controlSemanalResta,
           reinicioAutomatico: nuevaConfig.reinicioAutomatico
         }, null, 2)
@@ -1506,6 +2882,7 @@ window.guardarConfiguracion = async () => {
       
       // Actualizar filtros de clases y roles
       actualizarFiltroClases();
+      actualizarFiltroRoles();
       
       // Reiniciar verificador de reinicio automático
       if (CONFIG.reinicioAutomatico) {
@@ -1533,6 +2910,19 @@ window.guardarConfiguracionEmergencia = async () => {
   const confirmacion = confirm("⚠️ ¿Usar método de emergencia?\n\nEste método usa una técnica diferente que siempre funciona.");
   if (!confirmacion) return;
   
+  // Validar que haya al menos una clase y un rol
+  if (clasesTemporales.length === 0) {
+    alert("❌ Debes agregar al menos una clase.");
+    mostrarSeccionConfig('clases');
+    return;
+  }
+  
+  if (rolesTemporales.length === 0) {
+    alert("❌ Debes agregar al menos un rol.");
+    mostrarSeccionConfig('roles');
+    return;
+  }
+  
   // Mostrar mensaje de procesamiento
   const procesando = document.createElement('div');
   procesando.id = 'procesandoConfigEmergencia';
@@ -1556,15 +2946,13 @@ window.guardarConfiguracionEmergencia = async () => {
   document.body.appendChild(procesando);
   
   try {
-    // Recopilar datos del formulario
+    // Recopilar datos del formulario usando las listas temporales
     const configToSave = {
       descuentoBoss45: parseInt(document.getElementById("descuentoBoss45").value) || 1000,
       descuentoBoss55: parseInt(document.getElementById("descuentoBoss55").value) || 2000,
       permitirNegativos: document.getElementById("permitirNegativos").checked,
-      clasesDisponibles: document.getElementById("clasesDisponibles").value
-        .split(",").map(c => c.trim()).filter(c => c.length > 0),
-      rolesDisponibles: document.getElementById("rolesDisponibles").value
-        .split(",").map(r => r.trim()).filter(r => r.length > 0),
+      clasesDisponibles: clasesTemporales,
+      rolesDisponibles: rolesTemporales,
       controlSemanalResta: document.getElementById("controlSemanalResta").checked,
       descuentoControlSemanal: parseInt(document.getElementById("descuentoControlSemanal").value) || 500,
       reinicioAutomatico: document.getElementById("reinicioAutomatico").checked,
@@ -1575,19 +2963,6 @@ window.guardarConfiguracionEmergencia = async () => {
       zonaHoraria: CONFIG.zonaHoraria || 'UTC-4'
     };
     
-    // Validaciones rápidas
-    if (configToSave.clasesDisponibles.length === 0) {
-      alert("❌ Debes agregar al menos una clase.");
-      procesando.remove();
-      return;
-    }
-    
-    if (configToSave.rolesDisponibles.length === 0) {
-      alert("❌ Debes agregar al menos un rol.");
-      procesando.remove();
-      return;
-    }
-    
     // Calcular próximo reinicio si está activado
     if (configToSave.reinicioAutomatico) {
       const proximo = calcularProximoReinicio();
@@ -1596,7 +2971,7 @@ window.guardarConfiguracionEmergencia = async () => {
       configToSave.proximoReinicio = null;
     }
     
-    // Guardar directamente con setDoc - ESTO SIEMPRE FUNCIONA
+    // Guardar directamente con setDoc
     await setDoc(doc(db, "config", "sistema"), configToSave, { merge: true });
     
     // Actualizar configuración global
@@ -1619,6 +2994,7 @@ window.guardarConfiguracionEmergencia = async () => {
     
     // Actualizar filtros
     actualizarFiltroClases();
+    actualizarFiltroRoles();
     
     // Reiniciar verificador de reinicio automático
     if (CONFIG.reinicioAutomatico) {
@@ -2673,6 +4049,30 @@ function actualizarFiltroClases() {
   });
 }
 
+/* === Función para actualizar filtros de roles === */
+function actualizarFiltroRoles() {
+  const filtrosRol = document.querySelectorAll('.filtros th:nth-child(2) select');
+  
+  filtrosRol.forEach(select => {
+    // Guardar valor actual seleccionado
+    const valorActual = select.value;
+    
+    // Limpiar opciones
+    select.innerHTML = '<option value="">Todos</option>';
+    
+    // Agregar todos los roles
+    CONFIG.rolesDisponibles.forEach(rol => {
+      const option = document.createElement('option');
+      option.value = rol;
+      option.textContent = rol;
+      if (valorActual === rol) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+  });
+}
+
 /* === Debug: Ver configuración actual === */
 window.mostrarConfigDebug = () => {
   console.log("🔍 CONFIGURACIÓN ACTUAL:", CONFIG);
@@ -2696,7 +4096,10 @@ window.mostrarConfigDebug = () => {
 };
 
 // Actualizar filtros de clases después de cargar
-setTimeout(actualizarFiltroClases, 100);
+setTimeout(() => {
+  actualizarFiltroClases();
+  actualizarFiltroRoles();
+}, 100);
 </script>
 <script>
   // Evento para el botón de bosses - REDIRIGE A bosses.html EN NUEVA PESTAÑA
